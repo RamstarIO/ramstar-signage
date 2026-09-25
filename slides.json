@@ -1,0 +1,25 @@
+{
+  "defaultDuration": 10,
+  "refreshMinutes": 5,
+  "hardReloadHours": 6,
+  "moveTo": null,
+  "slides": [
+    {
+      "title": "Test slide - signage is working",
+      "src": "slides/00-test.png",
+      "duration": 10
+    },
+    {
+      "title": "Example: safety slide (remove once real slides exist)",
+      "src": "slides/10-safety.png",
+      "enabled": false
+    },
+    {
+      "title": "Example: event slide with a date window",
+      "src": "slides/20-event-fall-bbq.png",
+      "start": "2026-10-01",
+      "end": "2026-10-17",
+      "enabled": false
+    }
+  ]
+}

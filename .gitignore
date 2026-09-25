@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+._*
+
+# Editor
+.vscode/
+*.swp
+
+# Never commit these to the public repo
+private/
+*.xlsx
+*.csv
