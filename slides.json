@@ -3,7 +3,6 @@
   "refreshMinutes": 5,
   "hardReloadHours": 6,
   "moveTo": null,
-  "defaultEffect": "zoom",
   "slides": [
     {
       "title": "Test slide - signage is working",
