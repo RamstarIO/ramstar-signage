@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Ramstar Signage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@500;600&display=swap">
 <style>
   :root {
     --ramstar-orange: #F7941D;
@@ -19,16 +22,109 @@
     overflow: hidden;
     cursor: none; /* hide the mouse pointer on the TV */
   }
-  .slide {
+
+  /* The stage is always 16:9 and centred, so overlay text lines up with the
+     background image on any screen. --u is "one design pixel" of a
+     1920x1080 slide, so sizes below match the design templates exactly. */
+  .stage {
     position: fixed;
+    top: 50%;
+    left: 50%;
+    width: min(100vw, 177.7778vh);
+    height: min(100vh, 56.25vw);
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+    --u: calc(min(100vw, 177.7778vh) / 1920);
+  }
+
+  .layer {
+    position: absolute;
     inset: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: contain; /* never crop a slide; letterbox on odd screens */
     opacity: 0;
     transition: opacity var(--fade-ms) ease-in-out;
   }
-  .slide.is-visible { opacity: 1; }
+  .layer.is-visible { opacity: 1; }
+
+  .layer img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform-origin: 50% 50%;
+  }
+
+  /* Whole-slide effect: slow "Ken Burns" push-in. Works on any PNG. */
+  .layer.fx-zoom.is-visible img {
+    animation: ken-burns var(--slide-dur, 10s) linear forwards;
+  }
+  @keyframes ken-burns {
+    from { transform: scale(1); }
+    to   { transform: scale(1.06); }
+  }
+
+  /* Text overlay: tag, title and body enter one after another. */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    padding: calc(var(--u) * 96) calc(var(--u) * 120);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: calc(var(--u) * 36);
+    color: #FFFFFF;
+    font-family: "Barlow", system-ui, sans-serif;
+  }
+  .overlay.align-top { justify-content: flex-start; }
+  .overlay.theme-light { color: var(--ramstar-navy); }
+
+  .overlay .tag {
+    align-self: flex-start;
+    background: var(--ramstar-orange);
+    color: var(--ramstar-navy);
+    font: 700 calc(var(--u) * 40) / 1.2 "Barlow Condensed", sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: calc(var(--u) * 8) calc(var(--u) * 28);
+    border-radius: calc(var(--u) * 6);
+  }
+  .overlay .title {
+    margin: 0;
+    max-width: calc(var(--u) * 1400);
+    font: 800 calc(var(--u) * 150) / 0.95 "Barlow Condensed", sans-serif;
+    text-transform: uppercase;
+  }
+  .overlay .title .accent { color: var(--ramstar-orange); }
+  .overlay.theme-light .title .accent { color: var(--ramstar-blue); }
+  .overlay .body {
+    margin: 0;
+    max-width: calc(var(--u) * 1200);
+    font-size: calc(var(--u) * 54);
+    font-weight: 500;
+    line-height: 1.25;
+  }
+
+  .overlay > * { opacity: 0; }
+  .layer.is-visible .overlay > * {
+    animation: rise-in 700ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  }
+  /* Stagger: each line starts after the previous one. */
+  .layer.is-visible .overlay > :nth-child(1) { animation-delay: 500ms; }
+  .layer.is-visible .overlay > :nth-child(2) { animation-delay: 850ms; }
+  .layer.is-visible .overlay > :nth-child(3) { animation-delay: 1250ms; }
+  .layer.is-visible .overlay > :nth-child(4) { animation-delay: 1650ms; }
+  @keyframes rise-in {
+    from { opacity: 0; transform: translateY(calc(var(--u) * 40)); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Respect a device-level "reduce motion" setting. */
+  @media (prefers-reduced-motion: reduce) {
+    .layer.is-visible img,
+    .layer.is-visible .overlay > * { animation: none; opacity: 1; }
+  }
+
   #status {
     position: fixed;
     inset: 0;
@@ -44,8 +140,10 @@
 </style>
 </head>
 <body>
-<img class="slide" id="layer-a" alt="">
-<img class="slide" id="layer-b" alt="">
+<div class="stage">
+  <div class="layer" id="layer-a"></div>
+  <div class="layer" id="layer-b"></div>
+</div>
 <div id="status" role="status"></div>
 
 <script>
@@ -54,6 +152,11 @@
  * Reads slides.json, shows each active slide full-screen with a crossfade,
  * and re-reads slides.json every few minutes so new content appears
  * without anyone touching the TVs. See README.md for the file format.
+ *
+ * Optional per-slide animation:
+ *   "effect": "zoom"   -> slow push-in on the whole image (any PNG)
+ *   "overlay": {...}   -> tag / title / body text that fades in line by line
+ *                         on top of a text-free background image
  */
 (function () {
   "use strict";
@@ -61,6 +164,7 @@
   const CONFIG_URL = "slides.json";
   const DEFAULTS = {
     defaultDuration: 10,   // seconds per slide
+    defaultEffect: "none", // "none" or "zoom", used when a slide has no "effect"
     refreshMinutes: 5,     // how often to re-read slides.json
     hardReloadHours: 6,    // full page reload to pick up code changes
     moveTo: null           // Phase 2: URL to send all TVs to
@@ -72,7 +176,7 @@
   let config = { ...DEFAULTS, slides: [] };
   let playlist = [];      // slides active today
   let position = -1;      // index into playlist
-  let frontLayer = 0;     // which <img> is currently showing
+  let frontLayer = 0;     // which layer is currently showing
   let timer = null;
 
   // ---------- helpers ----------
@@ -86,7 +190,6 @@
     statusEl.classList.remove("is-shown");
   }
 
-  // "2026-10-01" -> true if today is on/after that date (local time).
   function todayIso() {
     const d = new Date();
     const pad = (n) => String(n).padStart(2, "0");
@@ -111,9 +214,42 @@
     });
   }
 
-  // Cache-busting so a TV never sits on a stale copy of the config.
   function withCacheBust(url) {
     return `${url}${url.includes("?") ? "&" : "?"}t=${Date.now()}`;
+  }
+
+  // Creates an element with a class and plain text (never HTML), so a typo
+  // in slides.json can't inject markup into the page.
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  // Title supports one highlighted phrase: "Happy *Birthday*" -> Birthday in orange.
+  function buildTitle(text) {
+    const h = el("h1", "title");
+    String(text).split(/(\*[^*]+\*)/).forEach((part) => {
+      if (!part) return;
+      if (part.startsWith("*") && part.endsWith("*")) {
+        h.appendChild(el("span", "accent", part.slice(1, -1)));
+      } else {
+        h.appendChild(document.createTextNode(part));
+      }
+    });
+    return h;
+  }
+
+  function buildOverlay(overlay) {
+    const classes = ["overlay"];
+    if (overlay.theme === "light") classes.push("theme-light");
+    if (overlay.align === "top") classes.push("align-top");
+    const box = el("div", classes.join(" "));
+    if (overlay.tag) box.appendChild(el("div", "tag", overlay.tag));
+    if (overlay.title) box.appendChild(buildTitle(overlay.title));
+    if (overlay.body) box.appendChild(el("p", "body", overlay.body));
+    return box;
   }
 
   // ---------- config ----------
@@ -126,7 +262,6 @@
     config = { ...DEFAULTS, ...data };
 
     if (config.moveTo) {
-      // Phase 2 switch: every TV follows on its next refresh.
       window.location.replace(config.moveTo);
       return false;
     }
@@ -147,7 +282,6 @@
         advance();
       }
     } catch (err) {
-      // Keep playing the last good playlist if the network blips.
       console.warn("Config refresh failed:", err);
       if (playlist.length === 0) showStatus("Waiting for network…");
     }
@@ -160,14 +294,13 @@
     timer = null;
     if (playlist.length === 0) return;
 
-    // Try each slide at most once per call so a missing file can't loop forever.
     for (let attempt = 0; attempt < playlist.length; attempt++) {
       position = (position + 1) % playlist.length;
       const slide = playlist[position];
       try {
         await preload(slide.src);
-        show(slide);
         const seconds = Number(slide.duration) || config.defaultDuration;
+        show(slide, seconds);
         timer = setTimeout(advance, seconds * 1000);
         return;
       } catch (err) {
@@ -179,13 +312,32 @@
     timer = setTimeout(advance, 30 * 1000);
   }
 
-  function show(slide) {
-    const back = 1 - frontLayer;
-    layers[back].src = slide.src;
-    layers[back].alt = slide.title || "";
-    layers[back].classList.add("is-visible");
-    layers[frontLayer].classList.remove("is-visible");
-    frontLayer = back;
+  function show(slide, seconds) {
+    const back = layers[1 - frontLayer];
+    const front = layers[frontLayer];
+
+    // Rebuild the back layer from scratch so its animations start fresh.
+    back.className = "layer";
+    back.replaceChildren();
+
+    const img = el("img");
+    img.src = slide.src;
+    img.alt = slide.title || "";
+    back.appendChild(img);
+
+    if (slide.overlay && typeof slide.overlay === "object") {
+      back.appendChild(buildOverlay(slide.overlay));
+    }
+
+    const effect = slide.effect || config.defaultEffect;
+    if (effect === "zoom") back.classList.add("fx-zoom");
+    // Zoom runs slightly longer than the slide so it never stops on screen.
+    back.style.setProperty("--slide-dur", `${seconds + 1}s`);
+
+    void back.offsetWidth; // force layout so the animations restart
+    back.classList.add("is-visible");
+    front.classList.remove("is-visible");
+    frontLayer = 1 - frontLayer;
     hideStatus();
   }
 
