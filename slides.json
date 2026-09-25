@@ -7,19 +7,37 @@
     {
       "title": "Test slide - signage is working",
       "src": "slides/00-test.png",
-      "duration": 10
+      "duration": 5
     },
     {
       "title": "Example: safety slide (remove once real slides exist)",
-      "src": "slides/10-safety.png",
-      "enabled": false
+      "src": "slides/Birthdays@1x.png",
+      "duration": 5
     },
     {
-      "title": "Example: event slide with a date window",
-      "src": "slides/20-event-fall-bbq.png",
-      "start": "2026-10-01",
-      "end": "2026-10-17",
-      "enabled": false
+      "title": "Example: safety slide (remove once real slides exist)",
+      "src": "slides/Company Value@1x.png",
+      "duration": 5
+    },
+    {
+      "title": "Example: safety slide (remove once real slides exist)",
+      "src": "slides/Customer Supplier Spotlight@1x.png",
+      "duration": 5
+    },
+    {
+      "title": "Example: safety slide (remove once real slides exist)",
+      "src": "slides/Event Countdown@1x.png",
+      "duration": 5
+    },
+    {
+      "title": "Example: safety slide (remove once real slides exist)",
+      "src": "slides/Milestone@1x.png",
+      "duration": 5
+    },
+    {
+      "title": "Example: safety slide (remove once real slides exist)",
+      "src": "slides/Safety@1x.png",
+      "duration": 5
     }
   ]
 }
