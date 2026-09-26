@@ -1,0 +1,204 @@
+/* Live weather slide: Design A "Big Number".
+   Laid out at a fixed 1920x1080 and scaled to the screen by the player,
+   so every size here matches the design mockup pixel for pixel. */
+
+.wx {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  transform: scale(var(--k, 1));
+  transform-origin: 0 0;
+  overflow: hidden;
+  background: #0E2A56;
+  color: #FFFFFF;
+  font-family: "Barlow", system-ui, sans-serif;
+}
+
+.wx-star {
+  position: absolute;
+  right: -220px;
+  top: -200px;
+  width: 900px;
+  height: 900px;
+}
+.wx-star svg { width: 100%; height: 100%; display: block; }
+
+.wx-frame {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding: 72px 120px 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Header */
+.wx-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.wx-header-left {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.wx-tag {
+  background: #F7941D;
+  color: #0E2A56;
+  font: 700 40px/1.2 "Barlow Condensed", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 28px;
+  border-radius: 6px;
+}
+.wx-date {
+  font: 700 56px/1.1 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.wx-place {
+  font-size: 40px;
+  color: #D6DDEA;
+}
+.wx-logo {
+  background: #FFFFFF;
+  border-radius: 10px;
+  padding: 16px 28px;
+  display: flex;
+}
+.wx-logo img { height: 80px; width: auto; display: block; }
+
+/* Weather alert banner (only when ECCC has an active alert) */
+.wx-alert {
+  background: #F7941D;
+  color: #0E2A56;
+  border-radius: 10px;
+  padding: 14px 28px;
+  font: 700 44px/1.2 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Middle */
+.wx-middle {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  gap: 64px;
+  min-height: 0;
+}
+.wx-now {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+.wx-now-icon { display: flex; flex-shrink: 0; }
+.wx-now-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wx-temp {
+  font: 800 280px/0.85 "Barlow Condensed", sans-serif;
+  color: #F7941D;
+  white-space: nowrap;
+}
+.wx-condition {
+  font: 700 64px/1.05 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wx-condition.is-long { font-size: 50px; }
+
+/* An alert banner takes vertical space, so the big number gives some back. */
+.wx--alert .wx-temp { font-size: 220px; }
+.wx--alert .wx-now-icon svg { width: 190px; height: 190px; }
+.wx-detail {
+  font-size: 40px;
+  line-height: 1.25;
+  color: #D6DDEA;
+  white-space: nowrap;
+}
+
+.wx-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 48px;
+  width: 800px;
+  flex-shrink: 0;
+}
+.wx-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 3px solid #F7941D;
+  padding-top: 14px;
+}
+.wx-stat-label {
+  font: 700 34px/1.1 "Barlow Condensed", sans-serif;
+  color: #D6DDEA;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.wx-stat-value {
+  font-size: 48px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 5-day strip */
+.wx-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 24px;
+}
+.wx-day {
+  background: #163A72;
+  border-radius: 12px;
+  padding: 22px 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.wx-day-icon { display: flex; flex-shrink: 0; }
+.wx-day-text { display: flex; flex-direction: column; }
+.wx-day-name {
+  font: 700 38px/1.1 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+}
+.wx-day-pop { color: #7FB2FF; }
+.wx-day-temps { font-size: 40px; font-weight: 600; }
+.wx-day-low { color: #AFC0DA; }
+
+.wx-source {
+  font-size: 26px;
+  color: #8FA3C4;
+  text-align: right;
+}
+
+/* Entrance animation: header, alert, now, stats, strip rise in one after another. */
+.wx-anim { opacity: 0; }
+.layer.is-visible .wx-anim {
+  animation: wx-rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+.layer.is-visible .wx-header.wx-anim { animation-delay: 300ms; }
+.layer.is-visible .wx-alert.wx-anim  { animation-delay: 500ms; }
+.layer.is-visible .wx-now.wx-anim    { animation-delay: 650ms; }
+.layer.is-visible .wx-stats.wx-anim  { animation-delay: 1000ms; }
+.layer.is-visible .wx-strip.wx-anim  { animation-delay: 1300ms; }
+@keyframes wx-rise {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .layer.is-visible .wx-anim { animation: none; opacity: 1; }
+}

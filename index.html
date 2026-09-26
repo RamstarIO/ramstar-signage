@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@500;600&display=swap">
+<link rel="stylesheet" href="weather.css">
 <style>
   :root {
     --ramstar-orange: #F7941D;
@@ -45,7 +46,7 @@
   }
   .layer.is-visible { opacity: 1; }
 
-  .layer img {
+  .layer > img {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -55,7 +56,7 @@
   }
 
   /* Whole-slide effect: slow "Ken Burns" push-in. Works on any PNG. */
-  .layer.fx-zoom.is-visible img {
+  .layer.fx-zoom.is-visible > img {
     animation: ken-burns var(--slide-dur, 10s) linear forwards;
   }
   @keyframes ken-burns {
@@ -121,7 +122,7 @@
 
   /* Respect a device-level "reduce motion" setting. */
   @media (prefers-reduced-motion: reduce) {
-    .layer.is-visible img,
+    .layer.is-visible > img,
     .layer.is-visible .overlay > * { animation: none; opacity: 1; }
   }
 
@@ -146,6 +147,7 @@
 </div>
 <div id="status" role="status"></div>
 
+<script src="weather.js"></script>
 <script>
 /*
  * Ramstar signage player.
@@ -157,6 +159,9 @@
  *   "effect": "zoom"   -> slow push-in on the whole image (any PNG)
  *   "overlay": {...}   -> tag / title / body text that fades in line by line
  *                         on top of a text-free background image
+ *
+ * Live slide types (no image needed):
+ *   "type": "weather"  -> current conditions + 5-day forecast (weather.js)
  */
 (function () {
   "use strict";
@@ -172,6 +177,14 @@
 
   const layers = [document.getElementById("layer-a"), document.getElementById("layer-b")];
   const statusEl = document.getElementById("status");
+  const stage = document.querySelector(".stage");
+
+  // Live slides are laid out at 1920x1080; --k scales them to this screen.
+  function updateScale() {
+    stage.style.setProperty("--k", String(stage.clientWidth / 1920));
+  }
+  window.addEventListener("resize", updateScale);
+  updateScale();
 
   let config = { ...DEFAULTS, slides: [] };
   let playlist = [];      // slides active today
@@ -298,9 +311,16 @@
       position = (position + 1) % playlist.length;
       const slide = playlist[position];
       try {
-        await preload(slide.src);
+        // Get everything the slide needs BEFORE fading, so there's never a half-drawn frame.
+        let data = null;
+        if (slide.type === "weather") {
+          if (!window.RamstarWeather) throw new Error("weather.js did not load");
+          data = await window.RamstarWeather.load(slide);
+        } else {
+          await preload(slide.src);
+        }
         const seconds = Number(slide.duration) || config.defaultDuration;
-        show(slide, seconds);
+        show(slide, seconds, data);
         timer = setTimeout(advance, seconds * 1000);
         return;
       } catch (err) {
@@ -308,11 +328,11 @@
       }
     }
 
-    showStatus("None of the scheduled slide images could be loaded.");
+    showStatus("None of the scheduled slides could be loaded.");
     timer = setTimeout(advance, 30 * 1000);
   }
 
-  function show(slide, seconds) {
+  function show(slide, seconds, data) {
     const back = layers[1 - frontLayer];
     const front = layers[frontLayer];
 
@@ -320,17 +340,21 @@
     back.className = "layer";
     back.replaceChildren();
 
-    const img = el("img");
-    img.src = slide.src;
-    img.alt = slide.title || "";
-    back.appendChild(img);
+    if (slide.type === "weather") {
+      back.appendChild(window.RamstarWeather.render(data));
+    } else {
+      const img = el("img");
+      img.src = slide.src;
+      img.alt = slide.title || "";
+      back.appendChild(img);
 
-    if (slide.overlay && typeof slide.overlay === "object") {
-      back.appendChild(buildOverlay(slide.overlay));
+      if (slide.overlay && typeof slide.overlay === "object") {
+        back.appendChild(buildOverlay(slide.overlay));
+      }
+
+      const effect = slide.effect || config.defaultEffect;
+      if (effect === "zoom") back.classList.add("fx-zoom");
     }
-
-    const effect = slide.effect || config.defaultEffect;
-    if (effect === "zoom") back.classList.add("fx-zoom");
     // Zoom runs slightly longer than the slide so it never stops on screen.
     back.style.setProperty("--slide-dur", `${seconds + 1}s`);
 

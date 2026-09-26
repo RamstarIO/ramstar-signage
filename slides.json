@@ -10,6 +10,13 @@
       "duration": 5
     },
     {
+      "title": "Live weather",
+      "type": "weather",
+      "station": "on-94",
+      "label": "Oldcastle, ON",
+      "duration": 12
+    },
+    {
       "title": "Example: safety slide (remove once real slides exist)",
       "src": "slides/Birthdays@1x.png",
       "duration": 5
