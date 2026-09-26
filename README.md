@@ -1,5 +1,7 @@
 # Ramstar Signage
 
+https://ramstario.github.io/ramstar-signage/
+
 Office TV slideshow for Ramstar. Five TVs around the building show a rotating set of branded slides (company values, safety, events, milestones, birthdays and customer/supplier spotlights).
 
 The whole system is a **static website**: one HTML page, one JSON playlist, and a folder of slide images. Each TV opens the page full-screen in a kiosk browser. Updating the screens means committing new images and editing the playlist; no one touches the TVs.
