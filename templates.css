@@ -1,0 +1,266 @@
+/* Template slide types (templates.js).
+   Laid out at a fixed 1920x1080 and scaled to the screen by the player (--k),
+   so sizes match the design canvas pixel for pixel. */
+
+.t-slide {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  transform: scale(var(--k, 1));
+  transform-origin: 0 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-family: "Barlow", system-ui, sans-serif;
+}
+.t-slide--navy   { background: #0E2A56; color: #FFFFFF; }
+.t-slide--light  { background: #F4F2EE; color: #0E2A56; }
+.t-slide--orange { background: #F7941D; color: #0E2A56; }
+
+.t-star { position: absolute; }
+.t-star svg { width: 100%; height: 100%; display: block; }
+.t-star--birthdays { right: -200px; top: -170px; width: 940px; height: 940px; }
+.t-star--milestone { right: -120px; bottom: -260px; width: 1000px; height: 1000px; }
+.t-star--value     { right: -180px; top: -140px; width: 900px; height: 900px; }
+.t-star--safety    { right: -160px; top: -180px; width: 940px; height: 940px; }
+.t-star--spotlight { left: -160px; bottom: -220px; width: 760px; height: 760px; }
+.t-star--event     { left: -60px; top: 150px; width: 760px; height: 760px; }
+
+.t-frame {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding: 96px 120px;
+  display: flex;
+  flex-direction: column;
+}
+.t-frame--birthdays { gap: 48px; }
+.t-frame--center    { justify-content: center; gap: 24px; }
+.t-frame--value     { gap: 44px; }
+.t-frame--safety    { gap: 28px; }
+
+.t-logo {
+  position: absolute;
+  bottom: 80px;
+  background: #FFFFFF;
+  border-radius: 10px;
+  padding: 18px 30px;
+  display: flex;
+}
+.t-logo--right { right: 96px; }
+.t-logo--left  { left: 120px; }
+.t-logo img { height: 96px; width: auto; display: block; }
+
+/* Shared type */
+.t-tag {
+  align-self: flex-start;
+  background: #F7941D;
+  color: #0E2A56;
+  font: 700 40px/1.2 "Barlow Condensed", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 28px;
+  border-radius: 6px;
+}
+.t-tag--navy { background: #0E2A56; color: #FFFFFF; }
+
+.t-title {
+  margin: 0;
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.t-title--128 { font-size: 128px; line-height: 0.95; }
+.t-title--150 { font-size: 150px; line-height: 0.95; }
+.t-title--200 { font-size: 200px; line-height: 0.9; }
+.t-accent { color: #F7941D; }
+.t-slide--light .t-accent { color: #194B98; }
+
+.t-body { margin: 0; line-height: 1.25; max-width: 1250px; }
+.t-body--44 { font-size: 44px; line-height: 1.3; }
+.t-body--48 { font-size: 48px; }
+.t-body--50 { font-size: 50px; max-width: 900px; }
+.t-body--58 { font-size: 58px; line-height: 1.2; font-weight: 500; }
+.t-muted { color: #D6DDEA; }
+.t-blue  { color: #194B98; }
+.t-strong { font-weight: 600; }
+.t-row { display: flex; align-items: center; gap: 24px; }
+
+/* Birthdays */
+.t-names {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 36px 96px;
+  max-width: 1300px;
+  margin-top: 16px;
+}
+.t-name {
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  border-top: 3px solid #F7941D;
+  padding-top: 18px;
+}
+.t-name-day {
+  font: 700 52px/1.1 "Barlow Condensed", sans-serif;
+  color: #F7941D;
+  min-width: 110px;
+}
+.t-name-text { font-size: 56px; font-weight: 600; }
+/* More than four people: tighter rows so eight still fit */
+.t-names--many { gap: 20px 96px; margin-top: 0; }
+.t-names--many .t-name { padding-top: 12px; }
+.t-names--many .t-name-day { font-size: 44px; }
+.t-names--many .t-name-text { font-size: 46px; }
+
+/* Spotlight */
+.t-slide--split { display: grid; grid-template-columns: 820px minmax(0, 1fr); }
+.t-spot-left {
+  background: #0E2A56;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.t-spot-logo {
+  position: relative;
+  width: 560px;
+  height: 560px;
+  box-sizing: border-box;
+  padding: 56px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.t-spot-logo img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.t-spot-logo-text {
+  font: 800 72px/1 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  text-align: center;
+  color: #0E2A56;
+}
+.t-spot-right {
+  box-sizing: border-box;
+  padding: 110px 110px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+.t-kicker {
+  font: 600 56px/1.1 "Barlow Condensed", sans-serif;
+  color: #194B98;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Milestone */
+.t-big-number {
+  font: 800 360px/0.9 "Barlow Condensed", sans-serif;
+  color: #F7941D;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.t-milestone-label {
+  font: 700 96px/1 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+}
+
+/* Value */
+.t-index {
+  font: 700 40px/1.2 "Barlow Condensed", sans-serif;
+  color: #194B98;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.t-rule { width: 220px; height: 14px; background: #F7941D; border-radius: 2px; }
+.t-example { margin-top: 20px; }
+
+/* Event */
+.t-slide--event { display: grid; grid-template-columns: minmax(0, 1fr) 640px; }
+.t-event-main {
+  box-sizing: border-box;
+  padding: 96px 80px 96px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+.t-event-when { display: flex; flex-direction: column; gap: 14px; font-size: 52px; font-weight: 600; }
+.t-event-side {
+  position: relative;
+  overflow: hidden;
+  background: #F7941D;
+  color: #0E2A56;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.t-event-n {
+  position: relative;
+  font: 800 380px/0.85 "Barlow Condensed", sans-serif;
+}
+.t-event-unit {
+  position: relative;
+  text-align: center;
+  font: 700 84px/1.1 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.t-event-today {
+  position: relative;
+  font: 800 160px/0.9 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+}
+
+/* Safety */
+.t-safety-counter { display: flex; align-items: flex-end; gap: 48px; margin-top: 12px; }
+.t-safety-number {
+  font: 800 340px/0.82 "Barlow Condensed", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.t-safety-label {
+  margin: 0;
+  font: 700 84px/0.98 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  white-space: pre-line;
+  padding-bottom: 14px;
+}
+.t-slide--orange .t-accent { color: #FFFFFF; }
+.t-safety-tip {
+  margin-top: 48px;
+  background: #0E2A56;
+  color: #FFFFFF;
+  border-radius: 12px;
+  padding: 36px 48px;
+  max-width: 1280px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.t-safety-tip-label {
+  font: 700 44px/1.1 "Barlow Condensed", sans-serif;
+  color: #F7941D;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.t-safety-tip-text { font-size: 52px; font-weight: 600; line-height: 1.2; }
+
+/* Entrance: each marked part rises in at its own delay (--d, set in templates.js). */
+.t-in { opacity: 0; }
+.layer.is-visible .t-in {
+  animation: t-rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  animation-delay: var(--d, 300ms);
+}
+@keyframes t-rise {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .layer.is-visible .t-in { animation: none; opacity: 1; }
+}

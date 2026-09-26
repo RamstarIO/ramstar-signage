@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@500;600&display=swap">
+<link rel="stylesheet" href="templates.css">
 <link rel="stylesheet" href="weather.css">
 <style>
   :root {
@@ -147,6 +148,7 @@
 </div>
 <div id="status" role="status"></div>
 
+<script src="templates.js"></script>
 <script src="weather.js"></script>
 <script>
 /*
@@ -155,13 +157,13 @@
  * and re-reads slides.json every few minutes so new content appears
  * without anyone touching the TVs. See README.md for the file format.
  *
- * Optional per-slide animation:
- *   "effect": "zoom"   -> slow push-in on the whole image (any PNG)
- *   "overlay": {...}   -> tag / title / body text that fades in line by line
- *                         on top of a text-free background image
- *
- * Live slide types (no image needed):
- *   "type": "weather"  -> current conditions + 5-day forecast (weather.js)
+ * Two kinds of slide:
+ *   Image slides:  { "src": "slides/x.png" }, optionally with
+ *                  "effect": "zoom" or an animated text "overlay".
+ *   Typed slides:  { "type": "birthdays" | "spotlight" | "milestone" | "value"
+ *                    | "event" | "safety" | "weather", ...fields }
+ *                  built live in HTML by templates.js / weather.js, which
+ *                  register themselves on window.RamstarTypes.
  */
 (function () {
   "use strict";
@@ -209,11 +211,20 @@
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
 
+  // Looks up a typed slide's renderer, e.g. "birthdays" -> templates.js.
+  function typeOf(slide) {
+    if (!slide.type) return null;
+    const types = window.RamstarTypes || {};
+    return Object.prototype.hasOwnProperty.call(types, slide.type) ? types[slide.type] : undefined;
+  }
+
   function isActive(slide) {
     if (slide.enabled === false) return false;
     const today = todayIso();
     if (slide.start && today < slide.start) return false;
     if (slide.end && today > slide.end) return false;
+    const type = typeOf(slide);
+    if (type && type.isActive && !type.isActive(slide)) return false; // e.g. an event that has passed
     return true;
   }
 
@@ -313,9 +324,11 @@
       try {
         // Get everything the slide needs BEFORE fading, so there's never a half-drawn frame.
         let data = null;
-        if (slide.type === "weather") {
-          if (!window.RamstarWeather) throw new Error("weather.js did not load");
-          data = await window.RamstarWeather.load(slide);
+        const type = typeOf(slide);
+        if (type === undefined) {
+          throw new Error(`Unknown slide type "${slide.type}"`);
+        } else if (type) {
+          data = type.load ? await type.load(slide) : null;
         } else {
           await preload(slide.src);
         }
@@ -340,8 +353,9 @@
     back.className = "layer";
     back.replaceChildren();
 
-    if (slide.type === "weather") {
-      back.appendChild(window.RamstarWeather.render(data));
+    const type = typeOf(slide);
+    if (type) {
+      back.appendChild(type.render(slide, data));
     } else {
       const img = el("img");
       img.src = slide.src;

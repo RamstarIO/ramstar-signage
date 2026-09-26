@@ -17,34 +17,71 @@
       "duration": 12
     },
     {
-      "title": "Example: safety slide (remove once real slides exist)",
-      "src": "slides/Birthdays@1x.png",
-      "duration": 5
+      "title": "Birthdays",
+      "type": "birthdays",
+      "month": "[Month]",
+      "people": [
+        {
+          "day": "[Day]",
+          "name": "[First Last]"
+        },
+        {
+          "day": "[Day]",
+          "name": "[First Last]"
+        },
+        {
+          "day": "[Day]",
+          "name": "[First Last]"
+        },
+        {
+          "day": "[Day]",
+          "name": "[First Last]"
+        }
+      ],
+      "duration": 10
     },
     {
-      "title": "Example: safety slide (remove once real slides exist)",
-      "src": "slides/Company Value@1x.png",
-      "duration": 5
+      "title": "Company value",
+      "type": "value",
+      "index": "[1 of 5]",
+      "name": "[Value Name]",
+      "meaning": "[One sentence on what this value means here.]",
+      "example": "[Employee name] [did something that shows it].",
+      "duration": 10
     },
     {
-      "title": "Example: safety slide (remove once real slides exist)",
-      "src": "slides/Customer Supplier Spotlight@1x.png",
-      "duration": 5
+      "title": "Customer spotlight",
+      "type": "spotlight",
+      "kind": "Customer",
+      "name": "[Company Name]",
+      "since": "[Year]",
+      "blurb": "[One line on what we cut or supply for them]",
+      "duration": 10
     },
     {
-      "title": "Example: safety slide (remove once real slides exist)",
-      "src": "slides/Event Countdown@1x.png",
-      "duration": 5
+      "title": "Event countdown",
+      "type": "event",
+      "name": "[Event Name]",
+      "date": "",
+      "time": "[Time]",
+      "location": "[Location]",
+      "note": "[Optional: food, RSVP to whom, what to bring]",
+      "duration": 10
     },
     {
-      "title": "Example: safety slide (remove once real slides exist)",
-      "src": "slides/Milestone@1x.png",
-      "duration": 5
+      "title": "Milestone",
+      "type": "milestone",
+      "number": "[000,000]",
+      "label": "[Units] [shipped / cut / processed]",
+      "note": "[Time period]. Thank you, team.",
+      "duration": 10
     },
     {
-      "title": "Example: safety slide (remove once real slides exist)",
-      "src": "slides/Safety@1x.png",
-      "duration": 5
+      "title": "Safety",
+      "type": "safety",
+      "days": "[000]",
+      "tip": "[One short, specific safety reminder]",
+      "duration": 10
     }
   ]
 }

@@ -1,5 +1,7 @@
 # Ramstar Signage
 
+https://ramstario.github.io/ramstar-signage/
+
 Office TV slideshow for Ramstar. Five TVs around the building show a rotating set of branded slides (company values, safety, events, milestones, birthdays and customer/supplier spotlights).
 
 The whole system is a **static website**: one HTML page, one JSON playlist, and a folder of slide images. Each TV opens the page full-screen in a kiosk browser. Updating the screens means committing new images and editing the playlist; no one touches the TVs.
@@ -60,6 +62,8 @@ All paths are relative, so the same files work on GitHub Pages, Cloudflare Pages
 ```
 ramstar-signage/
 ├── index.html          # The player. Rarely changes.
+├── templates.js        # Template slide types: birthdays, spotlight, milestone, value, event, safety
+├── templates.css       # Their layouts (match the design canvas, 1920×1080)
 ├── weather.js          # Live weather slide: fetches ECCC data, builds the slide
 ├── weather.css         # Live weather slide layout (Design A, 1920×1080)
 ├── slides.json         # The playlist. Changes whenever content changes.
@@ -92,13 +96,15 @@ Until Phase 2 is live, only commit content you would be comfortable putting on t
 | Milestones stated generally ("100,000th cut!") | Anything from P21 or internal reports |
 | Holidays and general announcements | Photos of identifiable people |
 
+This applies to the words in `slides.json` exactly as much as to images: names typed into a `birthdays` or `spotlight` slide are just as public.
+
 If something sensitive is committed by mistake, deleting it is **not** enough. Treat it as already public, and ask for help cleaning the history before doing anything else.
 
 ---
 
 ## Making a slide
 
-Slides are designed from the Ramstar template set (Birthdays, Spotlight, Milestone, Company Value, Event Countdown, Safety) and exported as images.
+**Most slides don't need an image at all.** The six Ramstar templates (Birthdays, Spotlight, Milestone, Company Value, Event Countdown, Safety) are built into the player as [template slide types](#template-slide-types): you write the words in `slides.json`, and each part of the slide rises in one after another. Use an exported image only for a one-off design the templates don't cover. The rest of this section applies to those images.
 
 ### Specification
 
@@ -210,6 +216,44 @@ Two ready-made backgrounds are included: `slides/bg-navy.png` (dark) and `slides
 Overlays are the fastest way to make simple slides: no design tool needed, just edit `slides.json`. Use a designed PNG when the slide needs a custom layout (big numbers, photos, lists of names).
 
 Keep motion subtle. The screens are seen from the corner of people's eyes all day, and constant large movement becomes irritating fast. The player also honours a device's "reduce motion" setting.
+
+### Template slide types
+
+Each template from the design canvas is a slide type. The player builds it in HTML at 1920×1080, so the text is crisp on any screen and every part animates in: tag first, then the headline, then the details, about 0.3 s apart. Big numbers (milestone, safety) count up from zero.
+
+```json
+{ "type": "birthdays", "month": "October",
+  "people": [ { "day": "3", "name": "Jane Doe" }, { "day": "14", "name": "Chris Martin" } ] }
+
+{ "type": "spotlight", "kind": "Customer", "name": "Acme Fabrication", "since": "2012",
+  "blurb": "Laser-cut brackets and plate, delivered every week.", "logo": "slides/logos/acme.png" }
+
+{ "type": "milestone", "number": "100,000", "label": "Cuts completed", "note": "This year. Thank you, team." }
+
+{ "type": "value", "index": "1 of 5", "name": "Safety",
+  "meaning": "Everyone goes home the way they came in.",
+  "example": "Pat stopped the saw line to fix a loose guard." }
+
+{ "type": "event", "name": "Fall BBQ", "date": "2026-10-17", "time": "12:00 PM",
+  "location": "Shop floor", "note": "Burgers on us. RSVP to the front office." }
+
+{ "type": "safety", "since": "2026-05-21", "tip": "Gloves on for every cut, even the quick ones." }
+```
+
+| Type | Fields (✅ = required) | Notes |
+|---|---|---|
+| `birthdays` | `people` ✅ (list of `day` + `name`), `month` | `month` defaults to the current month. Up to 8 people; more than 4 switches to a tighter layout. |
+| `spotlight` | `name` ✅, `kind`, `since`, `blurb`, `logo` | `kind` is `"Customer"` (default) or `"Supplier"`. `logo` is an image path; without one, the company name fills the white box. |
+| `milestone` | `number` ✅, `label` ✅, `note` | A plain number like `"100,000"` counts up; anything else shows as typed. |
+| `value` | `name` ✅, `meaning`, `example`, `index` | `index` is the small "1 of 5" label. |
+| `event` | `name` ✅, `date`, `time`, `location`, `note` | `date` is `YYYY-MM-DD`. The countdown calculates itself, shows **Today** on the day, and the slide **hides itself the day after**. With no date it shows "Save the date". |
+| `safety` | `since` or `days`, `tip`, `label` | Set `since` to the date of the last lost-time incident and the count keeps itself up to date. `days` is a fixed number instead. |
+
+All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and the usual `duration`, `start`, `end`, `enabled`. Birthdays also accepts `headline`; wrap a word in `*asterisks*` to colour it. Note that `title` is only your own label for the entry and is never shown on screen.
+
+**Give these slides at least 8–10 seconds.** The entrance takes about 2 seconds, and people need time to read after it.
+
+To change a layout, edit `templates.css` (sizes, colours) or the matching function in `templates.js` (what appears). New types follow the same pattern: add a `types.<name> = { render(slide) { ... } }` entry.
 
 ### Live weather slide
 

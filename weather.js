@@ -321,4 +321,11 @@
   }
 
   window.RamstarWeather = { load, render, toModel, iconType };
+
+  // Register as a slide type for the player (see templates.js for the others).
+  window.RamstarTypes = window.RamstarTypes || {};
+  window.RamstarTypes.weather = {
+    load: (slide) => load(slide),
+    render: (slide, model) => render(model)
+  };
 })();
