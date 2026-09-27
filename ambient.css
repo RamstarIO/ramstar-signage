@@ -2,8 +2,24 @@
    looking frozen without pulling eyes off the words.
    Each effect is gated by a class on .stage (amb-star, amb-progress, ...),
    which the player sets from "ambient" in slides.json.
-   Everything here animates transform/opacity only, except the sheen,
-   which is a single short sweep per slide. */
+
+   PERFORMANCE RULE (why this file looks the way it does):
+   Everything here animates only `transform` and `opacity`. The graphics chip
+   moves and fades finished layers on its own, at no cost to the processor.
+   Animating anything else (colours, backgrounds, shapes inside an SVG, text
+   content) makes the browser repaint pixels on the processor every frame,
+   which is what stutters on a Fire Stick. Where an effect needs a colour
+   change, it fades in a second copy in the new colour instead. */
+
+/* ---------- 0. Layer hints ----------
+   Tell the browser in advance which parts will move, so it prepares them as
+   separate GPU layers while the slide is still invisible (during the previous
+   slide's exit), rather than doing that work at the moment the slide appears. */
+.layer { will-change: opacity; }
+.t-in, .wx-anim, .overlay > * { will-change: transform, opacity; }
+.progress-fill { will-change: transform; }
+/* Keep any change inside a slide from spilling over into work on the rest of the page */
+.t-slide, .wx { contain: layout paint; }
 
 /* ---------- 1. The star ----------
    The star watermark sits in a different place on each template, so it
@@ -11,8 +27,11 @@
    (at --star-at, once the text has landed; set by templates.js / weather.css),
    and it fades out with the text when the slide leaves.
    While visible it slowly turns ~7 degrees and drifts (the "amb-star" switch).
+   The drift doesn't scale the star, only turns and moves it: scaling would
+   make the browser redraw the large star at every new size.
    --slide-dur is set per slide by the player. */
-.t-star, .wx-star { opacity: 0; }
+.t-star, .wx-star { opacity: 0; will-change: opacity; }
+.t-star svg, .wx-star svg { will-change: transform; }
 .layer.is-visible .t-star,
 .layer.is-visible .wx-star {
   animation: star-in 1400ms ease-out both;
@@ -32,13 +51,14 @@
   transform-origin: 50% 50%;
 }
 @keyframes amb-drift {
-  from { transform: rotate(0deg) translate(0, 0) scale(1); }
-  to   { transform: rotate(7deg) translate(-24px, 14px) scale(1.03); }
+  from { transform: translate(0, 0) rotate(0deg); }
+  to   { transform: translate(-24px, 14px) rotate(7deg); }
 }
 
 /* ---------- 2. Progress bar ----------
-   A thin line along the bottom that fills over the slide's duration.
-   The fill width is driven by the player (startProgress). */
+   A thin line along the bottom. It alternates: fills left to right on one
+   slide, drains left to right on the next (driven by startProgress in the
+   player), so it never snaps back to empty. It only ever scales, so it's free. */
 .progress {
   position: absolute;
   left: 0;
@@ -65,48 +85,76 @@
    (set as class m-sheen or m-beat on the slide), and a slide in slides.json
    can override it with "moment": "sheen" | "beat" | "none".
 
-   3a. Steel sheen (birthdays, spotlight, value): one band of light sweeps
-   across the hero text, like light catching polished metal. .t-hero wraps
-   the text; --hero is its normal colour and --glint the highlight. */
-.t-hero {
-  --hero: currentColor;
-  --glint: #FFFFFF;
+   3a. Steel sheen (birthdays, spotlight, value): a band of light sweeps
+   across the hero text, like light catching polished metal.
+   How it's drawn (see makeHero in templates.js): a copy of the text in the
+   highlight colour (--glint) sits in a window (.t-sheen) that only shows a
+   narrow soft-edged stripe (a fixed mask). The window slides right while the
+   copy inside slides left by the same amount, so the copy stays exactly on
+   top of the real text and only the stripe travels. Two transforms, no repaints. */
+.t-hero { position: relative; display: inline-block; --glint: #FFFFFF; }
+.t-sheen { display: none; }
+.stage.amb-sheen .m-sheen .t-sheen {
+  display: block;
+  position: absolute;
+  /* The window reaches 80px beyond the text box on every side, because big
+     tightly-spaced type (line-height under 1) draws outside its box; the
+     copy inside is padded by the same amount so it stays exactly aligned.
+     (A whole-pixel amount keeps the copy on the pixel grid, so it matches
+     the real text exactly.) */
+  left: -80px;
+  right: -80px;
+  top: -80px;
+  bottom: -80px;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(105deg, transparent 36%, #000 50%, transparent 64%);
+          mask-image: linear-gradient(105deg, transparent 36%, #000 50%, transparent 64%);
+  transform: translateX(-115%);
+  will-change: transform;
 }
-.stage.amb-sheen .m-sheen .t-hero {
-  background-image: linear-gradient(105deg,
-    var(--hero) 0%, var(--hero) 42%,
-    var(--glint) 50%,
-    var(--hero) 58%, var(--hero) 100%);
-  background-size: 260% 100%;
-  background-position: 100% 0;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+.stage.amb-sheen .m-sheen .t-sheen-text {
+  display: block;
+  padding: 80px;
+  color: var(--glint);
+  transform: translateX(115%);
+  will-change: transform;
 }
-.stage.amb-sheen .layer.is-visible .m-sheen .t-hero {
-  animation: amb-sheen 1600ms ease-in-out both;
+.stage.amb-sheen .layer.is-visible .m-sheen .t-sheen,
+.stage.amb-sheen .layer.is-visible .m-sheen .t-sheen-text {
+  animation-duration: 1600ms;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: both;
   animation-delay: calc(var(--slide-dur, 11s) * 0.42);
 }
-@keyframes amb-sheen {
-  from { background-position: 100% 0; }
-  to   { background-position: 0% 0; }
-}
-/* Hero colours per context (the gradient needs a real colour, not currentColor) */
-.t-slide--navy .t-hero,  .wx .t-hero      { --hero: #FFFFFF; --glint: #F7941D; }
+.stage.amb-sheen .layer.is-visible .m-sheen .t-sheen      { animation-name: sheen-window; }
+.stage.amb-sheen .layer.is-visible .m-sheen .t-sheen-text { animation-name: sheen-copy; }
+@keyframes sheen-window { from { transform: translateX(-115%); } to { transform: translateX(115%); } }
+@keyframes sheen-copy   { from { transform: translateX(115%); }  to { transform: translateX(-115%); } }
+
+/* Highlight colour per context */
+.t-slide--navy .t-hero, .wx .t-hero         { --glint: #F7941D; }
 .t-slide--navy .t-accent.t-hero,
-.t-big-number .t-hero,   .wx-temp .t-hero { --hero: #F7941D; --glint: #FFF1DE; }
-.t-slide--light .t-hero                   { --hero: #0E2A56; --glint: #6E93CF; }
-.t-slide--light .t-accent.t-hero          { --hero: #194B98; --glint: #8DB0E8; }
+.t-big-number .t-hero, .wx-temp .t-hero     { --glint: #FFF1DE; }
+.t-slide--light .t-hero                     { --glint: #6E93CF; }
+.t-slide--light .t-accent.t-hero            { --glint: #8DB0E8; }
 .t-slide--orange .t-hero,
-.t-event-side .t-hero                     { --hero: #0E2A56; --glint: #FFFFFF; }
+.t-event-side .t-hero                       { --glint: #FFFFFF; }
 
 /* 3b. Second beat (milestone, event, safety, weather): a small event that
    re-draws the eye to the slide's key detail. Each targets an inner element,
-   never one that is already running its entrance animation. */
+   never one that is already running its entrance animation.
+   Colour flashes are drawn as a second copy of the text/line in the new
+   colour that fades in and out (opacity), not as an animated colour. */
 .m-beat { --beat-at: calc(var(--slide-dur, 11s) * 0.45); }
+@keyframes beat-glow {
+  0%   { opacity: 0; }
+  35%  { opacity: 1; }
+  100% { opacity: 0; }
+}
 
 /* Milestone: the big number pulses once */
-.stage.amb-beat .m-beat .t-big-number .t-hero { display: inline-block; transform-origin: 0% 70%; }
+.stage.amb-beat .m-beat .t-big-number .t-hero { transform-origin: 0% 70%; will-change: transform; }
 .stage.amb-beat .layer.is-visible .m-beat .t-big-number .t-hero {
   animation: beat-pulse 900ms cubic-bezier(0.3, 0.7, 0.3, 1) both;
   animation-delay: var(--beat-at);
@@ -132,6 +180,7 @@
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;
+  will-change: transform, opacity;
 }
 .stage.amb-beat .layer.is-visible .m-beat .t-event-side::before,
 .stage.amb-beat .layer.is-visible .m-beat .t-event-side::after {
@@ -150,7 +199,9 @@
   100% { transform: scale(1.35); opacity: 0; }
 }
 
-/* Safety: the tip of the week nudges, and its label flashes white */
+/* Safety: the tip of the week nudges, and its label flashes white
+   (a white copy of the label, from data-label, fades in and out on top). */
+.stage.amb-beat .m-beat .t-safety-tip > * { will-change: transform; }
 .stage.amb-beat .layer.is-visible .m-beat .t-safety-tip > * {
   animation: beat-nudge 900ms ease-in-out both;
   animation-delay: var(--beat-at);
@@ -158,89 +209,110 @@
 .stage.amb-beat .layer.is-visible .m-beat .t-safety-tip > :nth-child(2) {
   animation-delay: calc(var(--beat-at) + 90ms);
 }
-.stage.amb-beat .layer.is-visible .m-beat .t-safety-tip-label {
-  animation-name: beat-nudge-label;
+.stage.amb-beat .m-beat .t-safety-tip-label { position: relative; }
+.stage.amb-beat .m-beat .t-safety-tip-label::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #FFFFFF;
+  opacity: 0;
+  will-change: opacity;
+}
+.stage.amb-beat .layer.is-visible .m-beat .t-safety-tip-label::after {
+  animation: beat-glow 900ms ease-in-out both;
+  animation-delay: var(--beat-at);
 }
 @keyframes beat-nudge {
   0%   { transform: translateX(0); }
   40%  { transform: translateX(24px); }
   100% { transform: translateX(0); }
 }
-@keyframes beat-nudge-label {
-  0%   { transform: translateX(0);    color: #F7941D; }
-  40%  { transform: translateX(24px); color: #FFFFFF; }
-  100% { transform: translateX(0);    color: #F7941D; }
-}
 
-/* Weather: the four stats light up one after another */
+/* Weather: the four stats light up one after another. Each stat lifts,
+   a white line fades in over its orange rule, and an orange copy of its
+   label (from data-label) fades in over the grey one. */
+.stage.amb-beat .m-beat .wx-stat { position: relative; will-change: transform; }
+.stage.amb-beat .m-beat .wx-stat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -3px;
+  height: 3px;
+  background: #FFFFFF;
+  opacity: 0;
+  will-change: opacity;
+}
+.stage.amb-beat .m-beat .wx-stat-label { position: relative; }
+.stage.amb-beat .m-beat .wx-stat-label::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  color: #F7941D;
+  opacity: 0;
+  will-change: opacity;
+}
 .stage.amb-beat .layer.is-visible .m-beat .wx-stat {
   animation: beat-stat 900ms ease-in-out both;
   animation-delay: var(--beat-at);
 }
-.stage.amb-beat .layer.is-visible .m-beat .wx-stat .wx-stat-label {
-  animation: beat-stat-label 900ms ease-in-out both;
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat::before,
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat .wx-stat-label::after {
+  animation: beat-glow 900ms ease-in-out both;
   animation-delay: var(--beat-at);
 }
 .stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(2),
-.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(2) .wx-stat-label { animation-delay: calc(var(--beat-at) + 250ms); }
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(2)::before,
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(2) .wx-stat-label::after { animation-delay: calc(var(--beat-at) + 250ms); }
 .stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(3),
-.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(3) .wx-stat-label { animation-delay: calc(var(--beat-at) + 500ms); }
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(3)::before,
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(3) .wx-stat-label::after { animation-delay: calc(var(--beat-at) + 500ms); }
 .stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(4),
-.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(4) .wx-stat-label { animation-delay: calc(var(--beat-at) + 750ms); }
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(4)::before,
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(4) .wx-stat-label::after { animation-delay: calc(var(--beat-at) + 750ms); }
 @keyframes beat-stat {
-  0%   { transform: translateY(0);     border-top-color: #F7941D; }
-  35%  { transform: translateY(-10px); border-top-color: #FFFFFF; }
-  100% { transform: translateY(0);     border-top-color: #F7941D; }
-}
-@keyframes beat-stat-label {
-  0%   { color: #D6DDEA; }
-  35%  { color: #F7941D; }
-  100% { color: #D6DDEA; }
+  0%   { transform: translateY(0); }
+  35%  { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
 }
 
 /* ---------- 4. Living weather icons ----------
    Sun rays turn, clouds drift, rain and snow fall, lightning flickers.
-   Class names are added to the icon parts in weather.js. */
-.stage.amb-weatherIcons .wx svg .amb-rays {
-  transform-box: view-box;
-  transform-origin: 24px 24px;
-  animation: amb-spin 24s linear infinite;
+   Each icon is a stack of layers (.ic-l), one per moving part (built in
+   weather.js); each layer moves as a whole, so nothing inside an SVG is
+   ever animated. Distances are in % of the icon, so they scale with it. */
+.ic { position: relative; display: block; }
+.ic-l { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; }
+.ic-l svg { display: block; width: 100%; height: 100%; }
+.wx .ic-spin, .wx .ic-pulse, .wx .ic-drift, .wx .ic-fall, .wx .ic-fall-slow, .wx .ic-flash, .wx .ic-sway {
+  will-change: transform, opacity;
+  transform-origin: 50% 50%;
 }
-.stage.amb-weatherIcons .wx svg .amb-rays-small {
-  animation: amb-pulse 3.2s ease-in-out infinite;
-}
-.stage.amb-weatherIcons .wx svg .amb-cloud {
-  animation: amb-cloud 7s ease-in-out infinite alternate;
-}
-.stage.amb-weatherIcons .wx svg .amb-fall {
-  animation: amb-fall 1.4s linear infinite;
-}
-.stage.amb-weatherIcons .wx svg .amb-fall-slow {
-  animation: amb-fall 2.8s linear infinite;
-}
-.stage.amb-weatherIcons .wx svg .amb-flash {
-  animation: amb-flash 4.5s steps(1, end) infinite;
-}
-.stage.amb-weatherIcons .wx svg .amb-sway {
-  transform-box: view-box;
-  transform-origin: 24px 24px;
-  animation: amb-sway 6s ease-in-out infinite alternate;
-}
+.stage.amb-weatherIcons .wx .ic-spin      { animation: ic-spin 24s linear infinite; }
+.stage.amb-weatherIcons .wx .ic-pulse     { animation: ic-pulse 3.2s ease-in-out infinite; }
+.stage.amb-weatherIcons .wx .ic-drift     { animation: ic-drift 7s ease-in-out infinite alternate; }
+.stage.amb-weatherIcons .wx .ic-fall      { animation: ic-fall 1.4s linear infinite; }
+.stage.amb-weatherIcons .wx .ic-fall-slow { animation: ic-fall 2.8s linear infinite; }
+.stage.amb-weatherIcons .wx .ic-flash     { animation: ic-flash 4.5s steps(1, end) infinite; }
+.stage.amb-weatherIcons .wx .ic-sway      { animation: ic-sway 6s ease-in-out infinite alternate; }
 /* Stagger the forecast cards so they don't move in lockstep */
-.stage.amb-weatherIcons .wx-day:nth-child(2) svg * { animation-delay: -0.7s; }
-.stage.amb-weatherIcons .wx-day:nth-child(3) svg * { animation-delay: -1.4s; }
-.stage.amb-weatherIcons .wx-day:nth-child(4) svg * { animation-delay: -2.1s; }
-.stage.amb-weatherIcons .wx-day:nth-child(5) svg * { animation-delay: -2.8s; }
+.stage.amb-weatherIcons .wx-day:nth-child(2) .ic-l { animation-delay: -0.7s; }
+.stage.amb-weatherIcons .wx-day:nth-child(3) .ic-l { animation-delay: -1.4s; }
+.stage.amb-weatherIcons .wx-day:nth-child(4) .ic-l { animation-delay: -2.1s; }
+.stage.amb-weatherIcons .wx-day:nth-child(5) .ic-l { animation-delay: -2.8s; }
 
-@keyframes amb-spin  { to { transform: rotate(360deg); } }
-@keyframes amb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
-@keyframes amb-cloud { from { transform: translateX(-1.2px); } to { transform: translateX(1.2px); } }
-@keyframes amb-fall {
-  0%   { transform: translateY(-3px); opacity: 0; }
+@keyframes ic-spin  { to { transform: rotate(360deg); } }
+@keyframes ic-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@keyframes ic-drift { from { transform: translateX(-2.5%); } to { transform: translateX(2.5%); } }
+@keyframes ic-fall {
+  0%   { transform: translateY(-6%); opacity: 0; }
   25%  { opacity: 1; }
-  100% { transform: translateY(4px); opacity: 0; }
+  100% { transform: translateY(8%); opacity: 0; }
 }
-@keyframes amb-flash {
+@keyframes ic-flash {
   0%  { opacity: 1; }
   88% { opacity: 1; }
   90% { opacity: 0.2; }
@@ -248,22 +320,25 @@
   94% { opacity: 0.3; }
   96% { opacity: 1; }
 }
-@keyframes amb-sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+@keyframes ic-sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
 
 /* ---------- Respect "reduce motion" ---------- */
 @media (prefers-reduced-motion: reduce) {
   .stage .layer .t-star svg,
   .stage .layer .wx-star svg,
-  .stage .wx svg *,
+  .stage .wx .ic-l,
   .stage .layer .t-star,
   .stage .layer .wx-star { animation: none !important; opacity: 1; }
   .stage .layer.is-leaving .t-star,
   .stage .layer.is-leaving .wx-star { opacity: 0; }
   .stage .layer .t-event-side::before,
-  .stage .layer .t-event-side::after { animation: none !important; opacity: 0; }
+  .stage .layer .t-event-side::after,
+  .stage .layer .t-sheen,
+  .stage .layer .t-safety-tip-label::after,
+  .stage .layer .wx-stat::before,
+  .stage .layer .wx-stat-label::after { animation: none !important; opacity: 0; }
   .stage .layer .t-hero,
+  .stage .layer .t-sheen-text,
   .stage .layer .t-safety-tip > *,
-  .stage .layer .wx-stat,
-  .stage .layer .wx-stat-label { animation: none !important; }
-  .stage.amb-sheen .m-sheen .t-hero { -webkit-text-fill-color: currentColor; background: none; }
+  .stage .layer .wx-stat { animation: none !important; }
 }

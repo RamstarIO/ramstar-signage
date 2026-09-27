@@ -299,7 +299,14 @@ Override it for one slide with `"moment"`:
 
 All ambient motion also switches off automatically on a device set to "reduce motion".
 
-**Performance note for the Fire Sticks:** everything except the sheen uses movement and fading only, which the Fire Stick's graphics chip handles easily. The sheen makes the browser redraw the hero text for about 1.6 s once per slide. If it ever stutters on a TV, set `"sheen": false`; the sheen slides then simply have no moment, and everything else carries on.
+**Performance (built for the Fire Stick):** every effect animates only *movement and fading* (`transform` and `opacity`), which the graphics chip does on its own at no cost to the processor. Nothing animates colours, backgrounds, text or shapes inside an SVG, because those make the browser repaint on the processor every frame, which is what stutters on a Fire Stick. How the trickier effects stay GPU-only:
+- **Sheen:** a copy of the text in the highlight colour sits in a narrow, soft-edged window that slides across while the copy slides back the other way, so it stays exactly over the real text.
+- **Colour flashes** (safety label, weather stats): a second copy in the new colour fades in and out on top.
+- **Weather icons:** each moving part (rays, cloud, raindrops) is its own layer and moves as a whole.
+- **Count-up numbers:** tick about 12 times a second, like a mechanical counter, instead of every frame.
+- **Layer hints** (`will-change`) prepare the next slide's moving parts while the previous one is still leaving.
+
+Measured on a 44-second, six-slide run with the processor slowed 4×: repaints went from 1,321 to 194 (−85%) and layout passes from 677 to 54 (−92%), with zero per-frame work between moments. **If you add an effect, keep to transform and opacity.**
 
 **Tuning:** the timings live in `ambient.css` and are commented. The most useful knobs: the star's fade-in (`star-in 1400ms`), how far it turns (`rotate(7deg)` in `amb-drift`), when the moment fires (`0.42` for the sheen, `0.45` for beats, as fractions of the slide's duration), and the bar's thickness (`* 4` in `.progress`).
 

@@ -97,11 +97,36 @@
   // Wraps a slide's hero text in a span so the ambient "steel sheen" can sweep across it.
   function hero(tag, className, text) {
     const node = h(tag, className);
-    const span = h("span", "t-hero", text);
+    const span = makeHero(h("span", null, text));
     node.appendChild(span);
     node.heroSpan = span;
     return node;
   }
+
+  // Turns a text span into "hero" text that can carry the sheen:
+  //   <span class="t-hero">
+  //     <span class="t-hero-text">OCTOBER</span>
+  //     <span class="t-sheen" aria-hidden="true"><span class="t-sheen-text">OCTOBER</span></span>
+  //   </span>
+  // The sheen is a copy of the text in the highlight colour, seen through a
+  // narrow masked window that slides across. Only transforms move, so the
+  // graphics chip does all the work and nothing is repainted (Fire Stick-friendly).
+  function makeHero(span) {
+    const text = span.textContent;
+    span.classList.add("t-hero");
+    span.replaceChildren(h("span", "t-hero-text", text));
+    const sheen = h("span", "t-sheen");
+    sheen.setAttribute("aria-hidden", "true");
+    sheen.appendChild(h("span", "t-sheen-text", text));
+    span.appendChild(sheen);
+    return span;
+  }
+
+  // Updates hero text (and its sheen copy) in place.
+  function setHeroText(span, text) {
+    span.querySelectorAll(".t-hero-text, .t-sheen-text").forEach((n) => { n.textContent = text; });
+  }
+  window.RamstarHero = { makeHero, setHeroText };
 
   // "moment" = the one attention-catching event just before halfway through a slide:
   //   "sheen" (a glint across the hero text) or "beat" (a type-specific pulse),
@@ -136,24 +161,28 @@
   }
 
   // Counts a number up from 0 once the element has risen in.
-  function countUp(node, finalText, delayMs) {
+  // Changing text forces the browser to lay out and repaint it, so the count
+  // ticks about 12 times a second (like a mechanical counter) rather than on
+  // every frame. That's ~6x less work on a Fire Stick, and it still reads as
+  // a smooth count.
+  const COUNT_TICK_MS = 80;
+  function countUp(heroSpan, finalText, delayMs) {
     const digits = String(finalText).replace(/,/g, "");
     if (!/^\d+$/.test(digits)) return;
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const target = Number(digits);
     const withCommas = String(finalText).includes(",");
     const format = (n) => (withCommas ? n.toLocaleString("en-US") : String(n));
-    node.textContent = format(0);
+    setHeroText(heroSpan, format(0));
     setTimeout(() => {
       const start = performance.now();
       const duration = 1400;
-      function frame(now) {
-        const t = Math.min(1, (now - start) / duration);
+      const timer = setInterval(() => {
+        const t = Math.min(1, (performance.now() - start) / duration);
         const eased = 1 - Math.pow(1 - t, 3);
-        node.textContent = format(Math.round(target * eased));
-        if (t < 1) requestAnimationFrame(frame);
-      }
-      requestAnimationFrame(frame);
+        setHeroText(heroSpan, format(Math.round(target * eased)));
+        if (t >= 1) clearInterval(timer);
+      }, COUNT_TICK_MS);
     }, delayMs);
   }
 
@@ -173,7 +202,7 @@
         anim(withAccent("t-title t-title--150", slide.headline || `Happy Birthday\n*${month}*`))
       );
       const accent = frame.querySelector(".t-accent");
-      if (accent) accent.classList.add("t-hero");
+      if (accent) makeHero(accent);
       const grid = anim(h("div", `t-names${people.length > 4 ? " t-names--many" : ""}`));
       people.forEach((p) => {
         const row = h("div", "t-name");
@@ -339,7 +368,9 @@
 
       if (slide.tip) {
         const tip = h("div", "t-safety-tip");
-        add(tip, h("div", "t-safety-tip-label", slide.tipLabel || "Tip of the week"), h("div", "t-safety-tip-text", slide.tip));
+        const tipLabel = h("div", "t-safety-tip-label", slide.tipLabel || "Tip of the week");
+        tipLabel.dataset.label = tipLabel.textContent; // drawn again, white, for the beat's flash
+        add(tip, tipLabel, h("div", "t-safety-tip-text", slide.tip));
         add(frame, anim(tip));
       }
       add(root, frame, logoBadge("right"));

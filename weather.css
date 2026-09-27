@@ -123,7 +123,7 @@
 
 /* An alert banner takes vertical space, so the big number gives some back. */
 .wx--alert .wx-temp { font-size: 220px; }
-.wx--alert .wx-now-icon svg { width: 190px; height: 190px; }
+.wx--alert .wx-now-icon .ic { width: 190px !important; height: 190px !important; }
 .wx-detail {
   font-size: 40px;
   line-height: 1.25;

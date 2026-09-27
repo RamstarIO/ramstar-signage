@@ -211,22 +211,62 @@
   const SUN_RAYS = "M24 6v4M24 38v4M6 24h4M38 24h4M11.3 11.3l2.8 2.8M33.9 33.9l2.8 2.8M11.3 36.7l2.8-2.8M33.9 14.1l2.8-2.8";
 
   // Static, trusted SVG markup only. No feed data ever goes into these strings.
-  function iconSvg(type, size, strokeWidth) {
-    const open = `<svg viewBox="0 0 48 48" width="${size}" height="${size}" fill="none" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">`;
-    const parts = {
-      "sun": `<circle cx="24" cy="24" r="8" stroke="${ORANGE}"/><path class="amb-rays" d="${SUN_RAYS}" stroke="${ORANGE}"/>`,
-      "partly": `<circle cx="18" cy="16" r="6" stroke="${ORANGE}"/><path class="amb-rays-small" d="M18 5v2.5M8.5 9.5l1.8 1.8M5 16h2.5M27.5 9.5l-1.8 1.8" stroke="${ORANGE}"/><path class="amb-cloud" d="${CLOUD_SMALL}" stroke="${WHITE}"/>`,
-      "cloud": `<path class="amb-cloud" d="${CLOUD_LOW}" stroke="${WHITE}"/>`,
-      "rain": `<path class="amb-cloud" d="${CLOUD_HIGH}" stroke="${WHITE}"/><path class="amb-fall" d="M18 35l-2 6M26 35l-2 6M34 35l-2 6" stroke="${RAIN}"/>`,
-      "snow": `<path class="amb-cloud" d="${CLOUD_HIGH}" stroke="${WHITE}"/><path class="amb-fall-slow" d="M17 37v0M25 37v0M33 37v0M21 43v0M29 43v0" stroke="${WHITE}" stroke-width="${strokeWidth * 1.6}"/>`,
-      "mix": `<path class="amb-cloud" d="${CLOUD_HIGH}" stroke="${WHITE}"/><path class="amb-fall" d="M18 35l-2 6M30 35l-2 6" stroke="${RAIN}"/><path class="amb-fall-slow" d="M24 38v0M34 43v0" stroke="${WHITE}" stroke-width="${strokeWidth * 1.6}"/>`,
-      "thunder": `<path class="amb-cloud" d="${CLOUD_HIGH}" stroke="${WHITE}"/><path class="amb-flash" d="M26 32l-5 8h6l-4 7" stroke="${ORANGE}"/>`,
-      "fog": `<path class="amb-cloud" d="M8 18h32M12 26h28M8 34h26M14 42h22" stroke="${WHITE}"/>`,
-      "moon": `<path class="amb-sway" d="M30 9a15 15 0 1 0 9 26 12 12 0 1 1-9-26z" stroke="${ORANGE}"/>`,
-      "partly-night": `<path d="M17 6a9 9 0 1 0 8 13 7 7 0 1 1-8-13z" stroke="${ORANGE}"/><path class="amb-cloud" d="${CLOUD_SMALL}" stroke="${WHITE}"/>`,
-      "wind": `<path class="amb-cloud" d="M6 18h22a5 5 0 1 0-5-5M6 26h30a5 5 0 1 1-5 5M6 34h16" stroke="${WHITE}"/>`
+  //
+  // Each icon is a stack of layers, one <svg> per moving part, e.g. rain =
+  // [cloud layer (drifts)] + [drops layer (falls)]. The animation is applied to
+  // each layer as a whole (move / turn / fade), never to shapes inside an SVG:
+  // animating inside an SVG makes the browser redo layout and repaint every
+  // frame, which is what made the icons choppy on the Fire Stick. Whole layers
+  // are moved by the graphics chip for free.
+  //
+  // Layer motions (see ambient.css): spin, pulse, drift, fall, fall-slow, flash, sway.
+  function layers(type) {
+    const L = (motion, paths) => ({ motion, paths });
+    const icons = {
+      "sun": [
+        L(null, `<circle cx="24" cy="24" r="8" stroke="${ORANGE}"/>`),
+        L("spin", `<path d="${SUN_RAYS}" stroke="${ORANGE}"/>`)
+      ],
+      "partly": [
+        L(null, `<circle cx="18" cy="16" r="6" stroke="${ORANGE}"/>`),
+        L("pulse", `<path d="M18 5v2.5M8.5 9.5l1.8 1.8M5 16h2.5M27.5 9.5l-1.8 1.8" stroke="${ORANGE}"/>`),
+        L("drift", `<path d="${CLOUD_SMALL}" stroke="${WHITE}"/>`)
+      ],
+      "cloud": [L("drift", `<path d="${CLOUD_LOW}" stroke="${WHITE}"/>`)],
+      "rain": [
+        L("drift", `<path d="${CLOUD_HIGH}" stroke="${WHITE}"/>`),
+        L("fall", `<path d="M18 35l-2 6M26 35l-2 6M34 35l-2 6" stroke="${RAIN}"/>`)
+      ],
+      "snow": [
+        L("drift", `<path d="${CLOUD_HIGH}" stroke="${WHITE}"/>`),
+        L("fall-slow", `<path d="M17 37v0M25 37v0M33 37v0M21 43v0M29 43v0" stroke="${WHITE}" stroke-width="{SW16}"/>`)
+      ],
+      "mix": [
+        L("drift", `<path d="${CLOUD_HIGH}" stroke="${WHITE}"/>`),
+        L("fall", `<path d="M18 35l-2 6M30 35l-2 6" stroke="${RAIN}"/>`),
+        L("fall-slow", `<path d="M24 38v0M34 43v0" stroke="${WHITE}" stroke-width="{SW16}"/>`)
+      ],
+      "thunder": [
+        L("drift", `<path d="${CLOUD_HIGH}" stroke="${WHITE}"/>`),
+        L("flash", `<path d="M26 32l-5 8h6l-4 7" stroke="${ORANGE}"/>`)
+      ],
+      "fog": [L("drift", `<path d="M8 18h32M12 26h28M8 34h26M14 42h22" stroke="${WHITE}"/>`)],
+      "moon": [L("sway", `<path d="M30 9a15 15 0 1 0 9 26 12 12 0 1 1-9-26z" stroke="${ORANGE}"/>`)],
+      "partly-night": [
+        L(null, `<path d="M17 6a9 9 0 1 0 8 13 7 7 0 1 1-8-13z" stroke="${ORANGE}"/>`),
+        L("drift", `<path d="${CLOUD_SMALL}" stroke="${WHITE}"/>`)
+      ],
+      "wind": [L("drift", `<path d="M6 18h22a5 5 0 1 0-5-5M6 26h30a5 5 0 1 1-5 5M6 34h16" stroke="${WHITE}"/>`)]
     };
-    return open + (parts[type] || parts.cloud) + "</svg>";
+    return icons[type] || icons.cloud;
+  }
+
+  function iconHtml(type, size, strokeWidth) {
+    const svgOpen = `<svg viewBox="0 0 48 48" width="${size}" height="${size}" fill="none" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">`;
+    const stack = layers(type).map((l) =>
+      `<span class="ic-l${l.motion ? " ic-" + l.motion : ""}">${svgOpen}${l.paths.replace(/\{SW16\}/g, String(strokeWidth * 1.6))}</svg></span>`
+    ).join("");
+    return `<span class="ic" style="width:${size}px;height:${size}px">${stack}</span>`;
   }
 
   function el(tag, className, text) {
@@ -238,7 +278,7 @@
 
   function icon(type, size, strokeWidth, className) {
     const wrap = el("span", className);
-    wrap.innerHTML = iconSvg(type, size, strokeWidth);
+    wrap.innerHTML = iconHtml(type, size, strokeWidth);
     return wrap;
   }
 
@@ -279,7 +319,8 @@
     now.appendChild(icon(model.icon, 230, 2.6, "wx-now-icon"));
     const nowText = el("div", "wx-now-text");
     const temp = el("div", "wx-temp");
-    temp.appendChild(el("span", "t-hero", `${model.temp}°`));
+    const tempText = el("span", null, `${model.temp}°`);
+    temp.appendChild(window.RamstarHero ? window.RamstarHero.makeHero(tempText) : tempText);
     nowText.appendChild(temp);
     const condition = el("div", "wx-condition", model.condition);
     if (model.condition.length > 16) condition.classList.add("is-long");
@@ -291,7 +332,9 @@
     const stats = el("div", "wx-stats wx-anim");
     model.stats.forEach((s) => {
       const stat = el("div", "wx-stat");
-      stat.appendChild(el("span", "wx-stat-label", s.label));
+      const label = el("span", "wx-stat-label", s.label);
+      label.dataset.label = s.label; // drawn again, orange, for the beat's highlight
+      stat.appendChild(label);
       stat.appendChild(el("span", "wx-stat-value", s.value));
       stats.appendChild(stat);
     });
