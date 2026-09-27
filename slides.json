@@ -5,9 +5,9 @@
   "moveTo": null,
   "slides": [
     {
-      "title": "Test slide - signage is working",
+      "title": "RAMSTAR",
       "src": "slides/00-test.png",
-      "duration": 5
+      "duration": 10
     },
     {
       "title": "Live weather",
@@ -19,23 +19,23 @@
     {
       "title": "Birthdays",
       "type": "birthdays",
-      "month": "[Month]",
+      "month": "SEPTEMBER",
       "people": [
         {
-          "day": "[Day]",
-          "name": "[First Last]"
+          "day": "Sat, 9",
+          "name": "Quentin Lambkin"
         },
         {
-          "day": "[Day]",
-          "name": "[First Last]"
+          "day": "Wed, 13th",
+          "name": "RHONDA MIDDLETON"
         },
         {
-          "day": "[Day]",
-          "name": "[First Last]"
+          "day": "FRI 16",
+          "name": "EMILY KIMBAL"
         },
         {
-          "day": "[Day]",
-          "name": "[First Last]"
+          "day": "Monday, 18th",
+          "name": "Kristen Picard"
         }
       ],
       "duration": 10
@@ -44,43 +44,43 @@
       "title": "Company value",
       "type": "value",
       "index": "[1 of 5]",
-      "name": "[Value Name]",
-      "meaning": "[One sentence on what this value means here.]",
-      "example": "[Employee name] [did something that shows it].",
+      "name": "WE PARTNER",
+      "meaning": "We always make sure to partner whenever we can",
+      "example": "Rhonda made sure to partner with Kristen on deciding which pop to buy.",
       "duration": 10
     },
     {
       "title": "Customer spotlight",
       "type": "spotlight",
       "kind": "Customer",
-      "name": "[Company Name]",
-      "since": "[Year]",
-      "blurb": "[One line on what we cut or supply for them]",
+      "name": "Aarkel",
+      "since": "2017",
+      "blurb": "They have bought over 20,000 inserts since we first started!",
       "duration": 10
     },
     {
       "title": "Event countdown",
       "type": "event",
-      "name": "[Event Name]",
-      "date": "",
-      "time": "[Time]",
-      "location": "[Location]",
-      "note": "[Optional: food, RSVP to whom, what to bring]",
+      "name": "Ramstar Olympics",
+      "date": "June 20th-25th",
+      "time": "10:00am",
+      "location": "Lunch Room",
+      "note": "Please make sure you meet with your team ahead of time",
       "duration": 10
     },
     {
       "title": "Milestone",
       "type": "milestone",
-      "number": "[000,000]",
-      "label": "[Units] [shipped / cut / processed]",
-      "note": "[Time period]. Thank you, team.",
+      "number": "65,000",
+      "label": "Lines shipped in August",
+      "note": "Great work shipping team!",
       "duration": 10
     },
     {
       "title": "Safety",
       "type": "safety",
-      "days": "[000]",
-      "tip": "[One short, specific safety reminder]",
+      "days": "94",
+      "tip": "Remember, always tie your shoes",
       "duration": 10
     }
   ]
