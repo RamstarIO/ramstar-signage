@@ -46,13 +46,22 @@
   // Marks elements to rise in, in the order this is called: 300 ms, 600 ms, ...
   function sequencer() {
     let step = 0;
-    return function anim(node) {
+    function anim(node) {
       if (!node) return node;
       node.classList.add("t-in");
       node.style.setProperty("--d", `${300 + step * 300}ms`);
       step += 1;
       return node;
-    };
+    }
+    // When the last part has nearly finished rising in (ms after the slide appears).
+    anim.lastLands = () => 300 + Math.max(0, step - 1) * 300 + 500;
+    return anim;
+  }
+
+  // The background star fades in last, once every part has arrived.
+  function starLast(root, anim) {
+    root.style.setProperty("--star-at", `${anim.lastLands()}ms`);
+    return root;
   }
 
   function star(className, color) {
@@ -85,8 +94,21 @@
     return node;
   }
 
-  function slideRoot(theme) {
-    return h("div", `t-slide t-slide--${theme}`);
+  // Wraps a slide's hero text in a span so the ambient "steel sheen" can sweep across it.
+  function hero(tag, className, text) {
+    const node = h(tag, className);
+    const span = h("span", "t-hero", text);
+    node.appendChild(span);
+    node.heroSpan = span;
+    return node;
+  }
+
+  // "moment" = the one attention-catching event just before halfway through a slide:
+  //   "sheen" (a glint across the hero text) or "beat" (a type-specific pulse),
+  //   or "none". Each type has a default; a slide can override it with "moment".
+  function slideRoot(theme, slide, defaultMoment) {
+    const moment = (slide && slide.moment) || defaultMoment || "none";
+    return h("div", `t-slide t-slide--${theme} m-${moment}`);
   }
 
   // Local midnight for "YYYY-MM-DD" (avoids the UTC off-by-one of new Date("2026-10-17")).
@@ -142,7 +164,7 @@
       const anim = sequencer();
       const month = slide.month || new Date().toLocaleDateString("en-US", { month: "long" });
       const people = Array.isArray(slide.people) ? slide.people.slice(0, 8) : [];
-      const root = slideRoot("navy");
+      const root = slideRoot("navy", slide, "sheen");
       add(root, star("t-star--birthdays", "#194B98"));
 
       const frame = h("div", "t-frame t-frame--birthdays");
@@ -150,6 +172,8 @@
         anim(tag(slide.tag || "Birthdays")),
         anim(withAccent("t-title t-title--150", slide.headline || `Happy Birthday\n*${month}*`))
       );
+      const accent = frame.querySelector(".t-accent");
+      if (accent) accent.classList.add("t-hero");
       const grid = anim(h("div", `t-names${people.length > 4 ? " t-names--many" : ""}`));
       people.forEach((p) => {
         const row = h("div", "t-name");
@@ -158,6 +182,7 @@
       });
       add(frame, grid);
       add(root, frame, logoBadge("right"));
+      starLast(root, anim);
       return root;
     }
   };
@@ -170,7 +195,7 @@
     },
     render(slide) {
       const anim = sequencer();
-      const root = slideRoot("light t-slide--split");
+      const root = slideRoot("light t-slide--split", slide, "sheen");
       const left = h("div", "t-spot-left");
       add(left, star("t-star--spotlight", "#194B98"));
       const box = anim(h("div", "t-spot-logo"));
@@ -187,11 +212,12 @@
       const right = h("div", "t-spot-right");
       add(right,
         anim(tag(slide.tag || `${slide.kind || "Customer"} Spotlight`)),
-        anim(h("h1", "t-title t-title--128", slide.name)),
+        anim(hero("h1", "t-title t-title--128", slide.name)),
         slide.since ? anim(h("div", "t-kicker", `Partners since ${slide.since}`)) : null,
         slide.blurb ? anim(h("p", "t-body t-body--50", slide.blurb)) : null
       );
       add(root, left, right, logoBadge("right"));
+      starLast(root, anim);
       return root;
     }
   };
@@ -201,18 +227,19 @@
   types.milestone = {
     render(slide) {
       const anim = sequencer();
-      const root = slideRoot("navy");
+      const root = slideRoot("navy", slide, "beat");
       add(root, star("t-star--milestone", "#194B98"));
       const frame = h("div", "t-frame t-frame--center");
-      const number = anim(h("div", "t-big-number", slide.number));
+      const number = anim(hero("div", "t-big-number", slide.number));
       add(frame,
         anim(tag(slide.tag || "Milestone")),
         number,
         anim(h("div", "t-milestone-label", slide.label)),
         slide.note ? anim(h("p", "t-body t-body--48 t-muted", slide.note)) : null
       );
-      countUp(number, slide.number || "", 600);
+      countUp(number.heroSpan, slide.number || "", 600);
       add(root, frame, logoBadge("right"));
+      starLast(root, anim);
       return root;
     }
   };
@@ -222,14 +249,14 @@
   types.value = {
     render(slide) {
       const anim = sequencer();
-      const root = slideRoot("light");
+      const root = slideRoot("light", slide, "sheen");
       add(root, star("t-star--value", "#E3DED5"));
       const frame = h("div", "t-frame t-frame--value");
       const head = h("div", "t-row");
       add(head, tag(slide.tag || "Our Values", "navy"), slide.index ? h("div", "t-index", slide.index) : null);
       add(frame,
         anim(head),
-        anim(h("h1", "t-title t-title--200", slide.name)),
+        anim(hero("h1", "t-title t-title--200", slide.name)),
         anim(h("div", "t-rule")),
         slide.meaning ? anim(h("p", "t-body t-body--58", slide.meaning)) : null
       );
@@ -239,6 +266,7 @@
         add(frame, anim(ex));
       }
       add(root, frame, logoBadge("right"));
+      starLast(root, anim);
       return root;
     }
   };
@@ -256,7 +284,7 @@
       const anim = sequencer();
       const day = parseDay(slide.date);
       const left = day ? daysBetween(today(), day) : null;
-      const root = slideRoot("navy t-slide--event");
+      const root = slideRoot("navy t-slide--event", slide, "beat");
 
       const main = h("div", "t-event-main");
       const when = h("div", "t-event-when");
@@ -276,14 +304,15 @@
       const side = h("div", "t-event-side");
       add(side, star("t-star--event", "#FFAE4A"));
       if (left === 0) {
-        add(side, anim(h("div", "t-event-today", "Today")));
+        add(side, anim(hero("div", "t-event-today", "Today")));
       } else if (left !== null) {
-        const n = anim(h("div", "t-event-n", String(left)));
+        const n = anim(hero("div", "t-event-n", String(left)));
         add(side, n, anim(h("div", "t-event-unit", left === 1 ? "Day to go" : "Days to go")));
       } else {
         add(side, anim(h("div", "t-event-unit", "Save the date")));
       }
       add(root, main, side, logoBadge("left"));
+      starLast(root, anim);
       return root;
     }
   };
@@ -293,7 +322,7 @@
   types.safety = {
     render(slide) {
       const anim = sequencer();
-      const root = slideRoot("orange");
+      const root = slideRoot("orange", slide, "beat");
       add(root, star("t-star--safety", "#FFAE4A"));
       const frame = h("div", "t-frame t-frame--safety");
 
@@ -303,10 +332,10 @@
       if (since) days = Math.max(0, daysBetween(since, today()));
 
       const counter = h("div", "t-safety-counter");
-      const number = h("div", "t-safety-number", days !== undefined ? String(days) : "");
+      const number = hero("div", "t-safety-number", days !== undefined ? String(days) : "");
       add(counter, number, withAccent("t-safety-label", slide.label || "Days without a\nlost-time incident"));
       add(frame, anim(tag(slide.tag || "Safety First", "navy")), anim(counter));
-      if (days !== undefined) countUp(number, String(days), 600);
+      if (days !== undefined) countUp(number.heroSpan, String(days), 600);
 
       if (slide.tip) {
         const tip = h("div", "t-safety-tip");
@@ -314,6 +343,7 @@
         add(frame, anim(tip));
       }
       add(root, frame, logoBadge("right"));
+      starLast(root, anim);
       return root;
     }
   };

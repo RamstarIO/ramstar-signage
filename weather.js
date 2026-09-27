@@ -214,17 +214,17 @@
   function iconSvg(type, size, strokeWidth) {
     const open = `<svg viewBox="0 0 48 48" width="${size}" height="${size}" fill="none" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">`;
     const parts = {
-      "sun": `<circle cx="24" cy="24" r="8" stroke="${ORANGE}"/><path d="${SUN_RAYS}" stroke="${ORANGE}"/>`,
-      "partly": `<circle cx="18" cy="16" r="6" stroke="${ORANGE}"/><path d="M18 5v2.5M8.5 9.5l1.8 1.8M5 16h2.5M27.5 9.5l-1.8 1.8" stroke="${ORANGE}"/><path d="${CLOUD_SMALL}" stroke="${WHITE}"/>`,
-      "cloud": `<path d="${CLOUD_LOW}" stroke="${WHITE}"/>`,
-      "rain": `<path d="${CLOUD_HIGH}" stroke="${WHITE}"/><path d="M18 35l-2 6M26 35l-2 6M34 35l-2 6" stroke="${RAIN}"/>`,
-      "snow": `<path d="${CLOUD_HIGH}" stroke="${WHITE}"/><path d="M17 37v0M25 37v0M33 37v0M21 43v0M29 43v0" stroke="${WHITE}" stroke-width="${strokeWidth * 1.6}"/>`,
-      "mix": `<path d="${CLOUD_HIGH}" stroke="${WHITE}"/><path d="M18 35l-2 6M30 35l-2 6" stroke="${RAIN}"/><path d="M24 38v0M34 43v0" stroke="${WHITE}" stroke-width="${strokeWidth * 1.6}"/>`,
-      "thunder": `<path d="${CLOUD_HIGH}" stroke="${WHITE}"/><path d="M26 32l-5 8h6l-4 7" stroke="${ORANGE}"/>`,
-      "fog": `<path d="M8 18h32M12 26h28M8 34h26M14 42h22" stroke="${WHITE}"/>`,
-      "moon": `<path d="M30 9a15 15 0 1 0 9 26 12 12 0 1 1-9-26z" stroke="${ORANGE}"/>`,
-      "partly-night": `<path d="M17 6a9 9 0 1 0 8 13 7 7 0 1 1-8-13z" stroke="${ORANGE}"/><path d="${CLOUD_SMALL}" stroke="${WHITE}"/>`,
-      "wind": `<path d="M6 18h22a5 5 0 1 0-5-5M6 26h30a5 5 0 1 1-5 5M6 34h16" stroke="${WHITE}"/>`
+      "sun": `<circle cx="24" cy="24" r="8" stroke="${ORANGE}"/><path class="amb-rays" d="${SUN_RAYS}" stroke="${ORANGE}"/>`,
+      "partly": `<circle cx="18" cy="16" r="6" stroke="${ORANGE}"/><path class="amb-rays-small" d="M18 5v2.5M8.5 9.5l1.8 1.8M5 16h2.5M27.5 9.5l-1.8 1.8" stroke="${ORANGE}"/><path class="amb-cloud" d="${CLOUD_SMALL}" stroke="${WHITE}"/>`,
+      "cloud": `<path class="amb-cloud" d="${CLOUD_LOW}" stroke="${WHITE}"/>`,
+      "rain": `<path class="amb-cloud" d="${CLOUD_HIGH}" stroke="${WHITE}"/><path class="amb-fall" d="M18 35l-2 6M26 35l-2 6M34 35l-2 6" stroke="${RAIN}"/>`,
+      "snow": `<path class="amb-cloud" d="${CLOUD_HIGH}" stroke="${WHITE}"/><path class="amb-fall-slow" d="M17 37v0M25 37v0M33 37v0M21 43v0M29 43v0" stroke="${WHITE}" stroke-width="${strokeWidth * 1.6}"/>`,
+      "mix": `<path class="amb-cloud" d="${CLOUD_HIGH}" stroke="${WHITE}"/><path class="amb-fall" d="M18 35l-2 6M30 35l-2 6" stroke="${RAIN}"/><path class="amb-fall-slow" d="M24 38v0M34 43v0" stroke="${WHITE}" stroke-width="${strokeWidth * 1.6}"/>`,
+      "thunder": `<path class="amb-cloud" d="${CLOUD_HIGH}" stroke="${WHITE}"/><path class="amb-flash" d="M26 32l-5 8h6l-4 7" stroke="${ORANGE}"/>`,
+      "fog": `<path class="amb-cloud" d="M8 18h32M12 26h28M8 34h26M14 42h22" stroke="${WHITE}"/>`,
+      "moon": `<path class="amb-sway" d="M30 9a15 15 0 1 0 9 26 12 12 0 1 1-9-26z" stroke="${ORANGE}"/>`,
+      "partly-night": `<path d="M17 6a9 9 0 1 0 8 13 7 7 0 1 1-8-13z" stroke="${ORANGE}"/><path class="amb-cloud" d="${CLOUD_SMALL}" stroke="${WHITE}"/>`,
+      "wind": `<path class="amb-cloud" d="M6 18h22a5 5 0 1 0-5-5M6 26h30a5 5 0 1 1-5 5M6 34h16" stroke="${WHITE}"/>`
     };
     return open + (parts[type] || parts.cloud) + "</svg>";
   }
@@ -278,7 +278,9 @@
     const now = el("div", "wx-now wx-anim");
     now.appendChild(icon(model.icon, 230, 2.6, "wx-now-icon"));
     const nowText = el("div", "wx-now-text");
-    nowText.appendChild(el("div", "wx-temp", `${model.temp}°`));
+    const temp = el("div", "wx-temp");
+    temp.appendChild(el("span", "t-hero", `${model.temp}°`));
+    nowText.appendChild(temp);
     const condition = el("div", "wx-condition", model.condition);
     if (model.condition.length > 16) condition.classList.add("is-long");
     nowText.appendChild(condition);
@@ -326,6 +328,10 @@
   window.RamstarTypes = window.RamstarTypes || {};
   window.RamstarTypes.weather = {
     load: (slide) => load(slide),
-    render: (slide, model) => render(model)
+    render: (slide, model) => {
+      const root = render(model);
+      root.classList.add(`m-${slide.moment || "beat"}`);
+      return root;
+    }
   };
 })();

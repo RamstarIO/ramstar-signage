@@ -3,6 +3,7 @@
    so every size here matches the design mockup pixel for pixel. */
 
 .wx {
+  --star-at: 2100ms; /* star fades in after the forecast strip lands */
   --u: 1px; /* inside the 1920x1080 canvas, one design pixel is one pixel */
   position: absolute;
   left: 0;

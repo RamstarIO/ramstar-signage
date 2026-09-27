@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@500;600&display=swap">
 <link rel="stylesheet" href="templates.css">
 <link rel="stylesheet" href="weather.css">
+<link rel="stylesheet" href="ambient.css">
 <style>
   :root {
     --ramstar-orange: #F7941D;
@@ -161,6 +162,7 @@
 <div class="stage">
   <div class="layer" id="layer-a"></div>
   <div class="layer" id="layer-b"></div>
+  <div class="progress" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div>
 </div>
 <div id="status" role="status"></div>
 
@@ -190,7 +192,16 @@
     defaultEffect: "none", // "none" or "zoom", used when a slide has no "effect"
     refreshMinutes: 5,     // how often to re-read slides.json
     hardReloadHours: 6,    // full page reload to pick up code changes
-    moveTo: null           // Phase 2: URL to send all TVs to
+    moveTo: null,          // Phase 2: URL to send all TVs to
+    // Ambient motion that keeps a slide from looking frozen. Each can be
+    // switched off in slides.json, e.g. "ambient": { "sheen": false }.
+    ambient: {
+      star: true,          // background star slowly rotates and drifts
+      progress: true,      // thin bar along the bottom fills over the slide
+      sheen: true,         // one glint of light across the hero text mid-slide
+      beat: true,          // a type-specific pulse mid-slide (number pulse, flip, nudge)
+      weatherIcons: true   // sun turns, rain falls, clouds drift
+    }
   };
 
   const layers = [document.getElementById("layer-a"), document.getElementById("layer-b")];
@@ -231,6 +242,31 @@
     const d = new Date();
     const pad = (n) => String(n).padStart(2, "0");
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  // Turns each ambient effect on or off with a class on the stage (amb-star, ...).
+  function applyAmbient() {
+    Object.entries(config.ambient).forEach(([name, on]) => {
+      stage.classList.toggle(`amb-${name}`, on !== false);
+    });
+  }
+
+  // The progress bar alternates so it never snaps back to empty:
+  //   odd slides:  fills left to right   (empty -> full, anchored left)
+  //   even slides: drains left to right  (full -> empty, anchored right)
+  // Each run lasts exactly one slide, so it finishes as the next slide arrives
+  // and the next run starts from where it left off.
+  const progressFill = document.getElementById("progress-fill");
+  let progressFilling = false;
+  function startProgress(seconds, tone) {
+    stage.dataset.tone = tone || "";
+    progressFilling = !progressFilling;
+    progressFill.style.transition = "none";
+    progressFill.style.transformOrigin = progressFilling ? "0% 50%" : "100% 50%";
+    progressFill.style.transform = progressFilling ? "scaleX(0)" : "scaleX(1)";
+    void progressFill.offsetWidth;
+    progressFill.style.transition = `transform ${seconds}s linear`;
+    progressFill.style.transform = progressFilling ? "scaleX(1)" : "scaleX(0)";
   }
 
   // Looks up a typed slide's renderer, e.g. "birthdays" -> templates.js.
@@ -306,6 +342,8 @@
     const data = await response.json();
 
     config = { ...DEFAULTS, ...data };
+    config.ambient = { ...DEFAULTS.ambient, ...(data.ambient || {}) };
+    applyAmbient();
 
     if (config.moveTo) {
       window.location.replace(config.moveTo);
@@ -409,6 +447,8 @@
       back.style.zIndex = "2";
       front.style.zIndex = "1";
       back.classList.add("is-visible");
+      // Orange slides get a navy bar, everything else an orange one.
+      startProgress(seconds, back.querySelector(".t-slide--orange") ? "orange" : "");
 
       cleanupTimer = setTimeout(() => {
         front.classList.remove("is-visible", "is-leaving");

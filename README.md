@@ -66,6 +66,7 @@ ramstar-signage/
 ├── templates.css       # Their layouts (match the design canvas, 1920×1080)
 ├── weather.js          # Live weather slide: fetches ECCC data, builds the slide
 ├── weather.css         # Live weather slide layout (Design A, 1920×1080)
+├── ambient.css         # Ambient motion: star, progress bar, sheen, beats, weather icons
 ├── slides.json         # The playlist. Changes whenever content changes.
 ├── slides/             # Slide images, 1920×1080 PNG
 │   ├── 00-test.png     # "Signage is working" test slide
@@ -162,6 +163,7 @@ If something sensitive is committed by mistake, deleting it is **not** enough. T
 | `refreshMinutes` | number | `5` | How often each TV re-reads this file. |
 | `hardReloadHours` | number | `6` | How often each TV fully reloads the page. |
 | `moveTo` | string or `null` | `null` | If set to a URL, every TV navigates there on its next refresh. Used once, for the [Phase 2](#phase-2-moving-to-private-hosting) switch. |
+| `ambient` | object | all `true` | Switches for each ambient effect: `star`, `progress`, `sheen`, `beat`, `weatherIcons`. See [Ambient motion](#ambient-motion). |
 | `slides` | array | `[]` | The playlist, in playback order. |
 
 ### Slide fields
@@ -174,6 +176,7 @@ If something sensitive is committed by mistake, deleting it is **not** enough. T
 | `start` | | First day to show, `YYYY-MM-DD`, inclusive. |
 | `end` | | Last day to show, `YYYY-MM-DD`, inclusive. |
 | `enabled` | | `false` hides the slide without deleting it. |
+| `moment` | | Typed slides only: `"sheen"`, `"beat"` or `"none"`. Overrides the slide type's mid-slide moment. See [Ambient motion](#ambient-motion). |
 | `effect` | | `"zoom"` (slow push-in) or `"none"`. Overrides `defaultEffect`. |
 | `overlay` | | Animated text on top of the image. See [Animation](#animation). |
 
@@ -254,6 +257,51 @@ All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and 
 **Give these slides at least 8–10 seconds.** The entrance takes about 2 seconds, and people need time to read after it.
 
 To change a layout, edit `templates.css` (sizes, colours) or the matching function in `templates.js` (what appears). New types follow the same pattern: add a `types.<name> = { render(slide) { ... } }` entry.
+
+### Ambient motion
+
+A slide that sits perfectly still for 10 seconds looks frozen. The player adds slow, background-level motion so the screens always look live, without pulling eyes off the words. Everything here runs automatically on typed slides (templates and weather); image slides get the progress bar only.
+
+**What happens on every slide**
+
+| Effect | What it does | Switch |
+|---|---|---|
+| **Star** | The star watermark is the **last thing to fade in**, once the text has landed (about 2 s in), then slowly turns ~7° and drifts. It fades out with the text when the slide leaves. It sits in a different place on each template, so it fades rather than jumps. | `star` (turns off the drift; the fade in and out always happens) |
+| **Progress bar** | A thin line (4 px on a 1080p TV) along the bottom. It **alternates**: fills left to right on one slide, drains left to right on the next, so it never snaps back to empty. It's orange, or navy on the orange Safety slide. | `progress` |
+| **Mid-slide moment** | Just before halfway through, one attention-catching moment so the slide doesn't go stale. Either a sheen or a beat (below). | `sheen`, `beat` |
+| **Living weather icons** | The sun's rays turn, clouds drift, rain and snow fall, lightning flickers. The forecast cards are offset so they don't move in lockstep. | `weatherIcons` |
+
+**The mid-slide moment, per slide type**
+
+| Slide | Default | What happens |
+|---|---|---|
+| Birthdays | sheen | A glint of light sweeps across the month |
+| Spotlight | sheen | …across the company name |
+| Company value | sheen | …across the value name |
+| Milestone | beat | The big number pulses once |
+| Event | beat | Two navy rings ripple out from the countdown number |
+| Safety | beat | The tip-of-the-week box nudges right and its label flashes white |
+| Weather | beat | The four stats light up one after another |
+
+Override it for one slide with `"moment"`:
+
+```json
+{ "type": "milestone", "number": "250,000", "label": "Cuts completed", "moment": "sheen" }
+```
+
+`"sheen"` works on every type; `"beat"` only does something on milestone, event, safety and weather; `"none"` turns the moment off for that slide.
+
+**Turning effects off everywhere** (at the top of `slides.json`; leave out any you want to keep on):
+
+```json
+"ambient": { "star": true, "progress": true, "sheen": true, "beat": true, "weatherIcons": true }
+```
+
+All ambient motion also switches off automatically on a device set to "reduce motion".
+
+**Performance note for the Fire Sticks:** everything except the sheen uses movement and fading only, which the Fire Stick's graphics chip handles easily. The sheen makes the browser redraw the hero text for about 1.6 s once per slide. If it ever stutters on a TV, set `"sheen": false`; the sheen slides then simply have no moment, and everything else carries on.
+
+**Tuning:** the timings live in `ambient.css` and are commented. The most useful knobs: the star's fade-in (`star-in 1400ms`), how far it turns (`rotate(7deg)` in `amb-drift`), when the moment fires (`0.42` for the sheen, `0.45` for beats, as fractions of the slide's duration), and the bar's thickness (`* 4` in `.progress`).
 
 ### Live weather slide
 

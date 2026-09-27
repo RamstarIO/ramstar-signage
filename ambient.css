@@ -1,0 +1,269 @@
+/* Ambient motion: slow, background-level movement that keeps a slide from
+   looking frozen without pulling eyes off the words.
+   Each effect is gated by a class on .stage (amb-star, amb-progress, ...),
+   which the player sets from "ambient" in slides.json.
+   Everything here animates transform/opacity only, except the sheen,
+   which is a single short sweep per slide. */
+
+/* ---------- 1. The star ----------
+   The star watermark sits in a different place on each template, so it
+   fades rather than jumps: it is the LAST thing to fade in on every slide
+   (at --star-at, once the text has landed; set by templates.js / weather.css),
+   and it fades out with the text when the slide leaves.
+   While visible it slowly turns ~7 degrees and drifts (the "amb-star" switch).
+   --slide-dur is set per slide by the player. */
+.t-star, .wx-star { opacity: 0; }
+.layer.is-visible .t-star,
+.layer.is-visible .wx-star {
+  animation: star-in 1400ms ease-out both;
+  animation-delay: var(--star-at, 2000ms);
+}
+.layer.is-leaving .t-star,
+.layer.is-leaving .wx-star {
+  animation: star-out 380ms ease-in both;
+  animation-delay: 0ms;
+}
+@keyframes star-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes star-out { from { opacity: 1; } to { opacity: 0; } }
+
+.stage.amb-star .layer.is-visible .t-star svg,
+.stage.amb-star .layer.is-visible .wx-star svg {
+  animation: amb-drift var(--slide-dur, 11s) linear forwards;
+  transform-origin: 50% 50%;
+}
+@keyframes amb-drift {
+  from { transform: rotate(0deg) translate(0, 0) scale(1); }
+  to   { transform: rotate(7deg) translate(-24px, 14px) scale(1.03); }
+}
+
+/* ---------- 2. Progress bar ----------
+   A thin line along the bottom that fills over the slide's duration.
+   The fill width is driven by the player (startProgress). */
+.progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--u, 1px) * 4);
+  z-index: 5;
+  background: rgba(14, 42, 86, 0.18);
+  display: none;
+}
+.stage.amb-progress .progress { display: block; }
+.progress-fill {
+  height: 100%;
+  width: 100%;
+  background: #F7941D;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+.stage[data-tone="orange"] .progress-fill { background: #0E2A56; }
+
+/* ---------- 3. The mid-slide "moment" ----------
+   Just before halfway through, each slide gets one attention-catching moment,
+   so it doesn't go stale while it's on screen. Each slide type has a default
+   (set as class m-sheen or m-beat on the slide), and a slide in slides.json
+   can override it with "moment": "sheen" | "beat" | "none".
+
+   3a. Steel sheen (birthdays, spotlight, value): one band of light sweeps
+   across the hero text, like light catching polished metal. .t-hero wraps
+   the text; --hero is its normal colour and --glint the highlight. */
+.t-hero {
+  --hero: currentColor;
+  --glint: #FFFFFF;
+}
+.stage.amb-sheen .m-sheen .t-hero {
+  background-image: linear-gradient(105deg,
+    var(--hero) 0%, var(--hero) 42%,
+    var(--glint) 50%,
+    var(--hero) 58%, var(--hero) 100%);
+  background-size: 260% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.stage.amb-sheen .layer.is-visible .m-sheen .t-hero {
+  animation: amb-sheen 1600ms ease-in-out both;
+  animation-delay: calc(var(--slide-dur, 11s) * 0.42);
+}
+@keyframes amb-sheen {
+  from { background-position: 100% 0; }
+  to   { background-position: 0% 0; }
+}
+/* Hero colours per context (the gradient needs a real colour, not currentColor) */
+.t-slide--navy .t-hero,  .wx .t-hero      { --hero: #FFFFFF; --glint: #F7941D; }
+.t-slide--navy .t-accent.t-hero,
+.t-big-number .t-hero,   .wx-temp .t-hero { --hero: #F7941D; --glint: #FFF1DE; }
+.t-slide--light .t-hero                   { --hero: #0E2A56; --glint: #6E93CF; }
+.t-slide--light .t-accent.t-hero          { --hero: #194B98; --glint: #8DB0E8; }
+.t-slide--orange .t-hero,
+.t-event-side .t-hero                     { --hero: #0E2A56; --glint: #FFFFFF; }
+
+/* 3b. Second beat (milestone, event, safety, weather): a small event that
+   re-draws the eye to the slide's key detail. Each targets an inner element,
+   never one that is already running its entrance animation. */
+.m-beat { --beat-at: calc(var(--slide-dur, 11s) * 0.45); }
+
+/* Milestone: the big number pulses once */
+.stage.amb-beat .m-beat .t-big-number .t-hero { display: inline-block; transform-origin: 0% 70%; }
+.stage.amb-beat .layer.is-visible .m-beat .t-big-number .t-hero {
+  animation: beat-pulse 900ms cubic-bezier(0.3, 0.7, 0.3, 1) both;
+  animation-delay: var(--beat-at);
+}
+@keyframes beat-pulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.07); }
+  100% { transform: scale(1); }
+}
+
+/* Event: two navy rings ripple out from the countdown number and fade,
+   like a ping. The number itself stays still. */
+.stage.amb-beat .m-beat .t-event-side::before,
+.stage.amb-beat .m-beat .t-event-side::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 47%;
+  width: 420px;
+  height: 420px;
+  margin: -210px 0 0 -210px;
+  border: 6px solid #0E2A56;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+.stage.amb-beat .layer.is-visible .m-beat .t-event-side::before,
+.stage.amb-beat .layer.is-visible .m-beat .t-event-side::after {
+  animation: beat-ripple 1600ms cubic-bezier(0.2, 0.6, 0.3, 1) both;
+  animation-delay: var(--beat-at);
+}
+.stage.amb-beat .layer.is-visible .m-beat .t-event-side::after {
+  animation-delay: calc(var(--beat-at) + 350ms);
+}
+.stage.amb-beat .m-beat .t-event-n,
+.stage.amb-beat .m-beat .t-event-unit,
+.stage.amb-beat .m-beat .t-event-today { z-index: 1; }
+@keyframes beat-ripple {
+  0%   { transform: scale(0.55); opacity: 0; }
+  15%  { opacity: 0.55; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+/* Safety: the tip of the week nudges, and its label flashes white */
+.stage.amb-beat .layer.is-visible .m-beat .t-safety-tip > * {
+  animation: beat-nudge 900ms ease-in-out both;
+  animation-delay: var(--beat-at);
+}
+.stage.amb-beat .layer.is-visible .m-beat .t-safety-tip > :nth-child(2) {
+  animation-delay: calc(var(--beat-at) + 90ms);
+}
+.stage.amb-beat .layer.is-visible .m-beat .t-safety-tip-label {
+  animation-name: beat-nudge-label;
+}
+@keyframes beat-nudge {
+  0%   { transform: translateX(0); }
+  40%  { transform: translateX(24px); }
+  100% { transform: translateX(0); }
+}
+@keyframes beat-nudge-label {
+  0%   { transform: translateX(0);    color: #F7941D; }
+  40%  { transform: translateX(24px); color: #FFFFFF; }
+  100% { transform: translateX(0);    color: #F7941D; }
+}
+
+/* Weather: the four stats light up one after another */
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat {
+  animation: beat-stat 900ms ease-in-out both;
+  animation-delay: var(--beat-at);
+}
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat .wx-stat-label {
+  animation: beat-stat-label 900ms ease-in-out both;
+  animation-delay: var(--beat-at);
+}
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(2),
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(2) .wx-stat-label { animation-delay: calc(var(--beat-at) + 250ms); }
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(3),
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(3) .wx-stat-label { animation-delay: calc(var(--beat-at) + 500ms); }
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(4),
+.stage.amb-beat .layer.is-visible .m-beat .wx-stat:nth-child(4) .wx-stat-label { animation-delay: calc(var(--beat-at) + 750ms); }
+@keyframes beat-stat {
+  0%   { transform: translateY(0);     border-top-color: #F7941D; }
+  35%  { transform: translateY(-10px); border-top-color: #FFFFFF; }
+  100% { transform: translateY(0);     border-top-color: #F7941D; }
+}
+@keyframes beat-stat-label {
+  0%   { color: #D6DDEA; }
+  35%  { color: #F7941D; }
+  100% { color: #D6DDEA; }
+}
+
+/* ---------- 4. Living weather icons ----------
+   Sun rays turn, clouds drift, rain and snow fall, lightning flickers.
+   Class names are added to the icon parts in weather.js. */
+.stage.amb-weatherIcons .wx svg .amb-rays {
+  transform-box: view-box;
+  transform-origin: 24px 24px;
+  animation: amb-spin 24s linear infinite;
+}
+.stage.amb-weatherIcons .wx svg .amb-rays-small {
+  animation: amb-pulse 3.2s ease-in-out infinite;
+}
+.stage.amb-weatherIcons .wx svg .amb-cloud {
+  animation: amb-cloud 7s ease-in-out infinite alternate;
+}
+.stage.amb-weatherIcons .wx svg .amb-fall {
+  animation: amb-fall 1.4s linear infinite;
+}
+.stage.amb-weatherIcons .wx svg .amb-fall-slow {
+  animation: amb-fall 2.8s linear infinite;
+}
+.stage.amb-weatherIcons .wx svg .amb-flash {
+  animation: amb-flash 4.5s steps(1, end) infinite;
+}
+.stage.amb-weatherIcons .wx svg .amb-sway {
+  transform-box: view-box;
+  transform-origin: 24px 24px;
+  animation: amb-sway 6s ease-in-out infinite alternate;
+}
+/* Stagger the forecast cards so they don't move in lockstep */
+.stage.amb-weatherIcons .wx-day:nth-child(2) svg * { animation-delay: -0.7s; }
+.stage.amb-weatherIcons .wx-day:nth-child(3) svg * { animation-delay: -1.4s; }
+.stage.amb-weatherIcons .wx-day:nth-child(4) svg * { animation-delay: -2.1s; }
+.stage.amb-weatherIcons .wx-day:nth-child(5) svg * { animation-delay: -2.8s; }
+
+@keyframes amb-spin  { to { transform: rotate(360deg); } }
+@keyframes amb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@keyframes amb-cloud { from { transform: translateX(-1.2px); } to { transform: translateX(1.2px); } }
+@keyframes amb-fall {
+  0%   { transform: translateY(-3px); opacity: 0; }
+  25%  { opacity: 1; }
+  100% { transform: translateY(4px); opacity: 0; }
+}
+@keyframes amb-flash {
+  0%  { opacity: 1; }
+  88% { opacity: 1; }
+  90% { opacity: 0.2; }
+  92% { opacity: 1; }
+  94% { opacity: 0.3; }
+  96% { opacity: 1; }
+}
+@keyframes amb-sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+
+/* ---------- Respect "reduce motion" ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .stage .layer .t-star svg,
+  .stage .layer .wx-star svg,
+  .stage .wx svg *,
+  .stage .layer .t-star,
+  .stage .layer .wx-star { animation: none !important; opacity: 1; }
+  .stage .layer.is-leaving .t-star,
+  .stage .layer.is-leaving .wx-star { opacity: 0; }
+  .stage .layer .t-event-side::before,
+  .stage .layer .t-event-side::after { animation: none !important; opacity: 0; }
+  .stage .layer .t-hero,
+  .stage .layer .t-safety-tip > *,
+  .stage .layer .wx-stat,
+  .stage .layer .wx-stat-label { animation: none !important; }
+  .stage.amb-sheen .m-sheen .t-hero { -webkit-text-fill-color: currentColor; background: none; }
+}
