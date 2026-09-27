@@ -3,6 +3,7 @@
    so every size here matches the design mockup pixel for pixel. */
 
 .wx {
+  --u: 1px; /* inside the 1920x1080 canvas, one design pixel is one pixel */
   position: absolute;
   left: 0;
   top: 0;
@@ -199,6 +200,17 @@
   from { opacity: 0; transform: translateY(40px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+/* Exit: same order as the entrance, quicker. Uses part-out from index.html. */
+.layer.is-leaving .wx-anim {
+  animation: part-out 420ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+.layer.is-leaving .wx-header.wx-anim { animation-delay: 0ms; }
+.layer.is-leaving .wx-alert.wx-anim  { animation-delay: 30ms; }
+.layer.is-leaving .wx-now.wx-anim    { animation-delay: 60ms; }
+.layer.is-leaving .wx-stats.wx-anim  { animation-delay: 100ms; }
+.layer.is-leaving .wx-strip.wx-anim  { animation-delay: 140ms; }
+
 @media (prefers-reduced-motion: reduce) {
-  .layer.is-visible .wx-anim { animation: none; opacity: 1; }
+  .layer.is-visible .wx-anim,
+  .layer.is-leaving .wx-anim { animation: none; opacity: 1; }
 }

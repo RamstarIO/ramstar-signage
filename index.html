@@ -122,9 +122,25 @@
   }
 
   /* Respect a device-level "reduce motion" setting. */
+  /* Exit: each part slips up and fades, in the same order it arrived but
+     quicker, so the slide clears itself before the next one fades in over it.
+     Rules for template and weather parts live in templates.css / weather.css. */
+  @keyframes part-out {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(calc(var(--u, 1px) * -28)); }
+  }
+  .layer.is-leaving .overlay > * {
+    animation: part-out 420ms cubic-bezier(0.4, 0, 1, 1) both;
+  }
+  .layer.is-leaving .overlay > :nth-child(1) { animation-delay: 0ms; }
+  .layer.is-leaving .overlay > :nth-child(2) { animation-delay: 50ms; }
+  .layer.is-leaving .overlay > :nth-child(3) { animation-delay: 100ms; }
+  .layer.is-leaving .overlay > :nth-child(4) { animation-delay: 150ms; }
+
   @media (prefers-reduced-motion: reduce) {
     .layer.is-visible > img,
     .layer.is-visible .overlay > * { animation: none; opacity: 1; }
+    .layer.is-leaving .overlay > * { animation: none; opacity: 1; }
   }
 
   #status {
@@ -193,6 +209,12 @@
   let position = -1;      // index into playlist
   let frontLayer = 0;     // which layer is currently showing
   let timer = null;
+  let enterTimer = null;
+  let cleanupTimer = null;
+
+  // Transition timing. Keep FADE_MS in step with --fade-ms in the CSS above.
+  const EXIT_MS = 550;    // outgoing text/panels leave before the next slide starts
+  const FADE_MS = 800;    // background crossfade
 
   // ---------- helpers ----------
 
@@ -372,9 +394,28 @@
     // Zoom runs slightly longer than the slide so it never stops on screen.
     back.style.setProperty("--slide-dur", `${seconds + 1}s`);
 
-    void back.offsetWidth; // force layout so the animations restart
-    back.classList.add("is-visible");
-    front.classList.remove("is-visible");
+    // Transition, in three beats:
+    //   1. The outgoing slide's text and panels slip up and fade out (EXIT_MS).
+    //   2. The new slide's background fades in ON TOP of the old one, which
+    //      stays fully opaque underneath, so the screen never dips to dark.
+    //   3. Once the new slide is fully in, the old layer is hidden and reset.
+    clearTimeout(enterTimer);
+    clearTimeout(cleanupTimer);
+    const hasOutgoing = front.classList.contains("is-visible");
+    if (hasOutgoing) front.classList.add("is-leaving");
+
+    enterTimer = setTimeout(() => {
+      void back.offsetWidth; // force layout so the entrance animations restart
+      back.style.zIndex = "2";
+      front.style.zIndex = "1";
+      back.classList.add("is-visible");
+
+      cleanupTimer = setTimeout(() => {
+        front.classList.remove("is-visible", "is-leaving");
+        front.replaceChildren();
+      }, FADE_MS + 100);
+    }, hasOutgoing ? EXIT_MS : 0);
+
     frontLayer = 1 - frontLayer;
     hideStatus();
   }

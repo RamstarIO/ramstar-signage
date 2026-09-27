@@ -3,6 +3,7 @@
    so sizes match the design canvas pixel for pixel. */
 
 .t-slide {
+  --u: 1px; /* inside the 1920x1080 canvas, one design pixel is one pixel */
   position: absolute;
   left: 0;
   top: 0;
@@ -261,6 +262,14 @@
   from { opacity: 0; transform: translateY(40px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+/* Exit: parts slip up and fade in their arrival order, 60 ms apart
+   (the entrance's 300 ms steps divided by 5). Uses part-out from index.html. */
+.layer.is-leaving .t-in {
+  animation: part-out 420ms cubic-bezier(0.4, 0, 1, 1) both;
+  animation-delay: calc((var(--d, 300ms) - 300ms) / 5);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .layer.is-visible .t-in { animation: none; opacity: 1; }
+  .layer.is-visible .t-in,
+  .layer.is-leaving .t-in { animation: none; opacity: 1; }
 }
