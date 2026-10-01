@@ -177,6 +177,7 @@ If something sensitive is committed by mistake, deleting it is **not** enough. T
 | `end` | | Last day to show, `YYYY-MM-DD`, inclusive. |
 | `enabled` | | `false` hides the slide without deleting it. |
 | `moment` | | Typed slides only: `"sheen"`, `"beat"` or `"none"`. Overrides the slide type's mid-slide moment. See [Ambient motion](#ambient-motion). |
+| `progress` | | `false` hides the progress bar while this slide is on screen (logo slides do this automatically). |
 | `effect` | | `"zoom"` (slow push-in) or `"none"`. Overrides `defaultEffect`. |
 | `overlay` | | Animated text on top of the image. See [Animation](#animation). |
 
@@ -241,6 +242,8 @@ Each template from the design canvas is a slide type. The player builds it in HT
   "location": "Shop floor", "note": "Burgers on us. RSVP to the front office." }
 
 { "type": "safety", "since": "2026-05-21", "tip": "Gloves on for every cut, even the quick ones." }
+
+{ "type": "logo", "intro": ["rise", "wipe", "words", "assemble", "glint"] }
 ```
 
 | Type | Fields (✅ = required) | Notes |
@@ -251,8 +254,27 @@ Each template from the design canvas is a slide type. The player builds it in HT
 | `value` | `name` ✅, `meaning`, `example`, `index` | `index` is the small "1 of 5" label. |
 | `event` | `name` ✅, `date`, `time`, `location`, `note` | `date` is `YYYY-MM-DD`. The countdown calculates itself, shows **Today** on the day, and the slide **hides itself the day after**. With no date it shows "Save the date". |
 | `safety` | `since` or `days`, `tip`, `label` | Set `since` to the date of the last lost-time incident and the count keeps itself up to date. `days` is a fixed number instead. |
+| `logo` | `intro`, `slogan`, `logo` | A clean brand break: the logo with the slogan between two orange rules. `slogan` defaults to "Unmatched Service & Technology". `intro` is one of `rise`, `wipe`, `words`, `assemble`, `glint` (below), **or a list of them**, in which case the slide uses the next intro each time it comes round. The progress bar is hidden on logo slides. |
 
 All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and the usual `duration`, `start`, `end`, `enabled`. Birthdays also accepts `headline`; wrap a word in `*asterisks*` to colour it. Note that `title` is only your own label for the entry and is never shown on screen.
+
+**Logo slide intros:**
+
+| `intro` | How it arrives |
+|---|---|
+| `rise` | Logo rises in, the rules grow outward, the slogan rises. Matches the other slides. |
+| `wipe` | Logo settles into place, then the slogan is uncovered left to right. |
+| `words` | Logo pops in, then the slogan arrives word by word. |
+| `assemble` | Logo drops in from above; the slogan's two halves slide in from opposite sides and meet. |
+| `glint` | Logo fades in and a band of light sweeps across it, then the slogan follows. |
+
+Use **one** logo entry with a list, rather than several logo entries, so the brand break takes one slot per loop and varies each time:
+
+```json
+{ "type": "logo", "intro": ["rise", "wipe", "words", "assemble", "glint"] }
+```
+
+Each TV keeps its own place in the list, and starts again from the first intro after its 6-hourly reload. The logo image is only 600 px wide, so a larger or vector version of the logo would look sharper on this slide; save it in `assets/` and set `"logo": "assets/<file>"`.
 
 **Give these slides at least 8–10 seconds.** The entrance takes about 2 seconds, and people need time to read after it.
 
@@ -267,7 +289,7 @@ A slide that sits perfectly still for 10 seconds looks frozen. The player adds s
 | Effect | What it does | Switch |
 |---|---|---|
 | **Star** | The star watermark is the **last thing to fade in**, once the text has landed (about 2 s in), then slowly turns ~7° and drifts. It fades out with the text when the slide leaves. It sits in a different place on each template, so it fades rather than jumps. | `star` (turns off the drift; the fade in and out always happens) |
-| **Progress bar** | A thin line (4 px on a 1080p TV) along the bottom. It **alternates**: fills left to right on one slide, drains left to right on the next, so it never snaps back to empty. It's orange, or navy on the orange Safety slide. | `progress` |
+| **Progress bar** | A thin line (4 px on a 1080p TV) along the bottom. It **alternates**: fills left to right on one slide, drains left to right on the next, so it never snaps back to empty. It's orange, or navy on the orange Safety slide. It fades out on logo slides (and any slide with `"progress": false`) but keeps running underneath, so the alternation stays in step. | `progress` |
 | **Mid-slide moment** | Just before halfway through, one attention-catching moment so the slide doesn't go stale. Either a sheen or a beat (below). | `sheen`, `beat` |
 | **Living weather icons** | The sun's rays turn, clouds drift, rain and snow fall, lightning flickers. The forecast cards are offset so they don't move in lockstep. | `weatherIcons` |
 
@@ -282,6 +304,7 @@ A slide that sits perfectly still for 10 seconds looks frozen. The player adds s
 | Event | beat | Two navy rings ripple out from the countdown number |
 | Safety | beat | The tip-of-the-week box nudges right and its label flashes white |
 | Weather | beat | The four stats light up one after another |
+| Logo | sheen | A glint of light sweeps across the logo itself |
 
 Override it for one slide with `"moment"`:
 

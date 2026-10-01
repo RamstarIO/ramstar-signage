@@ -5,6 +5,18 @@
   "moveTo": null,
   "slides": [
     {
+      "title": "Logo",
+      "type": "logo",
+      "intro": [
+        "rise",
+        "wipe",
+        "words",
+        "assemble",
+        "glint"
+      ],
+      "duration": 8
+    },
+    {
       "title": "RAMSTAR",
       "src": "slides/00-test.png",
       "duration": 5

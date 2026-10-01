@@ -70,6 +70,11 @@
   display: none;
 }
 .stage.amb-progress .progress { display: block; }
+/* Slides that want a clean look (logo slides, or "progress": false) fade the
+   bar out. It keeps running underneath, so the fill/drain alternation stays
+   in step when it fades back in on the next slide. */
+.progress { transition: opacity 500ms ease; will-change: opacity; }
+.stage[data-bar="off"] .progress { opacity: 0; }
 .progress-fill {
   height: 100%;
   width: 100%;

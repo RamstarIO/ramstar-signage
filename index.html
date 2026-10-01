@@ -449,6 +449,8 @@
       back.classList.add("is-visible");
       // Orange slides get a navy bar, everything else an orange one.
       startProgress(seconds, back.querySelector(".t-slide--orange") ? "orange" : "");
+      // Logo slides (and any slide with "progress": false) hide the bar.
+      stage.dataset.bar = (slide.progress === false || back.querySelector(".no-progress")) ? "off" : "";
 
       cleanupTimer = setTimeout(() => {
         front.classList.remove("is-visible", "is-leaving");
