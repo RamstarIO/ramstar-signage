@@ -17,11 +17,6 @@
       "duration": 8
     },
     {
-      "title": "RAMSTAR",
-      "src": "slides/00-test.png",
-      "duration": 5
-    },
-    {
       "title": "Live weather",
       "type": "weather",
       "station": "on-94",
