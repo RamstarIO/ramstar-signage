@@ -90,7 +90,7 @@
    (set as class m-sheen or m-beat on the slide), and a slide in slides.json
    can override it with "moment": "sheen" | "beat" | "none".
 
-   3a. Steel sheen (birthdays, spotlight, value): a band of light sweeps
+   3a. Steel sheen (spotlight, value): a band of light sweeps
    across the hero text, like light catching polished metal.
    How it's drawn (see makeHero in templates.js): a copy of the text in the
    highlight colour (--glint) sits in a window (.t-sheen) that only shows a
@@ -284,6 +284,45 @@
   100% { transform: translateY(0); }
 }
 
+/* Birthdays: each person's row bumps up in turn, its line flashing white and
+   the name flashing orange (same beat as the weather stats). --i is the row's
+   position, set by templates.js, so any number of names steps along. */
+.stage.amb-beat .m-beat .t-name { position: relative; will-change: transform; }
+.stage.amb-beat .m-beat .t-name::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -3px;
+  height: 3px;
+  background: #FFFFFF;
+  opacity: 0;
+  will-change: opacity;
+}
+.stage.amb-beat .m-beat .t-name-text { position: relative; }
+.stage.amb-beat .m-beat .t-name-text::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* cut short exactly like the name under it */
+  color: #F7941D;
+  opacity: 0;
+  will-change: opacity;
+}
+.stage.amb-beat .layer.is-visible .m-beat .t-name {
+  animation: beat-stat 900ms ease-in-out both;
+  animation-delay: calc(var(--beat-at) + var(--i, 0) * 250ms);
+}
+.stage.amb-beat .layer.is-visible .m-beat .t-name::before,
+.stage.amb-beat .layer.is-visible .m-beat .t-name .t-name-text::after {
+  animation: beat-glow 900ms ease-in-out both;
+  animation-delay: calc(var(--beat-at) + var(--i, 0) * 250ms);
+}
+
 /* ---------- 4. Living weather icons ----------
    Sun rays turn, clouds drift, rain and snow fall, lightning flickers.
    Each icon is a stack of layers (.ic-l), one per moving part (built in
@@ -327,6 +366,58 @@
 }
 @keyframes ic-sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
 
+/* ---------- 5. Birthday decorations (templates.js: birthdayDecor) ----------
+   Background party touches behind the names, chosen per slide with "decor".
+   The whole decoration fades in just after the slide arrives and fades out
+   with it. Each balloon / confetti piece is two nested layers: the outer one
+   travels in a straight line at a steady speed, the inner one sways or spins.
+   Splitting the two keeps both movements smooth, and every one of them is a
+   plain move/turn/fade of an already-drawn layer. The animations only run
+   while the slide is on screen (.is-visible), so hidden slides cost nothing. */
+.bd-decor { position: absolute; inset: 0; opacity: 0; pointer-events: none; will-change: opacity; }
+.layer.is-visible .bd-decor { animation: star-in 1600ms ease-out 300ms both; }
+.layer.is-leaving .bd-decor { animation: star-out 380ms ease-in both; }
+
+/* Balloons: start below the bottom edge, rise past the top, repeat */
+.bd-balloon { position: absolute; top: 1090px; will-change: transform; }
+.bd-sway { width: 100%; height: 100%; transform-origin: 50% 25%; will-change: transform; }
+.bd-sway svg { width: 100%; height: 100%; display: block; }
+.layer.is-visible .bd-balloon { animation-name: bd-rise; animation-timing-function: linear; animation-iteration-count: infinite; }
+.layer.is-visible .bd-sway { animation: bd-sway-l 5s ease-in-out infinite alternate; }
+.layer.is-visible .bd-sway--r { animation-name: bd-sway-r; }
+@keyframes bd-rise { from { transform: translateY(0); } to { transform: translateY(-1600px); } }
+@keyframes bd-sway-l { from { transform: translateX(-18px) rotate(-4deg); } to { transform: translateX(18px) rotate(4deg); } }
+@keyframes bd-sway-r { from { transform: translateX(18px) rotate(4deg); } to { transform: translateX(-18px) rotate(-4deg); } }
+
+/* Confetti: falls from above the top edge with a little sideways drift,
+   each piece tumbling (turning in 3D, which is still just a transform) */
+.bd-confetti { position: absolute; top: -60px; will-change: transform; }
+.bd-bit { will-change: transform; }
+.layer.is-visible .bd-confetti { animation-name: bd-fall-l; animation-timing-function: linear; animation-iteration-count: infinite; }
+.layer.is-visible .bd-confetti--r { animation-name: bd-fall-r; }
+.layer.is-visible .bd-bit { animation-name: bd-tumble; animation-timing-function: linear; animation-iteration-count: infinite; }
+@keyframes bd-fall-l { from { transform: translate(0, 0); } to { transform: translate(-90px, 1200px); } }
+@keyframes bd-fall-r { from { transform: translate(0, 0); } to { transform: translate(90px, 1200px); } }
+@keyframes bd-tumble { from { transform: rotate(0deg) rotateX(0deg); } to { transform: rotate(360deg) rotateX(720deg); } }
+
+/* Cake: the drawing itself stays still; the flames flicker, their glow
+   breathes and a few sparkles twinkle around it */
+.bd-glow, .bd-flame, .bd-sparkle { will-change: transform, opacity; }
+.layer.is-visible .bd-flame { animation: bd-flicker 1100ms ease-in-out infinite alternate; }
+.layer.is-visible .bd-glow { animation: bd-breathe 1700ms ease-in-out infinite alternate; }
+.layer.is-visible .bd-sparkle { animation: bd-twinkle 3600ms ease-in-out infinite both; }
+@keyframes bd-flicker {
+  0%   { transform: scale(1, 1) rotate(-3deg); opacity: 1; }
+  40%  { transform: scale(0.92, 1.12) rotate(2deg); opacity: 0.9; }
+  100% { transform: scale(1.04, 0.9) rotate(-1deg); opacity: 1; }
+}
+@keyframes bd-breathe { from { opacity: 0.45; transform: scale(0.9); } to { opacity: 0.85; transform: scale(1.06); } }
+@keyframes bd-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+  20%      { opacity: 0.9; transform: scale(1) rotate(20deg); }
+  45%      { opacity: 0; transform: scale(0.6) rotate(40deg); }
+}
+
 /* ---------- Respect "reduce motion" ---------- */
 @media (prefers-reduced-motion: reduce) {
   .stage .layer .t-star svg,
@@ -341,9 +432,21 @@
   .stage .layer .t-sheen,
   .stage .layer .t-safety-tip-label::after,
   .stage .layer .wx-stat::before,
-  .stage .layer .wx-stat-label::after { animation: none !important; opacity: 0; }
+  .stage .layer .wx-stat-label::after,
+  .stage .layer .t-name::before,
+  .stage .layer .t-name-text::after { animation: none !important; opacity: 0; }
   .stage .layer .t-hero,
   .stage .layer .t-sheen-text,
   .stage .layer .t-safety-tip > *,
-  .stage .layer .wx-stat { animation: none !important; }
+  .stage .layer .wx-stat,
+  .stage .layer .t-name { animation: none !important; }
+  /* Birthday decorations: keep the cake (flames still), drop moving pieces */
+  .stage .layer .bd-decor,
+  .stage .layer .bd-flame,
+  .stage .layer .bd-glow,
+  .stage .layer .bd-sparkle { animation: none !important; }
+  .stage .layer.is-visible .bd-decor { opacity: 1; }
+  .stage .layer .bd-decor--balloons,
+  .stage .layer .bd-decor--confetti,
+  .stage .layer .bd-sparkle { display: none; }
 }

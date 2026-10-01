@@ -6,7 +6,7 @@
  * Every part of a slide (tag, headline, details) rises in one after another,
  * the same entrance the weather slide uses.
  *
- *   { "type": "birthdays", "month": "October", "people": [{ "day": "3", "name": "Jane Doe" }] }
+ *   { "type": "birthdays", "month": "October", "decor": "balloons", "people": [{ "day": "Sat 3", "name": "Jane Doe" }] }
  *   ("title" is only your label in slides.json; use "headline" to change a heading.)
  *   { "type": "spotlight", "kind": "Customer", "name": "Acme Fab", "since": "2012",
  *     "blurb": "Laser-cut brackets every week.", "logo": "slides/logos/acme.png" }
@@ -188,13 +188,145 @@
 
   // ---------- Birthdays ----------
 
+  // ---------- Birthday decorations ----------
+  // Background party touches behind the birthday names: "balloons" (faded
+  // balloons rising), "confetti" (slow falling confetti), "cake" (a line-drawn
+  // cake with flickering candles), or "none". Every moving piece is its own
+  // small layer that only moves, turns or fades (the Fire Stick rule).
+
+  const BD_COLORS = { orange: "#F7941D", white: "#FFFFFF", sky: "#6C9BE0", blue: "#3D7BDB" };
+
+  // left px, width px, opacity, rise seconds, head start (0-1), colour, sway direction
+  // Faded balloons are kept to blues and white on purpose: see-through orange
+  // over navy mixes to a muddy brown, while blue-on-navy stays clean.
+  const BALLOONS = [
+    [90, 150, 0.26, 19, 0.05, "blue", "l"],
+    [300, 120, 0.20, 23, 0.62, "sky", "r"],
+    [500, 170, 0.14, 21, 0.33, "white", "l"],
+    [720, 125, 0.22, 25, 0.84, "sky", "r"],
+    [920, 185, 0.28, 18, 0.18, "blue", "l"],
+    [1130, 135, 0.14, 22, 0.70, "white", "r"],
+    [1330, 200, 0.24, 20, 0.45, "sky", "l"],
+    [1560, 140, 0.28, 24, 0.93, "blue", "r"],
+    [1740, 175, 0.15, 21, 0.25, "white", "l"],
+    [1450, 110, 0.20, 26, 0.10, "sky", "r"],
+  ];
+
+  function balloonSvg() {
+    return `<svg viewBox="0 0 100 200" aria-hidden="true">
+      <path d="M50 4C24 4 8 26 8 52c0 30 24 52 42 58 18-6 42-28 42-58C92 26 76 4 50 4z" fill="currentColor"/>
+      <ellipse cx="33" cy="34" rx="9" ry="15" transform="rotate(25 33 34)" fill="#FFFFFF" opacity="0.35"/>
+      <path d="M44 117l6-8 6 8z" fill="currentColor"/>
+      <path d="M50 117c-9 22 9 40-2 80" fill="none" stroke="currentColor" stroke-width="2"/>
+    </svg>`;
+  }
+
+  const CONFETTI_COUNT = 30;
+
+  // Tiny repeatable random numbers, so the confetti lands the same way every time.
+  function seeded(seed) {
+    let s = seed >>> 0;
+    return () => {
+      s = (s + 0x6D2B79F5) >>> 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function cakeSvg() {
+    // Outline-only, like the star watermark. Flames are separate (they move).
+    return `<svg viewBox="0 0 400 460" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <g stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="5">
+        <path d="M14 440h372"/>
+        <rect x="46" y="300" width="308" height="130" rx="12"/>
+        <rect x="96" y="200" width="208" height="100" rx="10"/>
+        <rect x="140" y="128" width="16" height="72" rx="3"/>
+        <rect x="192" y="118" width="16" height="82" rx="3"/>
+        <rect x="244" y="128" width="16" height="72" rx="3"/>
+      </g>
+      <g stroke="#F7941D" stroke-width="5">
+        <path d="M46 326c20 0 20 22 38 22s18-22 38-22 20 30 38 30 18-30 38-30 20 22 38 22 18-22 38-22 20 26 38 26 18-26 30-26"/>
+        <path d="M96 222c16 0 16 18 30 18s14-18 30-18 16 24 30 24 14-24 30-24 16 18 30 18 14-18 28-18 10 14 20 14"/>
+      </g>
+      <g fill="#F7941D" fill-opacity="0.8" stroke="none">
+        <circle cx="96" cy="392" r="6"/><circle cx="160" cy="392" r="6"/><circle cx="224" cy="392" r="6"/>
+        <circle cx="288" cy="392" r="6"/><circle cx="140" cy="266" r="5"/><circle cx="200" cy="266" r="5"/><circle cx="260" cy="266" r="5"/>
+      </g>
+    </svg>`;
+  }
+
+  function sparkleSvg(color) {
+    return `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0c2 12 8 18 20 20-12 2-18 8-20 20-2-12-8-18-20-20 12-2 18-8 20-20z" fill="${color}"/></svg>`;
+  }
+
+  function birthdayDecor(kind) {
+    const wrap = h("div", `bd-decor bd-decor--${kind}`);
+    if (kind === "balloons") {
+      BALLOONS.forEach(([left, width, opacity, secs, head, color, dir]) => {
+        const rise = h("div", "bd-balloon");
+        rise.style.cssText = `left:${left}px;width:${width}px;height:${width * 2}px;opacity:${opacity};` +
+          `color:${BD_COLORS[color]};animation-duration:${secs}s;animation-delay:${(-head * secs).toFixed(2)}s`;
+        const sway = h("div", `bd-sway bd-sway--${dir}`);
+        sway.style.animationDuration = `${(secs / 4).toFixed(2)}s`;
+        sway.innerHTML = balloonSvg();
+        rise.appendChild(sway);
+        wrap.appendChild(rise);
+      });
+    } else if (kind === "confetti") {
+      const rnd = seeded(1951);
+      const colors = ["orange", "orange", "white", "sky"];
+      for (let i = 0; i < CONFETTI_COUNT; i++) {
+        const fall = h("div", `bd-confetti bd-confetti--${i % 2 ? "r" : "l"}`);
+        const secs = 11 + rnd() * 7;
+        const left = Math.round(40 + (i / CONFETTI_COUNT) * 1840 + rnd() * 60);
+        fall.style.cssText = `left:${left}px;animation-duration:${secs.toFixed(2)}s;` +
+          `animation-delay:${(-rnd() * secs).toFixed(2)}s`;
+        const bit = h("div", "bd-bit");
+        const round = rnd() < 0.3;
+        const w = round ? 20 : 16 + Math.round(rnd() * 10);
+        const ht = round ? 20 : 30 + Math.round(rnd() * 14);
+        bit.style.cssText = `width:${w}px;height:${ht}px;border-radius:${round ? "50%" : "3px"};` +
+          `background:${BD_COLORS[colors[Math.floor(rnd() * colors.length)]]};` +
+          `opacity:${(0.7 + rnd() * 0.25).toFixed(2)};animation-duration:${(2.6 + rnd() * 2.4).toFixed(2)}s`;
+        fall.appendChild(bit);
+        wrap.appendChild(fall);
+      }
+    } else if (kind === "cake") {
+      const cake = h("div", "bd-cake");
+      cake.innerHTML = cakeSvg();
+      // Flame centres in cake coordinates (candle tops)
+      [[148, 128], [200, 118], [252, 128]].forEach(([x, y], i) => {
+        const glow = h("div", "bd-glow");
+        glow.style.cssText = `left:${x - 45}px;top:${y - 80}px;animation-delay:${i * 0.37}s`;
+        const flame = h("div", "bd-flame");
+        flame.style.cssText = `left:${x - 13}px;top:${y - 46}px;animation-delay:${i * 0.23}s`;
+        flame.innerHTML = `<svg viewBox="0 0 26 44" aria-hidden="true"><path d="M13 0C17 12 26 20 26 30a13 13 0 0 1-26 0C0 20 9 12 13 0z" fill="#F7941D"/><path d="M13 16c2 6 6 10 6 16a6 6 0 0 1-12 0c0-6 4-10 6-16z" fill="#FFE2B8"/></svg>`;
+        add(cake, glow, flame);
+      });
+      // Sparkles around the cake: left px, top px, size, colour, delay s
+      [[-20, 40, 34, "#F7941D", 0], [360, 10, 26, "#FFFFFF", 0.9], [400, 200, 38, "#F7941D", 1.8],
+       [-60, 250, 24, "#FFFFFF", 2.5], [330, 330, 20, "#6C9BE0", 1.3], [60, -40, 22, "#6C9BE0", 3.1]]
+        .forEach(([x, y, size, color, delay]) => {
+          const sp = h("div", "bd-sparkle");
+          sp.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px;animation-delay:${delay}s`;
+          sp.innerHTML = sparkleSvg(color);
+          cake.appendChild(sp);
+        });
+      wrap.appendChild(cake);
+    }
+    return wrap;
+  }
+
   types.birthdays = {
     render(slide) {
       const anim = sequencer();
       const month = slide.month || new Date().toLocaleDateString("en-US", { month: "long" });
       const people = Array.isArray(slide.people) ? slide.people.slice(0, 8) : [];
-      const root = slideRoot("navy", slide, "sheen");
+      const decor = ["balloons", "confetti", "cake", "none"].includes(slide.decor) ? slide.decor : "balloons";
+      const root = slideRoot("navy", slide, "beat");
       add(root, star("t-star--birthdays", "#194B98"));
+      if (decor !== "none") add(root, birthdayDecor(decor));
 
       const frame = h("div", "t-frame t-frame--birthdays");
       add(frame,
@@ -204,9 +336,12 @@
       const accent = frame.querySelector(".t-accent");
       if (accent) makeHero(accent);
       const grid = anim(h("div", `t-names${people.length > 4 ? " t-names--many" : ""}`));
-      people.forEach((p) => {
+      people.forEach((p, i) => {
         const row = h("div", "t-name");
-        add(row, h("span", "t-name-day", p.day), h("span", "t-name-text", p.name));
+        row.style.setProperty("--i", i); // the beat bumps each name in turn
+        const name = h("span", "t-name-text", p.name);
+        name.dataset.label = p.name; // drawn again, orange, for the beat's highlight
+        add(row, h("span", "t-name-day", p.day), name);
         grid.appendChild(row);
       });
       add(frame, grid);

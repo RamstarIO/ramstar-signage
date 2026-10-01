@@ -66,7 +66,7 @@ ramstar-signage/
 ├── templates.css       # Their layouts (match the design canvas, 1920×1080)
 ├── weather.js          # Live weather slide: fetches ECCC data, builds the slide
 ├── weather.css         # Live weather slide layout (Design A, 1920×1080)
-├── ambient.css         # Ambient motion: star, progress bar, sheen, beats, weather icons
+├── ambient.css         # Ambient motion: star, progress bar, sheen, beats, birthday decorations, weather icons
 ├── slides.json         # The playlist. Changes whenever content changes.
 ├── slides/             # Slide images, 1920×1080 PNG
 │   ├── 00-test.png     # "Signage is working" test slide
@@ -248,7 +248,7 @@ Each template from the design canvas is a slide type. The player builds it in HT
 
 | Type | Fields (✅ = required) | Notes |
 |---|---|---|
-| `birthdays` | `people` ✅ (list of `day` + `name`), `month` | `month` defaults to the current month. Up to 8 people; more than 4 switches to a tighter layout. |
+| `birthdays` | `people` ✅ (list of `day` + `name`), `month`, `decor` | `month` defaults to the current month. Up to 8 people; more than 4 switches to a tighter layout. `day` can be `"9"` or `"Sat 9"`. Each person stays on one line; a very long name is cut short with "…". `decor` is the background decoration (below). |
 | `spotlight` | `name` ✅, `kind`, `since`, `blurb`, `logo` | `kind` is `"Customer"` (default) or `"Supplier"`. `logo` is an image path; without one, the company name fills the white box. |
 | `milestone` | `number` ✅, `label` ✅, `note` | A plain number like `"100,000"` counts up; anything else shows as typed. |
 | `value` | `name` ✅, `meaning`, `example`, `index` | `index` is the small "1 of 5" label. |
@@ -257,6 +257,19 @@ Each template from the design canvas is a slide type. The player builds it in HT
 | `logo` | `intro`, `slogan`, `logo` | A clean brand break: the logo with the slogan between two orange rules. `slogan` defaults to "Unmatched Service & Technology". `intro` is one of `rise`, `wipe`, `words`, `assemble`, `glint` (below), **or a list of them**, in which case the slide uses the next intro each time it comes round. The progress bar is hidden on logo slides. |
 
 All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and the usual `duration`, `start`, `end`, `enabled`. Birthdays also accepts `headline`; wrap a word in `*asterisks*` to colour it. Note that `title` is only your own label for the entry and is never shown on screen.
+
+**Birthday decorations** (`"decor"`, default `"balloons"`):
+
+| `decor` | What it looks like |
+|---|---|
+| `balloons` | Faded blue and white balloons rise slowly behind the names, each swaying on its own timing. (Kept to blues and white on purpose: see-through orange over navy mixes to a muddy brown.) |
+| `confetti` | About 30 pieces of orange, white and light-blue confetti tumble slowly down. |
+| `cake` | A line-drawn cake on the right with flickering candles, a soft glow and twinkling sparkles. |
+| `none` | No decoration. |
+
+```json
+{ "type": "birthdays", "month": "October", "decor": "cake", "people": [ ... ] }
+```
 
 **Logo slide intros:**
 
@@ -297,8 +310,8 @@ A slide that sits perfectly still for 10 seconds looks frozen. The player adds s
 
 | Slide | Default | What happens |
 |---|---|---|
-| Birthdays | sheen | A glint of light sweeps across the month |
-| Spotlight | sheen | …across the company name |
+| Birthdays | beat | Each person bumps up in turn: the line above them flashes white and their name flashes orange |
+| Spotlight | sheen | A glint of light sweeps across the company name |
 | Company value | sheen | …across the value name |
 | Milestone | beat | The big number pulses once |
 | Event | beat | Two navy rings ripple out from the countdown number |
@@ -312,7 +325,7 @@ Override it for one slide with `"moment"`:
 { "type": "milestone", "number": "250,000", "label": "Cuts completed", "moment": "sheen" }
 ```
 
-`"sheen"` works on every type; `"beat"` only does something on milestone, event, safety and weather; `"none"` turns the moment off for that slide.
+`"sheen"` works on every type; `"beat"` only does something on birthdays, milestone, event, safety and weather; `"none"` turns the moment off for that slide.
 
 **Turning effects off everywhere** (at the top of `slides.json`; leave out any you want to keep on):
 
@@ -324,8 +337,9 @@ All ambient motion also switches off automatically on a device set to "reduce mo
 
 **Performance (built for the Fire Stick):** every effect animates only *movement and fading* (`transform` and `opacity`), which the graphics chip does on its own at no cost to the processor. Nothing animates colours, backgrounds, text or shapes inside an SVG, because those make the browser repaint on the processor every frame, which is what stutters on a Fire Stick. How the trickier effects stay GPU-only:
 - **Sheen:** a copy of the text in the highlight colour sits in a narrow, soft-edged window that slides across while the copy slides back the other way, so it stays exactly over the real text.
-- **Colour flashes** (safety label, weather stats): a second copy in the new colour fades in and out on top.
+- **Colour flashes** (safety label, weather stats, birthday names): a second copy in the new colour fades in and out on top.
 - **Weather icons:** each moving part (rays, cloud, raindrops) is its own layer and moves as a whole.
+- **Birthday balloons and confetti:** each piece is two small layers, one travelling in a straight line and one swaying or tumbling, and they only run while the slide is on screen. Measured with the processor slowed 4×: a few extra paints when the slide appears (about 10 ms in total), nothing per frame.
 - **Count-up numbers:** tick about 12 times a second, like a mechanical counter, instead of every frame.
 - **Layer hints** (`will-change`) prepare the next slide's moving parts while the previous one is still leaving.
 
