@@ -1,0 +1,33 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+Office TV signage for Ramstar: a **static site** (no build step, no dependencies, no package manager) served by GitHub Pages and opened full-screen by kiosk browsers on Amazon Fire TV Sticks. Pushing to `main` is deploying: TVs pick up `slides.json` changes within `refreshMinutes` (5) and code changes on their 6-hourly hard reload. README.md is the detailed user-facing spec for every `slides.json` field; keep it in sync when behaviour changes.
+
+## Commands
+
+```bash
+python3 -m http.server 8000         # run locally at http://localhost:8000 (fetch() fails from file://)
+python3 -m json.tool slides.json    # validate the playlist before pushing; invalid JSON freezes TVs on the last good playlist
+```
+
+There is no lint or automated test suite. To test the weather slide offline, load `tests/fixture-on-94.json` (a saved ECCC response) in the browser console and pass it through `RamstarWeather.toModel(feature, slide, now)` then `RamstarWeather.render(model)`.
+
+## Architecture
+
+- **`index.html`** – the player (inline script + base CSS). Fetches `slides.json`, filters active slides, double-buffers two layers (`layer-a`/`layer-b`) and crossfades. Transition is three beats: outgoing `.is-leaving` (`EXIT_MS` 550), new layer fades in on top (`FADE_MS` 800, must match `--fade-ms` in CSS), old layer cleared. Slides that fail to load (missing image, `load()` rejects, unknown type) are skipped, never fatal. `moveTo` in `slides.json` redirects every TV (Phase 2 migration hook).
+- **Slide type registry** – `templates.js` and `weather.js` register on `window.RamstarTypes[name] = { render(slide, data), load?(slide), isActive?(slide) }`. The player awaits `load()` *before* fading (so no half-drawn frames), passes its result to `render()`, and calls `isActive()` when filtering (e.g. events hide themselves the day after). A new type = a new `types.<name>` entry plus CSS; no changes to `index.html`. Slides without `type` are image slides (`src`, optional `overlay`/`effect`).
+- **Layout scaling** – typed slides are authored in fixed 1920×1080 px; the player sets `--k = stageWidth / 1920` and the slide root applies `transform: scale(var(--k, 1))`. Write CSS sizes in plain design-canvas pixels.
+- **Entrance & ambient conventions** (`templates.js` helpers, `ambient.css`): `sequencer()` tags parts with `.t-in` and a staggered `--d` delay; `starLast()` sets `--star-at` so the star fades in after the last part lands. The mid-slide moment is chosen by a class on the slide root, `m-sheen` / `m-beat` / `m-none` (per-type default, overridable via `slide.moment`). Global ambient switches become `amb-*` classes on `.stage`. The progress bar is driven by the player and hidden for `.no-progress` slides or `"progress": false`; `.t-slide--orange` gets a navy bar.
+- **`weather.js`** separates `load` (network, ECCC MSC GeoMet API, 15 min per-TV cache, stale data served up to 6 h) from pure `toModel`/`render`. Keep the ECCC attribution footer (licence requirement).
+
+## Constraints that aren't obvious
+
+- **Fire Stick performance:** animate only `transform` and `opacity`. No animating colours, backgrounds, text or SVG internals; colour flashes and sheens are done with a duplicate layer fading/sliding on top. Count-ups tick ~12×/s, not per frame. Honour `prefers-reduced-motion`.
+- **Text from `slides.json` is set via `textContent`, never `innerHTML`** (`h()`/`el()` helpers); `innerHTML` is only for static SVG decorations. `*asterisks*` in titles/headlines become an accent span.
+- **Dates:** `YYYY-MM-DD`, compared against the TV's *local* date. Use `parseDay()` (local midnight) rather than `new Date("YYYY-MM-DD")`, which parses as UTC and is off by one.
+- **Phase 1 is public.** The site is publicly reachable and git history is permanent: don't commit employee names/birthdays, customer/supplier names or logos, or financial data except what's explicitly public-safe (see README "Content rules"). Placeholder/dummy data only.
+- **Brand:** orange `#F7941D`, blue `#194B98`, navy `#0E2A56`, warm white `#F4F2EE`; Barlow Condensed / Barlow. Never orange text on a light background (poor contrast on TVs). The logo always sits on its white badge.
+- Paths are relative and case-sensitive on GitHub Pages.
