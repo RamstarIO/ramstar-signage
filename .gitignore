@@ -6,6 +6,9 @@
 .vscode/
 *.swp
 
+# Claude Code worktrees
+.claude/worktrees/
+
 # Never commit these to the public repo
 private/
 *.xlsx
