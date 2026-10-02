@@ -27,23 +27,27 @@
     {
       "title": "Birthdays",
       "type": "birthdays",
-      "month": "SEPTEMBER",
+      "month": "OCTOBER",
       "people": [
         {
-          "day": "Sat 9",
-          "name": "Quentin Lambkin"
+          "day": "Fri 02",
+          "name": "John Winkfield Sr."
         },
         {
-          "day": "Tue 12",
-          "name": "Rhonda Middleton"
+          "day": "Tue 06",
+          "name": "Derek Bavetta"
+        },
+        {
+          "day": "Mon 12",
+          "name": "Timothy Le Faive"
         },
         {
           "day": "Fri 16",
-          "name": "Emily Kimball"
+          "name": "John Winkfield Jr."
         },
         {
-          "day": "Mon 18",
-          "name": "Kristen Picard"
+          "day": "Sun 18",
+          "name": "Emily Kimball"
         }
       ],
       "duration": 10
