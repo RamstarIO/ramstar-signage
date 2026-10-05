@@ -94,6 +94,21 @@
       "days": "94",
       "tip": "Remember, always tie your shoes",
       "duration": 10
+    },
+    {
+      "title": "NFL scoreboard",
+      "type": "nfl-scoreboard",
+      "duration": 16
+    },
+    {
+      "title": "NFL standings",
+      "type": "nfl-standings",
+      "duration": 20
+    },
+    {
+      "title": "NFL up next",
+      "type": "nfl-next",
+      "duration": 16
     }
   ]
 }

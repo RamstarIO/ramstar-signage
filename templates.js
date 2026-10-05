@@ -136,6 +136,9 @@
     return h("div", `t-slide t-slide--${theme} m-${moment}`);
   }
 
+  // Shared with other slide-type files (nfl.js), so every slide is built the same way.
+  window.RamstarTemplates = { h, add, sequencer, starLast, star, logoBadge, tag, slideRoot };
+
   // Local midnight for "YYYY-MM-DD" (avoids the UTC off-by-one of new Date("2026-10-17")).
   function parseDay(iso) {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ""));

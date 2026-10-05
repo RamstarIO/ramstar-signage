@@ -66,6 +66,8 @@ ramstar-signage/
 ├── templates.css       # Their layouts (match the design canvas, 1920×1080)
 ├── weather.js          # Live weather slide: fetches ECCC data, builds the slide
 ├── weather.css         # Live weather slide layout (Design A, 1920×1080)
+├── nfl.js              # NFL slides: scoreboard, standings, up next (reads nfl.json)
+├── nfl.css             # NFL slide layouts (1920×1080)
 ├── ambient.css         # Ambient motion: star, progress bar, sheen, beats, birthday decorations, weather icons
 ├── slides.json         # The playlist. Changes whenever content changes.
 ├── slides/             # Slide images, 1920×1080 PNG
@@ -74,6 +76,11 @@ ramstar-signage/
 │   └── bg-light.png    # Text-free light background for overlays
 ├── assets/
 │   └── ramstar-logo.png
+├── scripts/
+│   └── build-nfl.mjs   # Builds nfl.json from ESPN (run by the workflow, not on the TVs)
+├── tests/              # Saved data for testing slides offline (weather, NFL)
+├── .github/workflows/
+│   └── pages.yml       # Deploys the site to GitHub Pages; rebuilds nfl.json every 15 min
 ├── .gitignore
 └── README.md
 ```
@@ -372,6 +379,39 @@ How it behaves:
 
 To change the design, edit `weather.css` (layout and sizes) or the `render` function in `weather.js` (what appears). Test changes locally with the saved sample response in `tests/fixture-on-94.json` before pushing.
 
+### NFL slides
+
+Three slide types, built live from `nfl.json`. No images and nothing to update by hand:
+
+```json
+{ "type": "nfl-scoreboard", "duration": 16 },
+{ "type": "nfl-standings",  "duration": 20 },
+{ "type": "nfl-next",       "duration": 16 }
+```
+
+| Type | Shows |
+|---|---|
+| `nfl-scoreboard` | Every game of the current week, 8 per screen: final scores, live score with quarter and clock, or kick-off day and time (Eastern). Teams on bye are listed on the last screen. |
+| `nfl-standings` | One screen per conference (AFC, then NFC). Left: "In the playoffs today", seeds 1–7 (`Bye` = first-round bye for the 1 seed, division name for division leaders, `WC` = wild card). Right: "In the hunt", seeds 8–16 with games behind the 7th seed (`—` when level). Clinched spots get an orange ✓; eliminated teams are dimmed. Seeds are ESPN's official playoff seeds; nothing is calculated here. |
+| `nfl-next` | The week after the scoreboard's week: each matchup with day and time, 8 per screen, byes on the last screen. |
+
+| Key | Meaning |
+|---|---|
+| `duration` | Seconds on screen, shared by all its screens. A slide with two screens flips halfway through, so 16 gives 8 seconds per screen. |
+| `logos` | `false` shows a circle in the team colour with its abbreviation instead of the team logo. |
+| `conference` | Standings only: `"AFC"` or `"NFC"` to show just that conference. |
+| `url` | A different data file, e.g. `"tests/fixture-nfl.json"` for testing. |
+
+**Which week:** the scoreboard shows a week from its Thursday game through the following Wednesday, so on Monday morning it still shows the week just played, including Monday night's game. It moves on early Thursday morning (about 3 AM Eastern). "Up next" is always the week after.
+
+**When they hide:** all three hide themselves from after the Super Bowl until Week 1 (the off-season). Standings also hide during the playoffs. A slide with nothing to show (e.g. "Up next" in Week 18, before the wild-card matchups are set) is skipped, as is any NFL slide whose data is more than 36 hours old.
+
+**Where the data comes from:** `scripts/build-nfl.mjs` reads ESPN's public NFL scoreboard, standings and teams endpoints and boils them down to a ~20 KB `nfl.json`. The [Deploy site](#publishing-to-github-pages) workflow runs it every 15 minutes and publishes the result with the site. `nfl.json` is never committed (it's in `.gitignore`), so nothing touches `main`. Team logos are loaded straight from ESPN's image server by each TV and are never stored in this repo; if a logo can't load, that team gets the coloured circle.
+
+- ESPN's endpoints are free but **unofficial and undocumented**: they can change without notice. The script checks the shape of what it gets (e.g. that every team has a playoff seed) and, if anything looks wrong, the last good `nfl.json` stays published.
+- GitHub runs scheduled jobs on a best-effort basis, often 5–30 minutes late, so live scores can trail the real game by roughly 15–45 minutes. Finals appear within the hour.
+- To test locally, add `"url": "tests/fixture-nfl.json"` to the slides (a saved Week 4 file; its Monday night game was edited to look live). To build real data on your Mac: `node scripts/build-nfl.mjs nfl.json` (Node 20+); add `--now=2026-10-08T12:00:00Z` to see what a given moment would show.
+
 ### JSON gotchas
 
 JSON is strict. These all break the file, and a broken file means the TVs keep showing the last good playlist until it's fixed:
@@ -399,7 +439,7 @@ One-time setup:
    git remote add origin https://github.com/<your-account>/ramstar-signage.git
    git push -u origin main
    ```
-3. On GitHub: **Settings → Pages → Build and deployment → Source: Deploy from a branch**, branch `main`, folder `/ (root)`, then **Save**.
+3. On GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**. The site is deployed by the **Deploy site** workflow (`.github/workflows/pages.yml`) on every push to `main`, and every 15 minutes to refresh the NFL data (see [NFL slides](#nfl-slides)). The workflow never commits anything, so it works with `main` protected. To deploy by hand: **Actions → Deploy site → Run workflow**.
 4. After a minute or two the site is live at `https://<your-account>.github.io/ramstar-signage/`. Open it on your Mac; you should see the test slide.
 
 Routine update:
@@ -413,7 +453,7 @@ git commit -m "Add October safety slide"
 git push
 ```
 
-GitHub Pages redeploys in about a minute. The TVs pick up the change on their next refresh (within `refreshMinutes`, plus up to about 10 minutes of GitHub's own caching).
+The Deploy site workflow redeploys in about a minute. The TVs pick up the change on their next refresh (within `refreshMinutes`, plus up to about 10 minutes of GitHub's own caching).
 
 ### Testing locally before pushing
 
@@ -501,6 +541,8 @@ TV start URL (unchanged) ──▶ github.io/ramstar-signage  ──moveTo──
 | Screen goes dark after a while | Fire TV screensaver or sleep, or the TV's own power-saving setting. | Re-check step 2 of the Fire Stick setup, and the TV's eco settings. |
 | Stick reboots randomly | Underpowered from the TV's USB. | Use the wall adapter. |
 | Page works locally only via `python3 -m http.server` | Expected. | `fetch` needs a web server; opening the file directly won't work. |
+| NFL slides never appear | Off-season, or `nfl.json` is missing or over 36 hours old. | Check the latest **Deploy site** run under **Actions**. Locally there is no `nfl.json` unless you build one or point the slides at `tests/fixture-nfl.json`. |
+| Pushed changes don't appear at all | The Deploy site workflow failed, or Pages isn't set to deploy from GitHub Actions. | Check **Actions**, and **Settings → Pages → Source: GitHub Actions**. |
 
 ---
 
@@ -510,4 +552,5 @@ TV start URL (unchanged) ──▶ github.io/ramstar-signage  ──moveTo──
 - **Phase 2:** private hosting via Cloudflare Access; add birthdays and customer spotlights.
 - **Content calendar:** who supplies birthdays, milestones and events, and how often each slide type changes, so the screens don't go stale.
 - **Live weather slide:** done (`"type": "weather"`).
+- **NFL slides:** done (`"type": "nfl-scoreboard"`, `"nfl-standings"`, `"nfl-next"`).
 - **Live P21 slide:** a daily figure from P21 (e.g. orders shipped today), written to a JSON file by a scheduled job and drawn by the player the same way the weather slide is. Requires Phase 2 first.

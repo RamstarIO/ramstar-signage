@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@500;600&display=swap">
 <link rel="stylesheet" href="templates.css">
 <link rel="stylesheet" href="weather.css">
+<link rel="stylesheet" href="nfl.css">
 <link rel="stylesheet" href="ambient.css">
 <style>
   :root {
@@ -168,6 +169,7 @@
 
 <script src="templates.js"></script>
 <script src="weather.js"></script>
+<script src="nfl.js"></script>
 <script>
 /*
  * Ramstar signage player.
@@ -179,8 +181,9 @@
  *   Image slides:  { "src": "slides/x.png" }, optionally with
  *                  "effect": "zoom" or an animated text "overlay".
  *   Typed slides:  { "type": "birthdays" | "spotlight" | "milestone" | "value"
- *                    | "event" | "safety" | "weather", ...fields }
- *                  built live in HTML by templates.js / weather.js, which
+ *                    | "event" | "safety" | "weather" | "nfl-scoreboard"
+ *                    | "nfl-standings" | "nfl-next", ...fields }
+ *                  built live in HTML by templates.js / weather.js / nfl.js, which
  *                  register themselves on window.RamstarTypes.
  */
 (function () {

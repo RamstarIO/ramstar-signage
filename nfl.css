@@ -1,0 +1,266 @@
+/* NFL slides (nfl.js): scoreboard, standings, up next.
+   Laid out at 1920x1080 inside .t-slide (templates.css), scaled by the player.
+   Only transform and opacity animate (Fire Stick rule). */
+
+
+.nfl-frame {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding: 60px 120px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Header: tag + week on the left, logo badge on the right */
+.nfl-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 48px; }
+.nfl-header-left { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.nfl .t-logo--nfl { position: static; padding: 14px 24px; flex: none; }
+.nfl .t-logo--nfl img { height: 64px; }
+
+.nfl-titleline { display: flex; align-items: baseline; gap: 28px; white-space: nowrap; }
+.nfl-title {
+  margin: 0;
+  font: 800 92px/0.95 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+}
+.nfl-kicker {
+  font: 600 44px/1 "Barlow Condensed", sans-serif;
+  color: #D6DDEA;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Pages: stacked in the same place, switched partway through the slide */
+.nfl-body { position: relative; flex: 1; min-height: 0; }
+.nfl-page { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 20px; }
+.nfl-pager {
+  position: absolute;
+  right: 0;
+  bottom: -46px;
+  font: 700 28px/1 "Barlow Condensed", sans-serif;
+  color: #D6DDEA;
+  letter-spacing: 0.08em;
+}
+.nfl-source {
+  position: absolute;
+  left: 120px;
+  bottom: 26px;
+  font-size: 22px;
+  font-weight: 500;
+  color: #9FB0CC;
+}
+
+/* Team mark: the feed's logo, or a coloured circle with the abbreviation */
+.nfl-mark { width: 56px; height: 56px; flex: none; display: flex; align-items: center; justify-content: center; }
+.nfl-mark img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+.nfl-circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 800 22px/1 "Barlow Condensed", sans-serif;
+  letter-spacing: 0.02em;
+}
+.nfl-circle--3 { font-size: 19px; }
+.nfl-mark--small { width: 44px; height: 44px; }
+.nfl-mark--small .nfl-circle { font-size: 17px; }
+.nfl-mark--small .nfl-circle--3 { font-size: 15px; }
+
+/* Names never wrap (nfl.js already picks a name that fits) */
+.nfl-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Scoreboard / up next: game cards, 2 columns x 4 rows ---------- */
+.nfl-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 166px;
+  gap: 18px 32px;
+}
+.nfl-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 196px;
+  gap: 24px;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 16px 28px;
+  background: rgba(255, 255, 255, 0.06);
+  border-left: 6px solid #194B98;
+  border-radius: 10px;
+}
+.nfl-card--in { border-left-color: #F7941D; }
+.nfl-card-teams { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.nfl-line { display: flex; align-items: center; gap: 20px; height: 62px; }
+.nfl-card .nfl-name { font: 700 46px/1 "Barlow Condensed", sans-serif; text-transform: uppercase; }
+.nfl-score {
+  width: 80px;
+  text-align: right;
+  font: 800 56px/1 "Barlow Condensed", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.nfl-line.is-loser .nfl-name,
+.nfl-line.is-loser .nfl-score { opacity: 0.5; }
+
+.nfl-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  padding-left: 24px;
+  border-left: 2px solid rgba(255, 255, 255, 0.14);
+  white-space: nowrap;
+}
+.nfl-status-day {
+  font: 700 34px/1 "Barlow Condensed", sans-serif;
+  color: #D6DDEA;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.nfl-status-time { font: 700 42px/1 "Barlow Condensed", sans-serif; }
+.nfl-status-final {
+  font: 700 40px/1 "Barlow Condensed", sans-serif;
+  color: #D6DDEA;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.nfl-live {
+  background: #F7941D;
+  color: #0E2A56;
+  font: 700 28px/1 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 6px 14px;
+  border-radius: 6px;
+}
+
+/* Four rows of games plus the bye strip: slightly shorter cards so all fit */
+.nfl-page--tight .nfl-grid { grid-auto-rows: 146px; }
+.nfl-page--tight .nfl-card { padding-top: 12px; padding-bottom: 12px; }
+.nfl-page--tight .nfl-card-teams { gap: 6px; }
+.nfl-page--tight .nfl-line { height: 56px; }
+
+/* Teams on bye: a strip under the last page's games */
+.nfl-byes {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  border-top: 3px solid #F7941D;
+  padding-top: 22px;
+}
+.nfl-byes-label {
+  flex: none;
+  font: 700 38px/1 "Barlow Condensed", sans-serif;
+  color: #F7941D;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.nfl-byes-list { display: flex; flex-wrap: wrap; gap: 16px 40px; }
+.nfl-bye { display: flex; align-items: center; gap: 14px; }
+.nfl-bye-name {
+  font: 700 40px/1 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ---------- Standings: seeds 1-7 left, 8-16 right ---------- */
+.nfl--standings .nfl-page { gap: 18px; }
+.nfl-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px; }
+.nfl-col { display: flex; flex-direction: column; }
+.nfl-col-head {
+  font: 700 34px/1 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #F7941D;
+  padding-bottom: 12px;
+  border-bottom: 3px solid #F7941D;
+}
+.nfl-col:last-child .nfl-col-head { color: #D6DDEA; border-bottom-color: #194B98; }
+.nfl-row {
+  display: grid;
+  grid-template-columns: 52px 52px minmax(0, 1fr) 96px 150px;
+  gap: 18px;
+  align-items: center;
+  height: 66px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.nfl-row .nfl-mark { width: 50px; height: 50px; }
+.nfl-seed {
+  font: 800 40px/1 "Barlow Condensed", sans-serif;
+  text-align: right;
+  color: #D6DDEA;
+  font-variant-numeric: tabular-nums;
+}
+.nfl-row.is-in .nfl-seed { color: #F7941D; }
+.nfl-row .nfl-name { font: 700 42px/1 "Barlow Condensed", sans-serif; text-transform: uppercase; }
+.nfl-record {
+  font: 700 40px/1 "Barlow Condensed", sans-serif;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.nfl-note {
+  font: 600 30px/1 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #D6DDEA;
+  text-align: right;
+  white-space: nowrap;
+}
+.nfl-note.is-clinched { color: #F7941D; }
+.nfl-note.is-clinched::after { content: " \2713"; }
+.nfl-row.is-out { opacity: 0.5; }
+.nfl-legend { font-size: 22px; font-weight: 500; color: #9FB0CC; margin-top: auto; text-align: right; padding-right: 110px; }
+
+/* ---------- Motion ----------
+   Parts rise in one after another (--d, set in nfl.js); later pages' parts
+   start when their page appears. On leaving, everything slips up (--o). */
+.nfl-in { opacity: 0; }
+.layer.is-visible .nfl-in {
+  animation: t-rise 600ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  animation-delay: var(--d, 300ms);
+}
+.layer.is-leaving .nfl-in {
+  animation: part-out 380ms cubic-bezier(0.4, 0, 1, 1) both;
+  animation-delay: var(--o, 0ms);
+}
+
+/* Page k of n shows from --p-from to --p-to of the slide. --slide-dur is set
+   by the player to the slide's duration + 1 s. */
+.nfl-page--later { opacity: 0; }
+.layer.is-visible .nfl-page--later {
+  animation: nfl-show 1ms linear both;
+  animation-delay: calc((var(--slide-dur, 11s) - 1s) * var(--p-from));
+}
+.layer.is-visible .nfl-page--flips {
+  animation: nfl-page-out 450ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation-delay: calc((var(--slide-dur, 11s) - 1s) * var(--p-to) - 450ms);
+}
+.layer.is-visible .nfl-page--later.nfl-page--flips {
+  animation: nfl-show 1ms linear both, nfl-page-out 450ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation-delay: calc((var(--slide-dur, 11s) - 1s) * var(--p-from)),
+                   calc((var(--slide-dur, 11s) - 1s) * var(--p-to) - 450ms);
+}
+@keyframes nfl-show { from { opacity: 0; } to { opacity: 1; } }
+@keyframes nfl-page-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-28px); }
+}
+@keyframes nfl-hide { from { opacity: 1; } to { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .layer.is-visible .nfl-in,
+  .layer.is-leaving .nfl-in { animation: none; opacity: 1; }
+  .layer.is-visible .nfl-page--flips { animation-name: nfl-hide; animation-duration: 1ms; }
+  .layer.is-visible .nfl-page--later.nfl-page--flips { animation-name: nfl-show, nfl-hide; animation-duration: 1ms, 1ms; }
+}
