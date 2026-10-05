@@ -1,0 +1,955 @@
+{
+ "fixture": true,
+ "_note": "Saved from scripts/build-nfl.mjs on 2026-10-05 (Week 4). The Monday night game was edited to be in progress so the live state can be tested.",
+ "generatedAt": "2026-10-05T20:41:11.061Z",
+ "phase": "regular",
+ "season": 2026,
+ "teams": {
+  "ARI": {
+   "name": "Arizona Cardinals",
+   "short": "Cardinals",
+   "color": "#A40227",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/ari.png"
+  },
+  "ATL": {
+   "name": "Atlanta Falcons",
+   "short": "Falcons",
+   "color": "#A71930",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/atl.png"
+  },
+  "BAL": {
+   "name": "Baltimore Ravens",
+   "short": "Ravens",
+   "color": "#29126F",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/bal.png"
+  },
+  "BUF": {
+   "name": "Buffalo Bills",
+   "short": "Bills",
+   "color": "#00338D",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/buf.png"
+  },
+  "CAR": {
+   "name": "Carolina Panthers",
+   "short": "Panthers",
+   "color": "#0085CA",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/car.png"
+  },
+  "CHI": {
+   "name": "Chicago Bears",
+   "short": "Bears",
+   "color": "#0B1C3A",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/chi.png"
+  },
+  "CIN": {
+   "name": "Cincinnati Bengals",
+   "short": "Bengals",
+   "color": "#FB4F14",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/cin.png"
+  },
+  "CLE": {
+   "name": "Cleveland Browns",
+   "short": "Browns",
+   "color": "#472A08",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/cle.png"
+  },
+  "DAL": {
+   "name": "Dallas Cowboys",
+   "short": "Cowboys",
+   "color": "#002A5C",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/dal.png"
+  },
+  "DEN": {
+   "name": "Denver Broncos",
+   "short": "Broncos",
+   "color": "#0A2343",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/den.png"
+  },
+  "DET": {
+   "name": "Detroit Lions",
+   "short": "Lions",
+   "color": "#0076B6",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/det.png"
+  },
+  "GB": {
+   "name": "Green Bay Packers",
+   "short": "Packers",
+   "color": "#204E32",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/gb.png"
+  },
+  "HOU": {
+   "name": "Houston Texans",
+   "short": "Texans",
+   "color": "#021018",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/hou.png"
+  },
+  "IND": {
+   "name": "Indianapolis Colts",
+   "short": "Colts",
+   "color": "#003B75",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/ind.png"
+  },
+  "JAX": {
+   "name": "Jacksonville Jaguars",
+   "short": "Jaguars",
+   "color": "#007487",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/jax.png"
+  },
+  "KC": {
+   "name": "Kansas City Chiefs",
+   "short": "Chiefs",
+   "color": "#E31837",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/kc.png"
+  },
+  "LV": {
+   "name": "Las Vegas Raiders",
+   "short": "Raiders",
+   "color": "#000000",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/lv.png"
+  },
+  "LAC": {
+   "name": "Los Angeles Chargers",
+   "short": "Chargers",
+   "color": "#0080C6",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/lac.png"
+  },
+  "LAR": {
+   "name": "Los Angeles Rams",
+   "short": "Rams",
+   "color": "#003594",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/lar.png"
+  },
+  "MIA": {
+   "name": "Miami Dolphins",
+   "short": "Dolphins",
+   "color": "#008E97",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/mia.png"
+  },
+  "MIN": {
+   "name": "Minnesota Vikings",
+   "short": "Vikings",
+   "color": "#4F2683",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/min.png"
+  },
+  "NE": {
+   "name": "New England Patriots",
+   "short": "Patriots",
+   "color": "#002A5C",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/ne.png"
+  },
+  "NO": {
+   "name": "New Orleans Saints",
+   "short": "Saints",
+   "color": "#D3BC8D",
+   "text": "#0E2A56",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/no.png"
+  },
+  "NYG": {
+   "name": "New York Giants",
+   "short": "Giants",
+   "color": "#003C7F",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/nyg.png"
+  },
+  "NYJ": {
+   "name": "New York Jets",
+   "short": "Jets",
+   "color": "#115740",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/nyj.png"
+  },
+  "PHI": {
+   "name": "Philadelphia Eagles",
+   "short": "Eagles",
+   "color": "#06424D",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/phi.png"
+  },
+  "PIT": {
+   "name": "Pittsburgh Steelers",
+   "short": "Steelers",
+   "color": "#000000",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/pit.png"
+  },
+  "SF": {
+   "name": "San Francisco 49ers",
+   "short": "49ers",
+   "color": "#AA0000",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/sf.png"
+  },
+  "SEA": {
+   "name": "Seattle Seahawks",
+   "short": "Seahawks",
+   "color": "#002A5C",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/sea.png"
+  },
+  "TB": {
+   "name": "Tampa Bay Buccaneers",
+   "short": "Buccaneers",
+   "color": "#BD1C36",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/tb.png"
+  },
+  "TEN": {
+   "name": "Tennessee Titans",
+   "short": "Titans",
+   "color": "#4495D2",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/ten.png"
+  },
+  "WSH": {
+   "name": "Washington Commanders",
+   "short": "Commanders",
+   "color": "#5A1414",
+   "text": "#FFFFFF",
+   "logo": "https://a.espncdn.com/i/teamlogos/nfl/500-dark/scoreboard/wsh.png"
+  }
+ },
+ "current": {
+  "label": "Week 4",
+  "seasontype": 2,
+  "week": 4,
+  "range": "Oct 1 – Oct 5",
+  "games": [
+   {
+    "away": "PIT",
+    "home": "CLE",
+    "kickoff": "2026-10-02T00:15:00.000Z",
+    "day": "Thu",
+    "dayLabel": "Thursday, Oct 1",
+    "when": "Thu 8:15 PM",
+    "time": "8:15 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 24,
+    "homeScore": 27
+   },
+   {
+    "away": "IND",
+    "home": "WSH",
+    "kickoff": "2026-10-04T13:30:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 9:30 AM",
+    "time": "9:30 AM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 30,
+    "homeScore": 13,
+    "note": "NFL London Games"
+   },
+   {
+    "away": "TEN",
+    "home": "BAL",
+    "kickoff": "2026-10-04T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 18,
+    "homeScore": 24
+   },
+   {
+    "away": "NE",
+    "home": "BUF",
+    "kickoff": "2026-10-04T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 29,
+    "homeScore": 26
+   },
+   {
+    "away": "NYJ",
+    "home": "CHI",
+    "kickoff": "2026-10-04T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 12,
+    "homeScore": 23
+   },
+   {
+    "away": "JAX",
+    "home": "CIN",
+    "kickoff": "2026-10-04T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 22,
+    "homeScore": 17
+   },
+   {
+    "away": "DAL",
+    "home": "HOU",
+    "kickoff": "2026-10-04T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 34,
+    "homeScore": 30
+   },
+   {
+    "away": "ARI",
+    "home": "NYG",
+    "kickoff": "2026-10-04T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 24,
+    "homeScore": 36
+   },
+   {
+    "away": "LAR",
+    "home": "PHI",
+    "kickoff": "2026-10-04T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 24,
+    "homeScore": 20
+   },
+   {
+    "away": "GB",
+    "home": "TB",
+    "kickoff": "2026-10-04T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 17,
+    "homeScore": 14
+   },
+   {
+    "away": "MIA",
+    "home": "MIN",
+    "kickoff": "2026-10-04T20:05:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 4:05 PM",
+    "time": "4:05 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 10,
+    "homeScore": 15
+   },
+   {
+    "away": "KC",
+    "home": "LV",
+    "kickoff": "2026-10-04T20:25:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 4:25 PM",
+    "time": "4:25 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 30,
+    "homeScore": 27
+   },
+   {
+    "away": "LAC",
+    "home": "SEA",
+    "kickoff": "2026-10-04T20:25:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 4:25 PM",
+    "time": "4:25 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 23,
+    "homeScore": 30
+   },
+   {
+    "away": "DEN",
+    "home": "SF",
+    "kickoff": "2026-10-04T20:25:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 4:25 PM",
+    "time": "4:25 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 14,
+    "homeScore": 24
+   },
+   {
+    "away": "DET",
+    "home": "CAR",
+    "kickoff": "2026-10-05T00:20:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 4",
+    "when": "Sun 8:20 PM",
+    "time": "8:20 PM",
+    "state": "post",
+    "status": "Final",
+    "awayScore": 26,
+    "homeScore": 32
+   },
+   {
+    "away": "ATL",
+    "home": "NO",
+    "kickoff": "2026-10-06T00:15:00.000Z",
+    "day": "Mon",
+    "dayLabel": "Monday, Oct 5",
+    "when": "Mon 8:15 PM",
+    "time": "8:15 PM",
+    "state": "in",
+    "status": "Q3 4:12",
+    "awayScore": 17,
+    "homeScore": 20
+   }
+  ],
+  "byes": []
+ },
+ "next": {
+  "label": "Week 5",
+  "seasontype": 2,
+  "week": 5,
+  "range": "Oct 8 – Oct 12",
+  "games": [
+   {
+    "away": "TB",
+    "home": "DAL",
+    "kickoff": "2026-10-09T00:15:00.000Z",
+    "day": "Thu",
+    "dayLabel": "Thursday, Oct 8",
+    "when": "Thu 8:15 PM",
+    "time": "8:15 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "PHI",
+    "home": "JAX",
+    "kickoff": "2026-10-11T13:30:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 9:30 AM",
+    "time": "9:30 AM",
+    "state": "pre",
+    "status": "",
+    "note": "NFL London Games"
+   },
+   {
+    "away": "CHI",
+    "home": "GB",
+    "kickoff": "2026-10-11T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "CIN",
+    "home": "MIA",
+    "kickoff": "2026-10-11T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "LV",
+    "home": "NE",
+    "kickoff": "2026-10-11T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "MIN",
+    "home": "NO",
+    "kickoff": "2026-10-11T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "CLE",
+    "home": "NYJ",
+    "kickoff": "2026-10-11T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "IND",
+    "home": "PIT",
+    "kickoff": "2026-10-11T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "HOU",
+    "home": "TEN",
+    "kickoff": "2026-10-11T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "NYG",
+    "home": "WSH",
+    "kickoff": "2026-10-11T17:00:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 1:00 PM",
+    "time": "1:00 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "DEN",
+    "home": "LAC",
+    "kickoff": "2026-10-11T20:05:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 4:05 PM",
+    "time": "4:05 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "DET",
+    "home": "ARI",
+    "kickoff": "2026-10-11T20:25:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 4:25 PM",
+    "time": "4:25 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "SF",
+    "home": "SEA",
+    "kickoff": "2026-10-11T20:25:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 4:25 PM",
+    "time": "4:25 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "BAL",
+    "home": "ATL",
+    "kickoff": "2026-10-12T00:20:00.000Z",
+    "day": "Sun",
+    "dayLabel": "Sunday, Oct 11",
+    "when": "Sun 8:20 PM",
+    "time": "8:20 PM",
+    "state": "pre",
+    "status": ""
+   },
+   {
+    "away": "BUF",
+    "home": "LAR",
+    "kickoff": "2026-10-13T00:15:00.000Z",
+    "day": "Mon",
+    "dayLabel": "Monday, Oct 12",
+    "when": "Mon 8:15 PM",
+    "time": "8:15 PM",
+    "state": "pre",
+    "status": ""
+   }
+  ],
+  "byes": [
+   "CAR",
+   "KC"
+  ]
+ },
+ "standings": {
+  "AFC": [
+   {
+    "seed": 1,
+    "team": "KC",
+    "w": 4,
+    "l": 0,
+    "t": 0,
+    "division": "West",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 2,
+    "team": "JAX",
+    "w": 3,
+    "l": 1,
+    "t": 0,
+    "division": "South",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 3,
+    "team": "BUF",
+    "w": 3,
+    "l": 1,
+    "t": 0,
+    "division": "East",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 4,
+    "team": "CLE",
+    "w": 3,
+    "l": 1,
+    "t": 0,
+    "division": "North",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 5,
+    "team": "BAL",
+    "w": 3,
+    "l": 1,
+    "t": 0,
+    "division": "North",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 6,
+    "team": "LV",
+    "w": 3,
+    "l": 1,
+    "t": 0,
+    "division": "West",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 7,
+    "team": "NE",
+    "w": 2,
+    "l": 2,
+    "t": 0,
+    "division": "East",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 8,
+    "team": "DEN",
+    "w": 2,
+    "l": 2,
+    "t": 0,
+    "division": "West",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 9,
+    "team": "PIT",
+    "w": 2,
+    "l": 2,
+    "t": 0,
+    "division": "North",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 10,
+    "team": "IND",
+    "w": 2,
+    "l": 2,
+    "t": 0,
+    "division": "South",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 11,
+    "team": "CIN",
+    "w": 2,
+    "l": 2,
+    "t": 0,
+    "division": "North",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 12,
+    "team": "NYJ",
+    "w": 1,
+    "l": 3,
+    "t": 0,
+    "division": "East",
+    "clincher": null,
+    "gb7": 1
+   },
+   {
+    "seed": 13,
+    "team": "MIA",
+    "w": 0,
+    "l": 4,
+    "t": 0,
+    "division": "East",
+    "clincher": null,
+    "gb7": 2
+   },
+   {
+    "seed": 14,
+    "team": "LAC",
+    "w": 0,
+    "l": 4,
+    "t": 0,
+    "division": "West",
+    "clincher": null,
+    "gb7": 2
+   },
+   {
+    "seed": 15,
+    "team": "HOU",
+    "w": 0,
+    "l": 4,
+    "t": 0,
+    "division": "South",
+    "clincher": null,
+    "gb7": 2
+   },
+   {
+    "seed": 16,
+    "team": "TEN",
+    "w": 0,
+    "l": 4,
+    "t": 0,
+    "division": "South",
+    "clincher": null,
+    "gb7": 2
+   }
+  ],
+  "NFC": [
+   {
+    "seed": 1,
+    "team": "MIN",
+    "w": 4,
+    "l": 0,
+    "t": 0,
+    "division": "North",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 2,
+    "team": "SF",
+    "w": 4,
+    "l": 0,
+    "t": 0,
+    "division": "West",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 3,
+    "team": "NYG",
+    "w": 3,
+    "l": 1,
+    "t": 0,
+    "division": "East",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 4,
+    "team": "CAR",
+    "w": 2,
+    "l": 2,
+    "t": 0,
+    "division": "South",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 5,
+    "team": "CHI",
+    "w": 3,
+    "l": 1,
+    "t": 0,
+    "division": "North",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 6,
+    "team": "SEA",
+    "w": 3,
+    "l": 1,
+    "t": 0,
+    "division": "West",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 7,
+    "team": "LAR",
+    "w": 2,
+    "l": 2,
+    "t": 0,
+    "division": "West",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 8,
+    "team": "DET",
+    "w": 2,
+    "l": 2,
+    "t": 0,
+    "division": "North",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 9,
+    "team": "GB",
+    "w": 2,
+    "l": 2,
+    "t": 0,
+    "division": "North",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 10,
+    "team": "PHI",
+    "w": 2,
+    "l": 2,
+    "t": 0,
+    "division": "East",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 11,
+    "team": "DAL",
+    "w": 2,
+    "l": 2,
+    "t": 0,
+    "division": "East",
+    "clincher": null,
+    "gb7": null
+   },
+   {
+    "seed": 12,
+    "team": "ATL",
+    "w": 1,
+    "l": 2,
+    "t": 0,
+    "division": "South",
+    "clincher": null,
+    "gb7": 0.5
+   },
+   {
+    "seed": 13,
+    "team": "NO",
+    "w": 1,
+    "l": 2,
+    "t": 0,
+    "division": "South",
+    "clincher": null,
+    "gb7": 0.5
+   },
+   {
+    "seed": 14,
+    "team": "WSH",
+    "w": 1,
+    "l": 3,
+    "t": 0,
+    "division": "East",
+    "clincher": null,
+    "gb7": 1
+   },
+   {
+    "seed": 15,
+    "team": "ARI",
+    "w": 1,
+    "l": 3,
+    "t": 0,
+    "division": "West",
+    "clincher": null,
+    "gb7": 1
+   },
+   {
+    "seed": 16,
+    "team": "TB",
+    "w": 0,
+    "l": 4,
+    "t": 0,
+    "division": "South",
+    "clincher": null,
+    "gb7": 2
+   }
+  ]
+ }
+}

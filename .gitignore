@@ -13,3 +13,6 @@
 private/
 *.xlsx
 *.csv
+
+# Built by the Pages workflow from ESPN, never committed
+/nfl.json

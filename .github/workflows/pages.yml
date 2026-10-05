@@ -1,0 +1,101 @@
+# Deploys the site to GitHub Pages, with a fresh nfl.json for the NFL slides.
+#
+# main is protected, so nothing here commits: nfl.json is built from ESPN on
+# every run and published only as part of the Pages deployment (it is in
+# .gitignore). Requires Settings -> Pages -> Source: "GitHub Actions".
+#
+#   push to main      -> deploy, as before (plus a fresh nfl.json)
+#   every 15 minutes  -> rebuild nfl.json; deploy only if it changed, or if the
+#                        live copy is over 6 h old (the TVs hide NFL slides
+#                        whose data is over 36 h old)
+#   manual            -> Actions -> Deploy site -> Run workflow
+#
+# If ESPN can't be reached, the currently published nfl.json is kept, so a
+# blip never wipes the data or blocks a content deploy.
+
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "4,19,34,49 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.decide.outputs.deploy }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Assemble site (tracked files only)
+        run: |
+          mkdir _site
+          git archive HEAD | tar -x -C _site
+          rm -rf _site/.github _site/scripts
+
+      - name: Build nfl.json
+        env:
+          BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: |
+          if node scripts/build-nfl.mjs _site/nfl.json; then
+            echo "Built a fresh nfl.json"
+          else
+            echo "::warning::Could not build nfl.json from ESPN; keeping the published copy"
+            curl -fsS "$BASE_URL/nfl.json" -o _site/nfl.json || echo "::warning::No published nfl.json either; NFL slides will hide"
+          fi
+
+      - name: Decide whether to deploy
+        id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: |
+          if [ "$EVENT" != "schedule" ]; then echo "deploy=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if ! curl -fsS "$BASE_URL/nfl.json?t=$(date +%s)" -o live.json; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          node -e '
+            const fs = require("fs");
+            const read = (f) => { try { return JSON.parse(fs.readFileSync(f, "utf8")); } catch { return null; } };
+            const next = read("_site/nfl.json"), live = read("live.json");
+            const strip = (j) => JSON.stringify({ ...j, generatedAt: null });
+            const liveAgeH = live ? (Date.now() - new Date(live.generatedAt)) / 3600e3 : Infinity;
+            const deploy = !next || !live || strip(next) !== strip(live) || !(liveAgeH < 6);
+            console.log(`changed or stale: ${deploy} (live copy ${liveAgeH.toFixed(1)} h old)`);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `deploy=${deploy}\n`);
+          '
+
+      - if: steps.decide.outputs.deploy == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
