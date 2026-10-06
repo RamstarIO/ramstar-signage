@@ -414,18 +414,53 @@
   // ---------- Company value ----------
   // Split panel: the value on navy at the left, examples of it on the right.
 
-  // Example text sizes (design px), stepped down until the list clears the logo badge.
-  const EXAMPLE_SIZES = [50, 44, 40];
+  // Fit rules from docs/design/value/README.md (all sizes in design px).
+  const NAME_AREA = 600;  // the name's width inside the navy panel
+  const NAME_MAX = 180;
+  const NAME_MIN = 96;
+  const EXAMPLE_SIZES = [50, 44, 40]; // gap 34 / 30 / 26, in templates.css
+  const BADGE_CLEAR = 40; // the list ends this far above the logo badge
 
-  // Runs once per slide, after the player has put it on the page and the fonts
-  // have loaded, so line breaks are real. offsetTop/offsetHeight are design
-  // pixels relative to the slide: they ignore the --k scale and the entrance
-  // transforms. The column is centred, so an overfull list spills both ways.
+  // Rule 1: the name is the largest size, up to 180 px, at which its widest
+  // word fits the 600 px area, so words never break mid-word. A first guess
+  // from the canvas, then checked against real layout.
+  function fitName(name, text) {
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.font = `800 ${NAME_MAX}px "Barlow Condensed"`;
+    const widest = Math.max(0, ...String(text || "").toUpperCase().split(/\s+/).map((w) => ctx.measureText(w).width));
+    let size = widest ? Math.floor(NAME_MAX * NAME_AREA / widest) : NAME_MAX;
+    size = Math.max(NAME_MIN, Math.min(NAME_MAX, size));
+    name.style.fontSize = `${size}px`;
+    while (size > NAME_MIN && name.scrollWidth > name.clientWidth) {
+      size -= 1;
+      name.style.fontSize = `${size}px`;
+    }
+  }
+
+  // Rule 2: the examples list ends above the logo badge, stepping the text
+  // down 50 -> 44 -> 40 px until it does. The column is centred, so an
+  // overfull list also spills above the top edge.
   function fitExamples(label, list, badge) {
-    const overlaps = () => label.offsetTop < 0 || list.offsetTop + list.offsetHeight > badge.offsetTop - 24;
+    const overlaps = () =>
+      label.offsetTop < 0 || list.offsetTop + list.offsetHeight > badge.offsetTop - BADGE_CLEAR;
     for (let i = 1; i < EXAMPLE_SIZES.length && overlaps(); i += 1) {
+      list.classList.remove(`t-examples--${EXAMPLE_SIZES[i - 1]}`);
       list.classList.add(`t-examples--${EXAMPLE_SIZES[i]}`);
     }
+  }
+
+  // Both rules are measured once, while the slide is built and before it
+  // fades in: the slide is laid out in a hidden 1920x1080 box for a moment,
+  // then handed to the player. offsetTop/offsetHeight are design pixels
+  // relative to the slide, whatever the screen size.
+  function fitValue(root, parts) {
+    const probe = h("div", "t-measure");
+    probe.appendChild(root);
+    document.body.appendChild(probe);
+    fitName(parts.name, parts.text);
+    if (parts.list) fitExamples(parts.label, parts.list, parts.badge);
+    probe.remove();
+    root.remove();
   }
 
   function bulletStar() {
@@ -435,6 +470,15 @@
   }
 
   types.value = {
+    // Wait for the slide's fonts so the fit rules measure real text. Asking
+    // for them by name also starts the download if no slide has used them yet.
+    load() {
+      if (!document.fonts || !document.fonts.load) return null;
+      return Promise.all([
+        document.fonts.load(`800 ${NAME_MAX}px "Barlow Condensed"`),
+        document.fonts.load(`500 ${EXAMPLE_SIZES[0]}px "Barlow"`)
+      ]).then(() => null, () => null); // no fonts (offline): show the slide anyway
+    },
     render(slide) {
       const anim = sequencer();
       const root = slideRoot("light t-slide--value", slide, "beat");
@@ -448,14 +492,17 @@
       add(head, tag(slide.tag || "Our Values"), slide.index ? h("div", "t-index", slide.index) : null);
       add(left, star("t-star--value", "#194B98"), anim(head));
       const main = h("div", "t-value-main");
-      add(main, anim(hero("h1", "t-title t-value-name", slide.name)), anim(h("div", "t-rule")));
+      const name = anim(hero("h1", "t-title t-value-name", slide.name));
+      add(main, name, anim(h("div", "t-rule")));
       add(left, main, h("div", "t-value-spacer"));
 
       const right = h("div", "t-value-right");
       const badge = logoBadge("right");
+      const parts = { name, text: slide.name, badge };
       if (examples.length) {
         const label = anim(h("div", "t-value-label", "What it looks like here"));
         const list = h("ul", "t-examples");
+        Object.assign(parts, { label, list });
         examples.forEach((text, i) => {
           const row = h("div", "t-ex-row");
           row.style.setProperty("--i", i); // the beat bumps each example in turn
@@ -463,12 +510,9 @@
           list.appendChild(anim(add(h("li", "t-ex"), row)));
         });
         add(right, label, list);
-        requestAnimationFrame(() => {
-          const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
-          fonts.then(() => { if (root.isConnected) fitExamples(label, list, badge); });
-        });
       }
       add(root, left, right, badge);
+      fitValue(root, parts);
       starLast(root, anim);
       return root;
     }
