@@ -77,7 +77,8 @@ ramstar-signage/
 ├── assets/
 │   └── ramstar-logo.png
 ├── scripts/
-│   └── build-nfl.mjs   # Builds nfl.json from ESPN (run by the workflow, not on the TVs)
+│   ├── build-nfl.mjs   # Builds nfl.json from ESPN (run by the workflow, not on the TVs)
+│   └── people_month.py # Prints a month's birthdays + anniversaries entries from HR's spreadsheet
 ├── tests/              # Saved data for testing slides offline (weather, NFL)
 ├── .github/workflows/
 │   └── pages.yml       # Deploys the site to GitHub Pages; rebuilds nfl.json every 15 min
@@ -274,7 +275,7 @@ Each template from the design canvas is a slide type. The player builds it in HT
 | Type | Fields (✅ = required) | Notes |
 |---|---|---|
 | `birthdays` | `people` ✅ (list of `day` + `name`), `month`, `decor` | `month` defaults to the current month. Up to 8 people; more than 4 switches to a tighter layout. `day` can be `"9"` or `"Sat 9"`. Each person stays on one line; a very long name is cut short with "…". `decor` is the background decoration (below). |
-| `anniversaries` | `people` ✅ (list of `day` + `name` + `years`), `month`, `decor` | Work Anniversaries: the birthdays layout with "12 YEARS" / "1 YEAR" in orange under each name, and a small orange star after it on decade anniversaries only (10, 20, 30…). A person with no `years` just gets the name. Same rules as birthdays: up to 8 people, more than 4 switches to a tighter layout, names stay on one line and are cut short with "…". `decor` defaults to `"confetti"`. Typed in by hand each month, like birthdays; no start dates needed. See `docs/design/anniversaries/README.md`. |
+| `anniversaries` | `people` ✅ (list of `day` + `name` + `years`), `month`, `decor` | Work Anniversaries: the birthdays layout with "12 YEARS" / "1 YEAR" in orange under each name, and a small orange star after it on decade anniversaries only (10, 20, 30…). A person with no `years` just gets the name. Same rules as birthdays: up to 8 people, more than 4 switches to a tighter layout, names stay on one line and are cut short with "…". `decor` defaults to `"confetti"`. Typed in each month, like birthdays (or generated with `scripts/people_month.py`, below); no start dates needed. See `docs/design/anniversaries/README.md`. |
 | `spotlight` | `name` ✅, `kind`, `since`, `blurb`, `logo` | `kind` is `"Customer"` (default) or `"Supplier"`. `logo` is an image path; without one, the company name fills the white box. |
 | `milestone` | `number` ✅, `label` ✅, `note` | A plain number like `"100,000"` counts up; anything else shows as typed. |
 | `value` | `name` ✅, `examples`, `index` | Split panel: the value on navy at the left, its examples listed under "What it looks like here" on the right. The name sizes itself so its longest word fits the panel (up to 180 px, down to 96 px; words never break mid-word), so "We Are Always Improving" comes out at about 150 px. `examples` is a list of 4–5 short strings (up to 5 are shown); each may run to two lines, and if the list would come within 40 px of the logo the text steps down (50 → 44 → 40 px) to fit. Both are measured once as the slide is built (see `docs/design/value/README.md`). With no `examples` the right side stays empty; note the key is `examples`, plural. `index` is the small "1 of 5" label. The old `meaning` and `example` fields are no longer shown. |
@@ -297,6 +298,14 @@ All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and 
 ```json
 { "type": "birthdays", "month": "October", "decor": "cake", "people": [ ... ] }
 ```
+
+**Making the monthly people entries.** `scripts/people_month.py` reads HR's Active Employees spreadsheet and prints that month's `birthdays` and `anniversaries` entries to paste over last month's (it needs `python3 -m pip install openpyxl`):
+
+```bash
+python3 scripts/people_month.py ~/path/to/Active_Employees.xlsx 2026-10
+```
+
+It prints only what the slides show (day, display name, years of service), never birth years, and warns on stderr about unreadable or missing dates and months with more than 8 people. Keep the spreadsheet **outside** the repo (`*.xlsx` is gitignored as a backstop). Awkward names in the file are fixed in its `NAME_OVERRIDES` table.
 
 **Logo slide intros:**
 

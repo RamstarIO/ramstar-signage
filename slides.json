@@ -71,8 +71,8 @@
       "type": "anniversaries",
       "month": "OCTOBER",
       "people": [
-        { "day": "Mon 5", "name": "First Last", "years": 12 },
-        { "day": "Fri 9", "name": "First Last", "years": 10 }
+        { "day": "Thu 15", "name": "Rhonda Middleton", "years": 4 },
+        { "day": "Sat 24", "name": "Maral Hosseini", "years": 4 }
       ],
       "duration": 10
     },
