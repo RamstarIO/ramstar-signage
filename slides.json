@@ -57,7 +57,7 @@
       "type": "value",
       "index": "1 of 4",
       "name": "WE PARTNER",
-      "example": [
+      "examples": [
         "We work together to solve problems",
         "We are transparent when discussing our business",
         "We build trusting relationships with colleagues, vendors, and customers",
@@ -90,7 +90,7 @@
       "type": "value",
       "index": "2 of 4",
       "name": "WE HELP",
-      "example": [
+      "examples": [
         "We offer advice and resources for improvement",
         "We go above and beyond for customers and colleagues",
         "We create opportunities for training and career growth",
@@ -119,7 +119,7 @@
       "type": "value",
       "index": "3 of 4",
       "name": "WE ARE ALWAYS IMPROVING",
-      "example": [
+      "examples": [
         "We are continuously learning new technologies and products to provide our customers with the leading industry solutions",
         "We implement new and creative strategies",
         "We create expectations and accountabilities",
@@ -147,7 +147,7 @@
       "type": "value",
       "index": "4 of 4",
       "name": "WE ARE FUN",
-      "example": [
+      "examples": [
         "We have team-building activities",
         "We recognize milestones and achievements",
         "We drive our culture through our colleagues",
