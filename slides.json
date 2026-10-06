@@ -67,6 +67,16 @@
       "duration": 10
     },
     {
+      "title": "Work anniversaries",
+      "type": "anniversaries",
+      "month": "OCTOBER",
+      "people": [
+        { "day": "Mon 5", "name": "First Last", "years": 12 },
+        { "day": "Fri 9", "name": "First Last", "years": 10 }
+      ],
+      "duration": 10
+    },
+    {
       "title": "Event countdown",
       "type": "event",
       "name": "Ramstar Olympics",
