@@ -148,7 +148,7 @@
 .t-slide--orange .t-hero,
 .t-event-side .t-hero                       { --glint: #FFFFFF; }
 
-/* 3b. Second beat (birthdays, value, milestone, event, safety, weather, holidays): a small event that
+/* 3b. Second beat (birthdays, anniversaries, value, milestone, event, safety, weather, holidays): a small event that
    re-draws the eye to the slide's key detail. Each targets an inner element,
    never one that is already running its entrance animation.
    Colour flashes are drawn as a second copy of the text/line in the new
@@ -288,7 +288,7 @@
   100% { transform: translateY(0); }
 }
 
-/* Birthdays: each person's row bumps up in turn, its line flashing white and
+/* Birthdays and anniversaries: each person's row bumps up in turn, its line flashing white and
    the name flashing orange (same beat as the weather stats). --i is the row's
    position, set by templates.js, so any number of names steps along. */
 .stage.amb-beat .m-beat .t-name { position: relative; will-change: transform; }
@@ -389,7 +389,7 @@
 }
 @keyframes ic-sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
 
-/* ---------- 5. Birthday decorations (templates.js: birthdayDecor) ----------
+/* ---------- 5. Party decorations (templates.js: partyDecor) ----------
    Background party touches behind the names, chosen per slide with "decor".
    The whole decoration fades in just after the slide arrives and fades out
    with it. Each balloon / confetti piece is two nested layers: the outer one
@@ -465,7 +465,7 @@
   .stage .layer .t-name,
   .stage .layer .t-ex-row,
   .stage .layer .t-hol-card-row { animation: none !important; }
-  /* Birthday decorations: keep the cake (flames still), drop moving pieces */
+  /* Party decorations: keep the cake (flames still), drop moving pieces */
   .stage .layer .bd-decor,
   .stage .layer .bd-flame,
   .stage .layer .bd-glow,

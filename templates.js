@@ -7,6 +7,7 @@
  * the same entrance the weather slide uses.
  *
  *   { "type": "birthdays", "month": "October", "decor": "balloons", "people": [{ "day": "Sat 3", "name": "Jane Doe" }] }
+ *   { "type": "anniversaries", "month": "October", "people": [{ "day": "Mon 5", "name": "Pat Example", "years": 12 }] }
  *   ("title" is only your label in slides.json; use "headline" to change a heading.)
  *   { "type": "spotlight", "kind": "Customer", "name": "Acme Fab", "since": "2012",
  *     "blurb": "Laser-cut brackets every week.", "logo": "slides/logos/acme.png" }
@@ -191,10 +192,8 @@
     }, delayMs);
   }
 
-  // ---------- Birthdays ----------
-
-  // ---------- Birthday decorations ----------
-  // Background party touches behind the birthday names: "balloons" (faded
+  // ---------- Party decorations (birthdays, anniversaries) ----------
+  // Background party touches behind the names: "balloons" (faded
   // balloons rising), "confetti" (slow falling confetti), "cake" (a line-drawn
   // cake with flickering candles), or "none". Every moving piece is its own
   // small layer that only moves, turns or fades (the Fire Stick rule).
@@ -265,7 +264,7 @@
     return `<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0c2 12 8 18 20 20-12 2-18 8-20 20-2-12-8-18-20-20 12-2 18-8 20-20z" fill="${color}"/></svg>`;
   }
 
-  function birthdayDecor(kind) {
+  function partyDecor(kind) {
     const wrap = h("div", `bd-decor bd-decor--${kind}`);
     if (kind === "balloons") {
       BALLOONS.forEach(([left, width, opacity, secs, head, color, dir]) => {
@@ -323,36 +322,73 @@
     return wrap;
   }
 
+  // ---------- People of the month (birthdays, anniversaries) ----------
+  // One layout for both: tag, "Happy ... *Month*", then up to 8 people in two
+  // columns (tighter rows above 4), a party decoration behind and the beat
+  // bumping each row in turn. `kind` names the star/frame classes; `extra`
+  // optionally returns a second line to show under each name.
+  function peopleSlide(slide, { kind, tagText, lead, decor, extra }) {
+    const anim = sequencer();
+    const month = slide.month || new Date().toLocaleDateString("en-US", { month: "long" });
+    const people = Array.isArray(slide.people) ? slide.people.slice(0, 8) : [];
+    const many = people.length > 4;
+    const chosen = ["balloons", "confetti", "cake", "none"].includes(slide.decor) ? slide.decor : decor;
+    const root = slideRoot("navy", slide, "beat");
+    add(root, star(`t-star--${kind}`, "#194B98"));
+    if (chosen !== "none") add(root, partyDecor(chosen));
+
+    const frame = h("div", `t-frame t-frame--${kind}${many ? " t-frame--many" : ""}`);
+    add(frame,
+      anim(tag(slide.tag || tagText)),
+      anim(withAccent("t-title t-title--150", slide.headline || `${lead}\n*${month}*`))
+    );
+    const accent = frame.querySelector(".t-accent");
+    if (accent) makeHero(accent);
+    const grid = anim(h("div", `t-names${many ? " t-names--many" : ""}`));
+    people.forEach((p, i) => {
+      const row = h("div", "t-name");
+      row.style.setProperty("--i", i); // the beat bumps each name in turn
+      const name = h("span", "t-name-text", p.name);
+      name.dataset.label = p.name; // drawn again, orange, for the beat's highlight
+      const more = extra && extra(p);
+      add(row, h("span", "t-name-day", p.day), more ? add(h("div", "t-name-body"), name, more) : name);
+      grid.appendChild(row);
+    });
+    add(frame, grid);
+    add(root, frame, logoBadge("right"));
+    starLast(root, anim);
+    return root;
+  }
+
+  // ---------- Birthdays ----------
+
   types.birthdays = {
     render(slide) {
-      const anim = sequencer();
-      const month = slide.month || new Date().toLocaleDateString("en-US", { month: "long" });
-      const people = Array.isArray(slide.people) ? slide.people.slice(0, 8) : [];
-      const decor = ["balloons", "confetti", "cake", "none"].includes(slide.decor) ? slide.decor : "balloons";
-      const root = slideRoot("navy", slide, "beat");
-      add(root, star("t-star--birthdays", "#194B98"));
-      if (decor !== "none") add(root, birthdayDecor(decor));
+      return peopleSlide(slide, { kind: "birthdays", tagText: "Birthdays", lead: "Happy Birthday", decor: "balloons" });
+    }
+  };
 
-      const frame = h("div", "t-frame t-frame--birthdays");
-      add(frame,
-        anim(tag(slide.tag || "Birthdays")),
-        anim(withAccent("t-title t-title--150", slide.headline || `Happy Birthday\n*${month}*`))
-      );
-      const accent = frame.querySelector(".t-accent");
-      if (accent) makeHero(accent);
-      const grid = anim(h("div", `t-names${people.length > 4 ? " t-names--many" : ""}`));
-      people.forEach((p, i) => {
-        const row = h("div", "t-name");
-        row.style.setProperty("--i", i); // the beat bumps each name in turn
-        const name = h("span", "t-name-text", p.name);
-        name.dataset.label = p.name; // drawn again, orange, for the beat's highlight
-        add(row, h("span", "t-name-day", p.day), name);
-        grid.appendChild(row);
+  // ---------- Work anniversaries ----------
+  // Under each name, "12 years" / "1 year"; decade anniversaries (10, 20, 30...)
+  // also get a small filled star.
+
+  function yearsLine(person) {
+    const years = Number(person.years);
+    if (!Number.isInteger(years) || years < 1) return null;
+    const line = h("span", "t-name-years", `${years} ${years === 1 ? "year" : "years"}`);
+    if (years % 10 === 0) {
+      const mark = h("span", "t-name-years-star");
+      mark.innerHTML = `<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="${STAR_POINTS}" fill="#F7941D"/></svg>`;
+      line.appendChild(mark);
+    }
+    return line;
+  }
+
+  types.anniversaries = {
+    render(slide) {
+      return peopleSlide(slide, {
+        kind: "anniversaries", tagText: "Work Anniversaries", lead: "Happy Anniversary", decor: "confetti", extra: yearsLine
       });
-      add(frame, grid);
-      add(root, frame, logoBadge("right"));
-      starLast(root, anim);
-      return root;
     }
   };
 
