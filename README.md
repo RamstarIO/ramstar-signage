@@ -2,7 +2,7 @@
 
 https://ramstario.github.io/ramstar-signage/
 
-Office TV slideshow for Ramstar. Five TVs around the building show a rotating set of branded slides (company values, safety, events, milestones, birthdays and customer/supplier spotlights).
+Office TV slideshow for Ramstar. Five TVs around the building show a rotating set of branded slides (company values, safety, events, milestones, birthdays, upcoming holidays and customer/supplier spotlights).
 
 The whole system is a **static website**: one HTML page, one JSON playlist, and a folder of slide images. Each TV opens the page full-screen in a kiosk browser. Updating the screens means committing new images and editing the playlist; no one touches the TVs.
 
@@ -62,7 +62,7 @@ All paths are relative, so the same files work on GitHub Pages, Cloudflare Pages
 ```
 ramstar-signage/
 ├── index.html          # The player. Rarely changes.
-├── templates.js        # Template slide types: birthdays, spotlight, milestone, value, event, safety
+├── templates.js        # Template slide types: birthdays, spotlight, milestone, value, event, safety, holidays
 ├── templates.css       # Their layouts (match the design canvas, 1920×1080)
 ├── weather.js          # Live weather slide: fetches ECCC data, builds the slide
 ├── weather.css         # Live weather slide layout (Design A, 1920×1080)
@@ -112,7 +112,7 @@ If something sensitive is committed by mistake, deleting it is **not** enough. T
 
 ## Making a slide
 
-**Most slides don't need an image at all.** The six Ramstar templates (Birthdays, Spotlight, Milestone, Company Value, Event Countdown, Safety) are built into the player as [template slide types](#template-slide-types): you write the words in `slides.json`, and each part of the slide rises in one after another. Use an exported image only for a one-off design the templates don't cover. The rest of this section applies to those images.
+**Most slides don't need an image at all.** The seven Ramstar templates (Birthdays, Spotlight, Milestone, Company Value, Event Countdown, Safety, Upcoming Holidays) are built into the player as [template slide types](#template-slide-types): you write the words in `slides.json`, and each part of the slide rises in one after another. Use an exported image only for a one-off design the templates don't cover. The rest of this section applies to those images.
 
 ### Specification
 
@@ -252,6 +252,12 @@ Each template from the design canvas is a slide type. The player builds it in HT
 
 { "type": "safety", "since": "2026-05-21", "tip": "Gloves on for every cut, even the quick ones." }
 
+{ "type": "holidays",
+  "holidays": [ { "date": "2026-10-12", "name": "Thanksgiving" },
+                { "date": "2026-12-26", "name": "Boxing Day", "observed": "2026-12-28" } ],
+  "shutdowns": [ { "name": "Winter shutdown", "from": "2026-12-24", "to": "2027-01-01",
+                   "note": "Office and manufacturing" } ] }
+
 { "type": "logo", "intro": ["rise", "wipe", "words", "assemble", "glint"] }
 ```
 
@@ -263,6 +269,7 @@ Each template from the design canvas is a slide type. The player builds it in HT
 | `value` | `name` ✅, `examples`, `index` | Split panel: the value on navy at the left, its examples listed under "What it looks like here" on the right. The name sizes itself so its longest word fits the panel (up to 180 px, down to 96 px; words never break mid-word), so "We Are Always Improving" comes out at about 150 px. `examples` is a list of 4–5 short strings (up to 5 are shown); each may run to two lines, and if the list would come within 40 px of the logo the text steps down (50 → 44 → 40 px) to fit. Both are measured once as the slide is built (see `docs/design/value/README.md`). With no `examples` the right side stays empty; note the key is `examples`, plural. `index` is the small "1 of 5" label. The old `meaning` and `example` fields are no longer shown. |
 | `event` | `name` ✅, `date`, `time`, `location`, `note` | `date` is `YYYY-MM-DD`. The countdown calculates itself, shows **Today** on the day, and the slide **hides itself the day after**. With no date it shows "Save the date". |
 | `safety` | `since` or `days`, `tip`, `label` | Set `since` to the date of the last lost-time incident and the count keeps itself up to date. `days` is a fixed number instead. |
+| `holidays` | `holidays` ✅ (list of `date` ✅ + `name` ✅, optional `observed`, `note`), `shutdowns` (list of `name`, `from` ✅, `to` ✅, `note`) | Upcoming Holidays: a countdown to the next holiday, the next shutdown, and cards for the three holidays after it. Type the dates in once a year from HR's schedule (they aren't calculated, because Ramstar's list differs from Ontario's); all dates are `YYYY-MM-DD`. A weekend holiday goes on its real `date` with the day off as `observed`: the countdown counts to the real date, the card reads "Sat · observed Mon Dec 28", and the holiday stays up until the observed day has passed. On the day the countdown reads **Today**; the next day it moves on to the next holiday. The badge says "Paid holiday" unless the holiday has its own `note` (e.g. `"Vacation day"` for Family Day). A shutdown shows once it starts within 120 days, reads "Until Fri, Jan 1" while it's on, and disappears after `to`. When the list runs out, the slide **hides itself**, so add next year's dates before the last holiday passes. Fit: the hero name shrinks to fit its column (150 px down to 96 px; words never break mid-word) and card names never wrap (40 → 34 → 30 px, then cut short with "…"). See `docs/design/holidays/README.md`. |
 | `logo` | `intro`, `slogan`, `logo` | A clean brand break: the logo with the slogan between two orange rules. `slogan` defaults to "Unmatched Service & Technology". `intro` is one of `rise`, `wipe`, `words`, `assemble`, `glint` (below), **or a list of them**, in which case the slide uses the next intro each time it comes round. The progress bar is hidden on logo slides. |
 
 All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and the usual `duration`, `start`, `end`, `enabled`. Birthdays also accepts `headline`; wrap a word in `*asterisks*` to colour it. Note that `title` is only your own label for the entry and is never shown on screen.
@@ -326,6 +333,7 @@ A slide that sits perfectly still for 10 seconds looks frozen. The player adds s
 | Event | beat | Two navy rings ripple out from the countdown number |
 | Safety | beat | The tip-of-the-week box nudges right and its label flashes white |
 | Weather | beat | The four stats light up one after another |
+| Holidays | beat | The countdown number pulses once (like the milestone), then the three cards bump up in turn |
 | Logo | sheen | A glint of light sweeps across the logo itself |
 
 Override it for one slide with `"moment"`:
@@ -334,7 +342,7 @@ Override it for one slide with `"moment"`:
 { "type": "milestone", "number": "250,000", "label": "Cuts completed", "moment": "sheen" }
 ```
 
-`"sheen"` works on every type; `"beat"` only does something on birthdays, value, milestone, event, safety and weather; `"none"` turns the moment off for that slide.
+`"sheen"` works on every type; `"beat"` only does something on birthdays, value, milestone, event, safety, weather and holidays; `"none"` turns the moment off for that slide.
 
 **Turning effects off everywhere** (at the top of `slides.json`; leave out any you want to keep on):
 

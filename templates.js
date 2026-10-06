@@ -15,6 +15,8 @@
  *   { "type": "event", "name": "Fall BBQ", "date": "2026-10-17", "time": "12:00 PM",
  *     "location": "Shop floor", "note": "Burgers on us." }
  *   { "type": "safety", "since": "2026-01-12", "tip": "Gloves on for every cut." }
+ *   { "type": "holidays", "holidays": [{ "date": "2026-12-26", "name": "Boxing Day", "observed": "2026-12-28" }],
+ *     "shutdowns": [{ "name": "Winter shutdown", "from": "2026-12-24", "to": "2027-01-01", "note": "Office and manufacturing" }] }
  *
  * Each type is { render(slide, data), load?(slide), isActive?(slide) } and is
  * registered on window.RamstarTypes, which the player (index.html) looks up.
@@ -423,15 +425,16 @@
 
   // Rule 1: the name is the largest size, up to 180 px, at which its widest
   // word fits the 600 px area, so words never break mid-word. A first guess
-  // from the canvas, then checked against real layout.
-  function fitName(name, text) {
+  // from the canvas, then checked against real layout. (The holidays hero
+  // name uses the same rule with its own sizes.)
+  function fitName(name, text, area = NAME_AREA, max = NAME_MAX, min = NAME_MIN) {
     const ctx = document.createElement("canvas").getContext("2d");
-    ctx.font = `800 ${NAME_MAX}px "Barlow Condensed"`;
+    ctx.font = `800 ${max}px "Barlow Condensed"`;
     const widest = Math.max(0, ...String(text || "").toUpperCase().split(/\s+/).map((w) => ctx.measureText(w).width));
-    let size = widest ? Math.floor(NAME_MAX * NAME_AREA / widest) : NAME_MAX;
-    size = Math.max(NAME_MIN, Math.min(NAME_MAX, size));
+    let size = widest ? Math.floor(max * area / widest) : max;
+    size = Math.max(min, Math.min(max, size));
     name.style.fontSize = `${size}px`;
-    while (size > NAME_MIN && name.scrollWidth > name.clientWidth) {
+    while (size > min && name.scrollWidth > name.clientWidth) {
       size -= 1;
       name.style.fontSize = `${size}px`;
     }
@@ -559,6 +562,154 @@
         add(side, anim(h("div", "t-event-unit", "Save the date")));
       }
       add(root, main, side, logoBadge("left"));
+      starLast(root, anim);
+      return root;
+    }
+  };
+
+  // ---------- Upcoming holidays ----------
+  // Countdown to the next paid holiday, the next shutdown, and the three
+  // holidays after it. Dates are typed in once a year from HR's schedule
+  // (see docs/design/holidays/README.md).
+
+  const HOL_NAME_MAX = 150;
+  const HOL_NAME_MIN = 96;
+  const HOL_CARD_SIZES = [40, 34, 30];  // card name steps, in templates.css
+  const SHUTDOWN_WINDOW_DAYS = 120;     // a shutdown shows once it starts within this many days
+
+  function holidayList(slide) {
+    return (Array.isArray(slide.holidays) ? slide.holidays : [])
+      .map((x) => {
+        const date = parseDay(x && x.date);
+        if (!date || !x.name) return null;
+        const observed = parseDay(x.observed);
+        // Still upcoming until both the real day and the day off have passed.
+        const lastDay = observed && observed > date ? observed : date;
+        return { name: String(x.name), note: x.note, date, observed, lastDay };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.date - b.date);
+  }
+
+  // What the slide shows on a given day (local midnight): the hero holiday
+  // and its countdown, up to three cards after it, and the shutdown line.
+  function holidaysModel(slide, day) {
+    const upcoming = holidayList(slide).filter((x) => x.lastDay >= day);
+    if (!upcoming.length) return null;
+    const next = upcoming[0];
+    // Count to the real date; once that has passed, to the observed day off.
+    const target = next.date >= day ? next.date : next.observed;
+    const horizon = new Date(day.getFullYear(), day.getMonth(), day.getDate() + SHUTDOWN_WINDOW_DAYS);
+    const shutdown = (Array.isArray(slide.shutdowns) ? slide.shutdowns : [])
+      .map((x) => ({ name: x && x.name, note: x && x.note, from: parseDay(x && x.from), to: parseDay(x && x.to) }))
+      .filter((x) => x.from && x.to && x.to >= day && x.from <= horizon)
+      .sort((a, b) => a.from - b.from)[0] || null;
+    return { day, next, days: daysBetween(day, target), cards: upcoming.slice(1, 4), shutdown };
+  }
+
+  const fmt = (date, opts) => date.toLocaleDateString("en-US", opts);
+  const longDate = (d) => fmt(d, { weekday: "long", month: "long", day: "numeric" });   // Monday, October 12
+  const shortDate = (d) => fmt(d, { weekday: "short", month: "short", day: "numeric" }); // Thu, Dec 24
+  const weekday = (d) => fmt(d, { weekday: "short" });                                  // Thu
+
+  function holidayCard(x, day, i) {
+    const card = h("div", "t-hol-card");
+    const row = h("div", "t-hol-card-row");
+    row.style.setProperty("--i", i); // the beat bumps each card in turn
+    const cal = h("div", "t-hol-cal");
+    add(cal, h("div", "t-hol-cal-m", fmt(x.date, { month: "short" })), h("div", "t-hol-cal-d", x.date.getDate()));
+    let sub;
+    if (x.observed && x.observed.getTime() !== x.date.getTime()) {
+      sub = `${weekday(x.date)} · observed ${weekday(x.observed)} ${fmt(x.observed, { month: "short", day: "numeric" })}`;
+    } else {
+      const n = daysBetween(day, x.date);
+      sub = `${weekday(x.date)} · ${n === 1 ? "tomorrow" : `in ${n} days`}`;
+    }
+    const text = h("div", "t-hol-card-text");
+    add(text, h("span", "t-hol-card-name", x.name), h("span", "t-hol-card-sub", sub));
+    add(row, cal, text);
+    return add(card, row);
+  }
+
+  // Fit rules: the hero name shrinks to fit its column like the value name
+  // (150 -> 96 px); card names never wrap, stepping 40 -> 34 -> 30 px and
+  // only then cut short with "...". Measured once in the hidden 1920x1080 box.
+  function fitHolidays(root, name, text, info) {
+    const probe = h("div", "t-measure");
+    probe.appendChild(root);
+    document.body.appendChild(probe);
+    fitName(name, text, info.clientWidth, HOL_NAME_MAX, HOL_NAME_MIN);
+    root.querySelectorAll(".t-hol-card-name").forEach((node) => {
+      for (let i = 1; i < HOL_CARD_SIZES.length && node.scrollWidth > node.clientWidth; i += 1) {
+        node.classList.remove(`t-hol-card-name--${HOL_CARD_SIZES[i - 1]}`);
+        node.classList.add(`t-hol-card-name--${HOL_CARD_SIZES[i]}`);
+      }
+    });
+    probe.remove();
+    root.remove();
+  }
+
+  types.holidays = {
+    // Hides itself once the last holiday (and its observed day) has passed.
+    isActive(slide) {
+      return holidaysModel(slide, today()) !== null;
+    },
+    load(slide) {
+      if (!holidaysModel(slide, today())) return Promise.reject(new Error("No upcoming holidays"));
+      return types.value.load(); // same fonts, so the fit is measured on real text
+    },
+    render(slide) {
+      const model = holidaysModel(slide, today());
+      const anim = sequencer();
+      const root = slideRoot("navy t-slide--holidays", slide, "beat");
+      add(root, star("t-star--holidays", "#194B98"));
+      const frame = h("div", "t-hol-frame");
+
+      const head = h("div", "t-hol-head");
+      add(head, anim(tag(slide.tag || "Upcoming Holidays")), logoBadge("top"));
+      add(frame, head);
+      if (!model) return add(root, frame);
+      const { day, next, days, cards, shutdown } = model;
+
+      const main = h("div", "t-hol-main");
+      const count = h("div", "t-hol-count");
+      if (days === 0) {
+        add(count, anim(hero("div", "t-hol-n t-hol-n--today", "Today")));
+      } else {
+        add(count, anim(hero("div", "t-hol-n", String(days))), anim(h("div", "t-hol-unit", days === 1 ? "day to go" : "days to go")));
+      }
+      const info = h("div", "t-hol-info");
+      const name = hero("h1", "t-title t-hol-name", next.name);
+      const when = h("div", "t-hol-when");
+      add(when,
+        h("span", "t-hol-date", longDate(next.date)),
+        next.observed && next.observed.getTime() !== next.date.getTime()
+          ? h("span", "t-hol-observed", `Observed ${shortDate(next.observed)}`)
+          : null,
+        h("span", "t-hol-badge", next.note || "Paid holiday")
+      );
+      add(info, anim(h("div", "t-hol-label", days === 0 ? "Enjoy the day" : "Next holiday")), anim(name), anim(when));
+      add(main, count, info);
+      add(frame, main);
+
+      if (shutdown) {
+        const line = h("div", "t-hol-shut");
+        add(line,
+          h("span", "t-hol-shut-name", shutdown.name || "Shutdown"),
+          h("span", null, shutdown.from <= day
+            ? `Until ${shortDate(shutdown.to)}`
+            : `${shortDate(shutdown.from)} – ${shortDate(shutdown.to)}`),
+          shutdown.note ? h("span", "t-hol-shut-note", shutdown.note) : null
+        );
+        add(frame, anim(line));
+      }
+      if (cards.length) {
+        const grid = h("div", "t-hol-cards");
+        cards.forEach((x, i) => grid.appendChild(anim(holidayCard(x, day, i))));
+        add(frame, grid);
+      }
+      add(root, frame);
+      fitHolidays(root, name, next.name, info);
       starLast(root, anim);
       return root;
     }
