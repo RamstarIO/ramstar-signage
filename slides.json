@@ -67,15 +67,6 @@
       "duration": 10
     },
     {
-      "title": "Customer spotlight",
-      "type": "spotlight",
-      "kind": "Customer",
-      "name": "Aarkel",
-      "since": "2017",
-      "blurb": "They have bought over 20,000 inserts since we first started!",
-      "duration": 10
-    },
-    {
       "title": "Event countdown",
       "type": "event",
       "name": "Ramstar Olympics",
@@ -100,17 +91,9 @@
       "duration": 10
     },
     {
-      "title": "Milestone",
-      "type": "milestone",
-      "number": "65,000",
-      "label": "Lines shipped in August",
-      "note": "Great work shipping team!",
-      "duration": 10
-    },
-    {
       "title": "Safety",
       "type": "safety",
-      "days": "94",
+      "days": "57",
       "tip": "Remember, always tie your shoes",
       "duration": 10
     },
