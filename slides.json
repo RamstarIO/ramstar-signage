@@ -55,7 +55,7 @@
     {
       "title": "Company value",
       "type": "value",
-      "index": "[1 of 5]",
+      "index": "[1 of 4]",
       "name": "WE PARTNER",
       "meaning": "We always make sure to partner whenever we can",
       "example": "Rhonda made sure to partner with Kristen on deciding which pop to buy.",
@@ -81,6 +81,15 @@
       "duration": 10
     },
     {
+      "title": "Company value",
+      "type": "value",
+      "index": "[1 of 4]",
+      "name": "WE PARTNER",
+      "meaning": "We always make sure to partner whenever we can",
+      "example": "Rhonda made sure to partner with Kristen on deciding which pop to buy.",
+      "duration": 10
+    },
+    {
       "title": "Milestone",
       "type": "milestone",
       "number": "65,000",
@@ -93,6 +102,15 @@
       "type": "safety",
       "days": "94",
       "tip": "Remember, always tie your shoes",
+      "duration": 10
+    },
+    {
+      "title": "Company value",
+      "type": "value",
+      "index": "[1 of 4]",
+      "name": "WE PARTNER",
+      "meaning": "We always make sure to partner whenever we can",
+      "example": "Rhonda made sure to partner with Kristen on deciding which pop to buy.",
       "duration": 10
     },
     {
@@ -109,6 +127,15 @@
       "title": "NFL up next",
       "type": "nfl-next",
       "duration": 16
+    },
+    {
+      "title": "Company value",
+      "type": "value",
+      "index": "[1 of 4]",
+      "name": "WE PARTNER",
+      "meaning": "We always make sure to partner whenever we can",
+      "example": "Rhonda made sure to partner with Kristen on deciding which pop to buy.",
+      "duration": 10
     }
   ]
 }
