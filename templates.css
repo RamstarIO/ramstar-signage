@@ -252,6 +252,88 @@
 .t-examples--44 .t-ex-star,
 .t-examples--40 .t-ex-star { transform: translateY(2px); }
 
+/* Upcoming holidays (docs/design/holidays): countdown hero, shutdown line, three cards */
+.t-star--holidays { right: -200px; top: -180px; width: 900px; height: 900px; }
+.t-hol-frame {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding: 80px 120px 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.t-hol-head { display: flex; align-items: center; justify-content: space-between; }
+.t-logo--top { position: static; padding: 16px 28px; }
+.t-logo--top img { height: 80px; }
+.t-hol-main { flex-grow: 1; display: flex; align-items: center; gap: 72px; min-height: 0; }
+.t-hol-count { flex: none; display: flex; flex-direction: column; align-items: flex-start; }
+.t-hol-n {
+  font: 800 300px/0.82 "Barlow Condensed", sans-serif;
+  color: #F7941D;
+  font-variant-numeric: tabular-nums;
+}
+.t-hol-n--today { font-size: 200px; text-transform: uppercase; }
+.t-hol-unit {
+  font: 700 64px/1.2 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.t-hol-info { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; }
+.t-hol-label {
+  font: 700 44px/1.2 "Barlow Condensed", sans-serif;
+  color: #AFC0DA;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.t-hol-name { align-self: stretch; font-size: 150px; line-height: 0.9; overflow-wrap: normal; } /* size fitted in templates.js */
+.t-hol-when { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; font-size: 52px; font-weight: 600; }
+.t-hol-observed { font-size: 40px; font-weight: 500; color: #AFC0DA; }
+.t-hol-badge {
+  background: #F7941D;
+  color: #0E2A56;
+  font: 700 34px/1.2 "Barlow Condensed", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  border-radius: 6px;
+}
+.t-hol-shut {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font: 700 40px/1.2 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.t-hol-shut-name { color: #F7941D; }
+.t-hol-shut-note { font: 500 32px/1.2 "Barlow", sans-serif; color: #AFC0DA; text-transform: none; letter-spacing: 0; }
+.t-hol-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.t-hol-card { background: #163A72; border-radius: 12px; min-width: 0; }
+.t-hol-card-row { padding: 22px 28px; display: flex; align-items: center; gap: 24px; }
+.t-hol-cal { flex: none; width: 92px; border-radius: 12px; overflow: hidden; background: #FFFFFF; text-align: center; }
+.t-hol-cal-m {
+  background: #F7941D;
+  color: #0E2A56;
+  font: 700 21px/1.2 "Barlow Condensed", sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 0;
+}
+.t-hol-cal-d { font: 800 53px/1.1 "Barlow Condensed", sans-serif; color: #0E2A56; }
+.t-hol-card-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+/* Names and subtitles never wrap; long names step down in templates.js, then get "..." */
+.t-hol-card-name, .t-hol-card-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t-hol-card-name { font-size: 40px; font-weight: 600; line-height: 1.2; }
+.t-hol-card-name--34 { font-size: 34px; line-height: 1.41; } /* line heights keep every card the same height */
+.t-hol-card-name--30 { font-size: 30px; line-height: 1.6; }
+.t-hol-card-sub {
+  font: 700 30px/1.2 "Barlow Condensed", sans-serif;
+  color: #AFC0DA;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 /* Event */
 .t-slide--event { display: grid; grid-template-columns: minmax(0, 1fr) 640px; }
 .t-event-main {
