@@ -15,7 +15,7 @@ Layout:
 
 Fit rules (measured with the real fonts; both are required):
 1. **Value name fits its 600 px area.** Font size = largest that fits the widest single word in 600 px, max 180 px (min 96 px). Words never break mid-word. Measured at 180 px: "IMPROVING" = 712 px (→ 150 px), "PARTNER" = 603 px (→ 176 px), "ACCOUNTABILITY" = 1114 px (→ 96 px).
-2. **Examples list ends above the logo badge** (bottom < 868 px, keep ~40 px clear). If it doesn't, step the font down 50 → 44 → 40 px (gap 34 → 30 → 26). Five examples with three two-line items need 44 px.
+2. **Examples list ends above the logo badge** (bottom < 868 px, keep ~40 px clear) **and no example runs past two lines.** If either fails, step the font down 50 → 44 → 40 px (gap 34 → 30 → 26). Five examples with three two-line items need 44 px. 40 px is the floor: an example still three lines at 40 px must be shortened.
 
 Measure once when the slide is built (before it fades in), never per frame.
 

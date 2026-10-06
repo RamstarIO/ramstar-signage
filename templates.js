@@ -420,6 +420,7 @@
   const NAME_MIN = 96;
   const EXAMPLE_SIZES = [50, 44, 40]; // gap 34 / 30 / 26, in templates.css
   const BADGE_CLEAR = 40; // the list ends this far above the logo badge
+  const EXAMPLE_LINES = 2; // the most lines one example may run to
 
   // Rule 1: the name is the largest size, up to 180 px, at which its widest
   // word fits the 600 px area, so words never break mid-word. A first guess
@@ -437,13 +438,18 @@
     }
   }
 
-  // Rule 2: the examples list ends above the logo badge, stepping the text
-  // down 50 -> 44 -> 40 px until it does. The column is centred, so an
-  // overfull list also spills above the top edge.
+  // Rule 2: the examples list ends above the logo badge and no example runs
+  // past two lines, stepping the text down 50 -> 44 -> 40 px until both hold
+  // (40 px is the floor, even if an example is still too long). The column is
+  // centred, so an overfull list also spills above the top edge.
   function fitExamples(label, list, badge) {
+    const texts = Array.from(list.querySelectorAll(".t-ex-text"));
     const overlaps = () =>
       label.offsetTop < 0 || list.offsetTop + list.offsetHeight > badge.offsetTop - BADGE_CLEAR;
-    for (let i = 1; i < EXAMPLE_SIZES.length && overlaps(); i += 1) {
+    // Lines = height / line height (line-height is 1.2 in templates.css).
+    const lines = (t) => Math.round(t.offsetHeight / (parseFloat(getComputedStyle(t).fontSize) * 1.2));
+    const tooLong = () => texts.some((t) => lines(t) > EXAMPLE_LINES);
+    for (let i = 1; i < EXAMPLE_SIZES.length && (overlaps() || tooLong()); i += 1) {
       list.classList.remove(`t-examples--${EXAMPLE_SIZES[i - 1]}`);
       list.classList.add(`t-examples--${EXAMPLE_SIZES[i]}`);
     }
