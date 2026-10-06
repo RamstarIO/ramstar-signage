@@ -23,7 +23,7 @@
 .t-star svg { width: 100%; height: 100%; display: block; }
 .t-star--birthdays { right: -200px; top: -170px; width: 940px; height: 940px; }
 .t-star--milestone { right: -120px; bottom: -260px; width: 1000px; height: 1000px; }
-.t-star--value     { right: -180px; top: -140px; width: 900px; height: 900px; }
+.t-star--value     { left: -200px; bottom: -240px; width: 820px; height: 820px; }
 .t-star--safety    { right: -160px; top: -180px; width: 940px; height: 940px; }
 .t-star--spotlight { left: -160px; bottom: -220px; width: 760px; height: 760px; }
 .t-star--event     { left: -60px; top: 150px; width: 760px; height: 760px; }
@@ -38,7 +38,6 @@
 }
 .t-frame--birthdays { gap: 48px; }
 .t-frame--center    { justify-content: center; gap: 24px; }
-.t-frame--value     { gap: 44px; }
 .t-frame--safety    { gap: 28px; }
 
 .t-logo {
@@ -183,15 +182,62 @@
   text-transform: uppercase;
 }
 
-/* Value */
+/* Value: navy panel with the value on the left, examples on the right */
+.t-slide--value { display: grid; grid-template-columns: 760px minmax(0, 1fr); }
+.t-value-left {
+  background: #0E2A56;
+  color: #FFFFFF;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 88px 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.t-value-left > :not(.t-star) { position: relative; } /* above the star */
+.t-value-main { display: flex; flex-direction: column; gap: 32px; }
+.t-value-name { font-size: 180px; line-height: 0.88; margin-right: -40px; } /* a word like PARTNER needs ~600 px */
+.t-value-spacer { height: 96px; }
 .t-index {
+  font: 700 40px/1.2 "Barlow Condensed", sans-serif;
+  color: #AFC0DA;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.t-rule { width: 200px; height: 14px; background: #F7941D; border-radius: 2px; }
+.t-value-right { /* not positioned, so offsetTop in templates.js is measured from the slide */
+  box-sizing: border-box;
+  padding: 120px 110px 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 40px;
+  min-height: 0;
+}
+.t-value-label {
   font: 700 40px/1.2 "Barlow Condensed", sans-serif;
   color: #194B98;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.t-rule { width: 220px; height: 14px; background: #F7941D; border-radius: 2px; }
-.t-example { margin-top: 20px; }
+.t-examples {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  max-width: 960px;
+}
+.t-ex-row { display: flex; align-items: flex-start; gap: 26px; font-size: 50px; line-height: 1.2; font-weight: 500; }
+.t-ex-star { flex: none; width: 34px; height: 34px; transform: translateY(4px); }
+.t-ex-star svg { display: block; width: 100%; height: 100%; }
+/* Fit guard steps (templates.js), when two-line examples would reach the logo badge */
+.t-examples--44 .t-ex-row { font-size: 44px; }
+.t-examples--40 .t-ex-row { font-size: 40px; }
+.t-examples--44 .t-ex-star,
+.t-examples--40 .t-ex-star { transform: translateY(2px); }
 
 /* Event */
 .t-slide--event { display: grid; grid-template-columns: minmax(0, 1fr) 640px; }
