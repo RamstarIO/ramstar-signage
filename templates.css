@@ -21,7 +21,8 @@
 
 .t-star { position: absolute; }
 .t-star svg { width: 100%; height: 100%; display: block; }
-.t-star--birthdays { right: -200px; top: -170px; width: 940px; height: 940px; }
+.t-star--birthdays,
+.t-star--anniversaries { right: -200px; top: -170px; width: 940px; height: 940px; }
 .t-star--milestone { right: -120px; bottom: -260px; width: 1000px; height: 1000px; }
 .t-star--value     { left: -200px; bottom: -240px; width: 820px; height: 820px; }
 .t-star--safety    { right: -160px; top: -180px; width: 940px; height: 940px; }
@@ -36,7 +37,8 @@
   display: flex;
   flex-direction: column;
 }
-.t-frame--birthdays { gap: 48px; }
+.t-frame--birthdays,
+.t-frame--anniversaries { gap: 48px; }
 .t-frame--center    { justify-content: center; gap: 24px; }
 .t-frame--safety    { gap: 28px; }
 
@@ -89,7 +91,7 @@
 .t-strong { font-weight: 600; }
 .t-row { display: flex; align-items: center; gap: 24px; }
 
-/* Birthdays */
+/* Birthdays and anniversaries (templates.js: peopleSlide) */
 .t-names {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -126,6 +128,27 @@
 .t-names--many .t-name { padding-top: 12px; }
 .t-names--many .t-name-day { font-size: 44px; }
 .t-names--many .t-name-text { font-size: 46px; }
+
+/* Anniversaries: the name has a second line, "12 YEARS" (+ a star on decades) */
+.t-name-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.t-name-body .t-name-text { line-height: 1.1; }
+.t-name-years {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 700 32px/1.2 "Barlow Condensed", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #F7941D;
+}
+.t-name-years-star { flex: none; width: 30px; height: 30px; }
+.t-name-years-star svg { width: 100%; height: 100%; display: block; }
+.t-names--many .t-name-years { font-size: 28px; }
+.t-names--many .t-name-years-star { width: 26px; height: 26px; }
+/* Two-line rows need a tighter frame and rows to fit eight people */
+.t-frame--anniversaries.t-frame--many { padding-top: 80px; gap: 36px; }
+.t-frame--anniversaries .t-names--many { row-gap: 18px; }
+.t-frame--anniversaries .t-names--many .t-name { gap: 20px; padding-top: 10px; }
 
 /* Spotlight */
 .t-slide--split { display: grid; grid-template-columns: 820px minmax(0, 1fr); }
@@ -563,7 +586,7 @@
   .layer .lg .lg-glint-band { animation: none !important; }
 }
 
-/* Birthday decorations: layout only (motion lives in ambient.css, section 5) */
+/* Party decorations (birthdays, anniversaries): layout only (motion lives in ambient.css, section 5) */
 .bd-balloon, .bd-confetti { position: absolute; }
 .bd-cake { position: absolute; left: 1440px; top: 360px; width: 400px; height: 460px; transform: scale(0.96); transform-origin: 50% 100%; }
 .bd-cake > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }

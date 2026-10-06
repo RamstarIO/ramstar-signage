@@ -62,13 +62,13 @@ All paths are relative, so the same files work on GitHub Pages, Cloudflare Pages
 ```
 ramstar-signage/
 ├── index.html          # The player. Rarely changes.
-├── templates.js        # Template slide types: birthdays, spotlight, milestone, value, event, safety, holidays
+├── templates.js        # Template slide types: birthdays, anniversaries, spotlight, milestone, value, event, safety, holidays
 ├── templates.css       # Their layouts (match the design canvas, 1920×1080)
 ├── weather.js          # Live weather slide: fetches ECCC data, builds the slide
 ├── weather.css         # Live weather slide layout (Design A, 1920×1080)
 ├── nfl.js              # NFL slides: scoreboard, standings, up next (reads nfl.json)
 ├── nfl.css             # NFL slide layouts (1920×1080)
-├── ambient.css         # Ambient motion: star, progress bar, sheen, beats, birthday decorations, weather icons
+├── ambient.css         # Ambient motion: star, progress bar, sheen, beats, party decorations, weather icons
 ├── slides.json         # The playlist. Changes whenever content changes.
 ├── slides/             # Slide images, 1920×1080 PNG
 │   ├── 00-test.png     # "Signage is working" test slide
@@ -98,13 +98,13 @@ Until Phase 2 is live, only commit content you would be comfortable putting on t
 
 | ✅ OK in Phase 1 | ❌ Wait for Phase 2 |
 |---|---|
-| Company values | Employee names and birthdays |
+| Company values | Employee names, birthdays and work anniversaries |
 | Safety reminders and tips | Customer or supplier names and logos |
 | Company-wide events (no personal details) | Sales figures, margins, pricing |
 | Milestones stated generally ("100,000th cut!") | Anything from P21 or internal reports |
 | Holidays and general announcements | Photos of identifiable people |
 
-This applies to the words in `slides.json` exactly as much as to images: names typed into a `birthdays` or `spotlight` slide are just as public.
+This applies to the words in `slides.json` exactly as much as to images: names typed into a `birthdays`, `anniversaries` or `spotlight` slide are just as public.
 
 If something sensitive is committed by mistake, deleting it is **not** enough. Treat it as already public, and ask for help cleaning the history before doing anything else.
 
@@ -112,7 +112,7 @@ If something sensitive is committed by mistake, deleting it is **not** enough. T
 
 ## Making a slide
 
-**Most slides don't need an image at all.** The seven Ramstar templates (Birthdays, Spotlight, Milestone, Company Value, Event Countdown, Safety, Upcoming Holidays) are built into the player as [template slide types](#template-slide-types): you write the words in `slides.json`, and each part of the slide rises in one after another. Use an exported image only for a one-off design the templates don't cover. The rest of this section applies to those images.
+**Most slides don't need an image at all.** The eight Ramstar templates (Birthdays, Work Anniversaries, Spotlight, Milestone, Company Value, Event Countdown, Safety, Upcoming Holidays) are built into the player as [template slide types](#template-slide-types): you write the words in `slides.json`, and each part of the slide rises in one after another. Use an exported image only for a one-off design the templates don't cover. The rest of this section applies to those images.
 
 ### Specification
 
@@ -236,6 +236,16 @@ Each template from the design canvas is a slide type. The player builds it in HT
 { "type": "birthdays", "month": "October",
   "people": [ { "day": "3", "name": "Jane Doe" }, { "day": "14", "name": "Chris Martin" } ] }
 
+{ "type": "anniversaries", "month": "October",
+  "people": [ { "day": "Mon 5",  "name": "Pat Example",          "years": 12 },
+              { "day": "Fri 9",  "name": "Jordan Sample",        "years": 10 },
+              { "day": "Wed 14", "name": "Casey Placeholder",    "years": 1 },
+              { "day": "Thu 15", "name": "Riley Demo",           "years": 3 },
+              { "day": "Tue 20", "name": "Morgan Test",          "years": 20 },
+              { "day": "Fri 23", "name": "Sam Fictional",        "years": 7 },
+              { "day": "Mon 26", "name": "Taylor Mockup",        "years": 30 },
+              { "day": "Fri 30", "name": "Alexandra Montgomery", "years": 2 } ] }
+
 { "type": "spotlight", "kind": "Customer", "name": "Acme Fabrication", "since": "2012",
   "blurb": "Laser-cut brackets and plate, delivered every week.", "logo": "slides/logos/acme.png" }
 
@@ -264,6 +274,7 @@ Each template from the design canvas is a slide type. The player builds it in HT
 | Type | Fields (✅ = required) | Notes |
 |---|---|---|
 | `birthdays` | `people` ✅ (list of `day` + `name`), `month`, `decor` | `month` defaults to the current month. Up to 8 people; more than 4 switches to a tighter layout. `day` can be `"9"` or `"Sat 9"`. Each person stays on one line; a very long name is cut short with "…". `decor` is the background decoration (below). |
+| `anniversaries` | `people` ✅ (list of `day` + `name` + `years`), `month`, `decor` | Work Anniversaries: the birthdays layout with "12 YEARS" / "1 YEAR" in orange under each name, and a small orange star after it on decade anniversaries only (10, 20, 30…). A person with no `years` just gets the name. Same rules as birthdays: up to 8 people, more than 4 switches to a tighter layout, names stay on one line and are cut short with "…". `decor` defaults to `"confetti"`. Typed in by hand each month, like birthdays; no start dates needed. See `docs/design/anniversaries/README.md`. |
 | `spotlight` | `name` ✅, `kind`, `since`, `blurb`, `logo` | `kind` is `"Customer"` (default) or `"Supplier"`. `logo` is an image path; without one, the company name fills the white box. |
 | `milestone` | `number` ✅, `label` ✅, `note` | A plain number like `"100,000"` counts up; anything else shows as typed. |
 | `value` | `name` ✅, `examples`, `index` | Split panel: the value on navy at the left, its examples listed under "What it looks like here" on the right. The name sizes itself so its longest word fits the panel (up to 180 px, down to 96 px; words never break mid-word), so "We Are Always Improving" comes out at about 150 px. `examples` is a list of 4–5 short strings (up to 5 are shown); each may run to two lines, and if the list would come within 40 px of the logo the text steps down (50 → 44 → 40 px) to fit. Both are measured once as the slide is built (see `docs/design/value/README.md`). With no `examples` the right side stays empty; note the key is `examples`, plural. `index` is the small "1 of 5" label. The old `meaning` and `example` fields are no longer shown. |
@@ -272,9 +283,9 @@ Each template from the design canvas is a slide type. The player builds it in HT
 | `holidays` | `holidays` ✅ (list of `date` ✅ + `name` ✅, optional `observed`, `note`), `shutdowns` (list of `name`, `from` ✅, `to` ✅, `note`) | Upcoming Holidays: a countdown to the next holiday, the next shutdown, and cards for the three holidays after it. Type the dates in once a year from HR's schedule (they aren't calculated, because Ramstar's list differs from Ontario's); all dates are `YYYY-MM-DD`. A weekend holiday goes on its real `date` with the day off as `observed`: the countdown counts to the real date, the card reads "Sat · observed Mon Dec 28", and the holiday stays up until the observed day has passed. On the day the countdown reads **Today**; the next day it moves on to the next holiday. The badge says "Paid holiday" unless the holiday has its own `note` (e.g. `"Vacation day"` for Family Day). A shutdown shows once it starts within 120 days, reads "Until Fri, Jan 1" while it's on, and disappears after `to`. When the list runs out, the slide **hides itself**, so add next year's dates before the last holiday passes. Fit: the hero name shrinks to fit its column (150 px down to 96 px; words never break mid-word) and card names never wrap (40 → 34 → 30 px, then cut short with "…"). See `docs/design/holidays/README.md`. |
 | `logo` | `intro`, `slogan`, `logo` | A clean brand break: the logo with the slogan between two orange rules. `slogan` defaults to "Unmatched Service & Technology". `intro` is one of `rise`, `wipe`, `words`, `assemble`, `glint` (below), **or a list of them**, in which case the slide uses the next intro each time it comes round. The progress bar is hidden on logo slides. |
 
-All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and the usual `duration`, `start`, `end`, `enabled`. Birthdays also accepts `headline`; wrap a word in `*asterisks*` to colour it. Note that `title` is only your own label for the entry and is never shown on screen.
+All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and the usual `duration`, `start`, `end`, `enabled`. Birthdays and anniversaries also accept `headline`; wrap a word in `*asterisks*` to colour it. Note that `title` is only your own label for the entry and is never shown on screen.
 
-**Birthday decorations** (`"decor"`, default `"balloons"`):
+**Birthday and anniversary decorations** (`"decor"`, default `"balloons"` on birthdays, `"confetti"` on anniversaries):
 
 | `decor` | What it looks like |
 |---|---|
@@ -327,6 +338,7 @@ A slide that sits perfectly still for 10 seconds looks frozen. The player adds s
 | Slide | Default | What happens |
 |---|---|---|
 | Birthdays | beat | Each person bumps up in turn: the line above them flashes white and their name flashes orange |
+| Anniversaries | beat | Same as birthdays |
 | Spotlight | sheen | A glint of light sweeps across the company name |
 | Company value | beat | Each example bumps up in turn |
 | Milestone | beat | The big number pulses once |
@@ -342,7 +354,7 @@ Override it for one slide with `"moment"`:
 { "type": "milestone", "number": "250,000", "label": "Cuts completed", "moment": "sheen" }
 ```
 
-`"sheen"` works on every type; `"beat"` only does something on birthdays, value, milestone, event, safety, weather and holidays; `"none"` turns the moment off for that slide.
+`"sheen"` works on every type; `"beat"` only does something on birthdays, anniversaries, value, milestone, event, safety, weather and holidays; `"none"` turns the moment off for that slide.
 
 **Turning effects off everywhere** (at the top of `slides.json`; leave out any you want to keep on):
 
@@ -354,9 +366,9 @@ All ambient motion also switches off automatically on a device set to "reduce mo
 
 **Performance (built for the Fire Stick):** every effect animates only *movement and fading* (`transform` and `opacity`), which the graphics chip does on its own at no cost to the processor. Nothing animates colours, backgrounds, text or shapes inside an SVG, because those make the browser repaint on the processor every frame, which is what stutters on a Fire Stick. How the trickier effects stay GPU-only:
 - **Sheen:** a copy of the text in the highlight colour sits in a narrow, soft-edged window that slides across while the copy slides back the other way, so it stays exactly over the real text.
-- **Colour flashes** (safety label, weather stats, birthday names): a second copy in the new colour fades in and out on top.
+- **Colour flashes** (safety label, weather stats, birthday and anniversary names): a second copy in the new colour fades in and out on top.
 - **Weather icons:** each moving part (rays, cloud, raindrops) is its own layer and moves as a whole.
-- **Birthday balloons and confetti:** each piece is two small layers, one travelling in a straight line and one swaying or tumbling, and they only run while the slide is on screen. Measured with the processor slowed 4×: a few extra paints when the slide appears (about 10 ms in total), nothing per frame.
+- **Balloons and confetti (birthdays, anniversaries):** each piece is two small layers, one travelling in a straight line and one swaying or tumbling, and they only run while the slide is on screen. Measured with the processor slowed 4×: a few extra paints when the slide appears (about 10 ms in total), nothing per frame.
 - **Count-up numbers:** tick about 12 times a second, like a mechanical counter, instead of every frame.
 - **Layer hints** (`will-change`) prepare the next slide's moving parts while the previous one is still leaving.
 
