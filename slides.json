@@ -55,10 +55,15 @@
     {
       "title": "Company value",
       "type": "value",
-      "index": "[1 of 4]",
+      "index": "1 of 4",
       "name": "WE PARTNER",
-      "meaning": "We always make sure to partner whenever we can",
-      "example": "Rhonda made sure to partner with Kristen on deciding which pop to buy.",
+      "example": [
+        "We work together to solve problems",
+        "We are transparent when discussing our business",
+        "We build trusting relationships with colleagues, vendors, and customers",
+        "We set and achieve common goals",
+        "We have similar values"
+      ],
       "duration": 10
     },
     {
@@ -83,10 +88,15 @@
     {
       "title": "Company value",
       "type": "value",
-      "index": "[1 of 4]",
-      "name": "WE PARTNER",
-      "meaning": "We always make sure to partner whenever we can",
-      "example": "Rhonda made sure to partner with Kristen on deciding which pop to buy.",
+      "index": "2 of 4",
+      "name": "WE HELP",
+      "example": [
+        "We offer advice and resources for improvement",
+        "We go above and beyond for customers and colleagues",
+        "We create opportunities for training and career growth",
+        "We provide value-added products and services for customers",
+        "We are accommodating for work and personal life"
+      ],
       "duration": 10
     },
     {
@@ -107,10 +117,14 @@
     {
       "title": "Company value",
       "type": "value",
-      "index": "[1 of 4]",
-      "name": "WE PARTNER",
-      "meaning": "We always make sure to partner whenever we can",
-      "example": "Rhonda made sure to partner with Kristen on deciding which pop to buy.",
+      "index": "3 of 4",
+      "name": "WE ARE ALWAYS IMPROVING",
+      "example": [
+        "We are continuously learning new technologies and products to provide our customers with the leading industry solutions",
+        "We implement new and creative strategies",
+        "We create expectations and accountabilities",
+        "We prioritize tasks, rocks, and achievable goals that move us forward"
+      ],
       "duration": 10
     },
     {
@@ -131,10 +145,14 @@
     {
       "title": "Company value",
       "type": "value",
-      "index": "[1 of 4]",
-      "name": "WE PARTNER",
-      "meaning": "We always make sure to partner whenever we can",
-      "example": "Rhonda made sure to partner with Kristen on deciding which pop to buy.",
+      "index": "4 of 4",
+      "name": "WE ARE FUN",
+      "example": [
+        "We have team-building activities",
+        "We recognize milestones and achievements",
+        "We drive our culture through our colleagues",
+        "We have a relaxed and positive environment"
+      ],
       "duration": 10
     }
   ]
