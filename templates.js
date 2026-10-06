@@ -11,7 +11,7 @@
  *   { "type": "spotlight", "kind": "Customer", "name": "Acme Fab", "since": "2012",
  *     "blurb": "Laser-cut brackets every week.", "logo": "slides/logos/acme.png" }
  *   { "type": "milestone", "number": "100,000", "label": "Cuts completed", "note": "This year. Thank you, team." }
- *   { "type": "value", "index": "1 of 5", "name": "Safety", "meaning": "...", "example": "..." }
+ *   { "type": "value", "index": "1 of 5", "name": "We Partner", "examples": ["...", "..."] }
  *   { "type": "event", "name": "Fall BBQ", "date": "2026-10-17", "time": "12:00 PM",
  *     "location": "Shop floor", "note": "Burgers on us." }
  *   { "type": "safety", "since": "2026-01-12", "tip": "Gloves on for every cut." }
@@ -412,27 +412,63 @@
   };
 
   // ---------- Company value ----------
+  // Split panel: the value on navy at the left, examples of it on the right.
+
+  // Example text sizes (design px), stepped down until the list clears the logo badge.
+  const EXAMPLE_SIZES = [50, 44, 40];
+
+  // Runs once per slide, after the player has put it on the page and the fonts
+  // have loaded, so line breaks are real. offsetTop/offsetHeight are design
+  // pixels relative to the slide: they ignore the --k scale and the entrance
+  // transforms. The column is centred, so an overfull list spills both ways.
+  function fitExamples(label, list, badge) {
+    const overlaps = () => label.offsetTop < 0 || list.offsetTop + list.offsetHeight > badge.offsetTop - 24;
+    for (let i = 1; i < EXAMPLE_SIZES.length && overlaps(); i += 1) {
+      list.classList.add(`t-examples--${EXAMPLE_SIZES[i]}`);
+    }
+  }
+
+  function bulletStar() {
+    const node = h("span", "t-ex-star");
+    node.innerHTML = `<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="${STAR_POINTS}" fill="#F7941D"/></svg>`;
+    return node;
+  }
 
   types.value = {
     render(slide) {
       const anim = sequencer();
-      const root = slideRoot("light", slide, "sheen");
-      add(root, star("t-star--value", "#E3DED5"));
-      const frame = h("div", "t-frame t-frame--value");
+      const root = slideRoot("light t-slide--value", slide, "beat");
+      const examples = (Array.isArray(slide.examples) ? slide.examples : [])
+        .map((e) => String(e || "").trim())
+        .filter(Boolean)
+        .slice(0, 5);
+
+      const left = h("div", "t-value-left");
       const head = h("div", "t-row");
-      add(head, tag(slide.tag || "Our Values", "navy"), slide.index ? h("div", "t-index", slide.index) : null);
-      add(frame,
-        anim(head),
-        anim(hero("h1", "t-title t-title--200", slide.name)),
-        anim(h("div", "t-rule")),
-        slide.meaning ? anim(h("p", "t-body t-body--58", slide.meaning)) : null
-      );
-      if (slide.example) {
-        const ex = h("p", "t-body t-body--44 t-blue t-example");
-        add(ex, h("span", "t-strong", "In action: "), document.createTextNode(slide.example));
-        add(frame, anim(ex));
+      add(head, tag(slide.tag || "Our Values"), slide.index ? h("div", "t-index", slide.index) : null);
+      add(left, star("t-star--value", "#194B98"), anim(head));
+      const main = h("div", "t-value-main");
+      add(main, anim(hero("h1", "t-title t-value-name", slide.name)), anim(h("div", "t-rule")));
+      add(left, main, h("div", "t-value-spacer"));
+
+      const right = h("div", "t-value-right");
+      const badge = logoBadge("right");
+      if (examples.length) {
+        const label = anim(h("div", "t-value-label", "What it looks like here"));
+        const list = h("ul", "t-examples");
+        examples.forEach((text, i) => {
+          const row = h("div", "t-ex-row");
+          row.style.setProperty("--i", i); // the beat bumps each example in turn
+          add(row, bulletStar(), h("span", "t-ex-text", text));
+          list.appendChild(anim(add(h("li", "t-ex"), row)));
+        });
+        add(right, label, list);
+        requestAnimationFrame(() => {
+          const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+          fonts.then(() => { if (root.isConnected) fitExamples(label, list, badge); });
+        });
       }
-      add(root, frame, logoBadge("right"));
+      add(root, left, right, badge);
       starLast(root, anim);
       return root;
     }

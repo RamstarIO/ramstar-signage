@@ -90,7 +90,7 @@
    (set as class m-sheen or m-beat on the slide), and a slide in slides.json
    can override it with "moment": "sheen" | "beat" | "none".
 
-   3a. Steel sheen (spotlight, value): a band of light sweeps
+   3a. Steel sheen (spotlight): a band of light sweeps
    across the hero text, like light catching polished metal.
    How it's drawn (see makeHero in templates.js): a copy of the text in the
    highlight colour (--glint) sits in a window (.t-sheen) that only shows a
@@ -143,10 +143,11 @@
 .t-big-number .t-hero, .wx-temp .t-hero     { --glint: #FFF1DE; }
 .t-slide--light .t-hero                     { --glint: #6E93CF; }
 .t-slide--light .t-accent.t-hero            { --glint: #8DB0E8; }
+.t-slide--value .t-value-left .t-hero       { --glint: #F7941D; } /* value name sits on navy */
 .t-slide--orange .t-hero,
 .t-event-side .t-hero                       { --glint: #FFFFFF; }
 
-/* 3b. Second beat (milestone, event, safety, weather): a small event that
+/* 3b. Second beat (birthdays, value, milestone, event, safety, weather): a small event that
    re-draws the eye to the slide's key detail. Each targets an inner element,
    never one that is already running its entrance animation.
    Colour flashes are drawn as a second copy of the text/line in the new
@@ -323,6 +324,16 @@
   animation-delay: calc(var(--beat-at) + var(--i, 0) * 250ms);
 }
 
+/* Value: each example bumps up in turn, with the birthday names' timing.
+   No colour flash: orange text on the light side would be off-brand.
+   The beat moves the row inside each <li>, because the <li> itself carries
+   the entrance animation. --i is the example's position, set by templates.js. */
+.stage.amb-beat .m-beat .t-ex-row { will-change: transform; }
+.stage.amb-beat .layer.is-visible .m-beat .t-ex-row {
+  animation: beat-stat 900ms ease-in-out both;
+  animation-delay: calc(var(--beat-at) + var(--i, 0) * 250ms);
+}
+
 /* ---------- 4. Living weather icons ----------
    Sun rays turn, clouds drift, rain and snow fall, lightning flickers.
    Each icon is a stack of layers (.ic-l), one per moving part (built in
@@ -439,7 +450,8 @@
   .stage .layer .t-sheen-text,
   .stage .layer .t-safety-tip > *,
   .stage .layer .wx-stat,
-  .stage .layer .t-name { animation: none !important; }
+  .stage .layer .t-name,
+  .stage .layer .t-ex-row { animation: none !important; }
   /* Birthday decorations: keep the cake (flames still), drop moving pieces */
   .stage .layer .bd-decor,
   .stage .layer .bd-flame,

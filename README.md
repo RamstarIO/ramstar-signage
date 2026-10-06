@@ -241,9 +241,11 @@ Each template from the design canvas is a slide type. The player builds it in HT
 
 { "type": "milestone", "number": "100,000", "label": "Cuts completed", "note": "This year. Thank you, team." }
 
-{ "type": "value", "index": "1 of 5", "name": "Safety",
-  "meaning": "Everyone goes home the way they came in.",
-  "example": "Pat stopped the saw line to fix a loose guard." }
+{ "type": "value", "index": "1 of 5", "name": "We Partner",
+  "examples": ["We bring the right people into a job early",
+               "We share what we know, so nobody works alone",
+               "We treat suppliers as part of the team",
+               "We ask for help, and we offer it"] }
 
 { "type": "event", "name": "Fall BBQ", "date": "2026-10-17", "time": "12:00 PM",
   "location": "Shop floor", "note": "Burgers on us. RSVP to the front office." }
@@ -258,7 +260,7 @@ Each template from the design canvas is a slide type. The player builds it in HT
 | `birthdays` | `people` ✅ (list of `day` + `name`), `month`, `decor` | `month` defaults to the current month. Up to 8 people; more than 4 switches to a tighter layout. `day` can be `"9"` or `"Sat 9"`. Each person stays on one line; a very long name is cut short with "…". `decor` is the background decoration (below). |
 | `spotlight` | `name` ✅, `kind`, `since`, `blurb`, `logo` | `kind` is `"Customer"` (default) or `"Supplier"`. `logo` is an image path; without one, the company name fills the white box. |
 | `milestone` | `number` ✅, `label` ✅, `note` | A plain number like `"100,000"` counts up; anything else shows as typed. |
-| `value` | `name` ✅, `meaning`, `example`, `index` | `index` is the small "1 of 5" label. |
+| `value` | `name` ✅, `examples`, `index` | Split panel: the value on navy at the left, its examples listed under "What it looks like here" on the right. `examples` is a list of 4–5 short strings (up to 5 are shown); each may run to two lines, and if the list would reach the logo the text steps down (50 → 44 → 40 px) to fit. With no `examples` the right side stays empty. `index` is the small "1 of 5" label. The old `meaning` and `example` fields are no longer shown. |
 | `event` | `name` ✅, `date`, `time`, `location`, `note` | `date` is `YYYY-MM-DD`. The countdown calculates itself, shows **Today** on the day, and the slide **hides itself the day after**. With no date it shows "Save the date". |
 | `safety` | `since` or `days`, `tip`, `label` | Set `since` to the date of the last lost-time incident and the count keeps itself up to date. `days` is a fixed number instead. |
 | `logo` | `intro`, `slogan`, `logo` | A clean brand break: the logo with the slogan between two orange rules. `slogan` defaults to "Unmatched Service & Technology". `intro` is one of `rise`, `wipe`, `words`, `assemble`, `glint` (below), **or a list of them**, in which case the slide uses the next intro each time it comes round. The progress bar is hidden on logo slides. |
@@ -319,7 +321,7 @@ A slide that sits perfectly still for 10 seconds looks frozen. The player adds s
 |---|---|---|
 | Birthdays | beat | Each person bumps up in turn: the line above them flashes white and their name flashes orange |
 | Spotlight | sheen | A glint of light sweeps across the company name |
-| Company value | sheen | …across the value name |
+| Company value | beat | Each example bumps up in turn |
 | Milestone | beat | The big number pulses once |
 | Event | beat | Two navy rings ripple out from the countdown number |
 | Safety | beat | The tip-of-the-week box nudges right and its label flashes white |
@@ -332,7 +334,7 @@ Override it for one slide with `"moment"`:
 { "type": "milestone", "number": "250,000", "label": "Cuts completed", "moment": "sheen" }
 ```
 
-`"sheen"` works on every type; `"beat"` only does something on birthdays, milestone, event, safety and weather; `"none"` turns the moment off for that slide.
+`"sheen"` works on every type; `"beat"` only does something on birthdays, value, milestone, event, safety and weather; `"none"` turns the moment off for that slide.
 
 **Turning effects off everywhere** (at the top of `slides.json`; leave out any you want to keep on):
 
