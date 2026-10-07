@@ -1,0 +1,84 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600&display=swap">
+<style>
+:root{--navy:#0E2A56;--blue:#194B98;--orange:#F7941D;--warm:#F4F2EE}
+html,body{margin:0;background:#000;overflow:hidden}
+.stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;font-family:'Barlow Condensed',sans-serif}
+.v{position:absolute;inset:0;display:none;opacity:0}
+/* Slide fade in / out (on the TVs this is the player's crossfade with the neighbouring slides) */
+.v.on{display:block;animation:fadein 800ms ease-out both, fadeout 800ms ease-in 9200ms forwards}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@keyframes fadeout{from{opacity:1}to{opacity:0}}
+.w{display:inline-block;opacity:0;will-change:transform,opacity}
+@keyframes rise{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{opacity:0;transform:scale(.86)}60%{opacity:1;transform:scale(1.03)}100%{opacity:1;transform:scale(1)}}
+@keyframes slam{0%{opacity:0;transform:scale(1.35)}55%{opacity:1;transform:scale(.97)}100%{opacity:1;transform:scale(1)}}
+@keyframes ring{0%{opacity:.9;transform:scale(.4)}100%{opacity:0;transform:scale(2.2)}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes up{from{transform:translateY(0)}to{transform:translateY(-250px)}}
+@keyframes panel{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes win{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+@keyframes wint{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes flash{0%{opacity:0;transform:scale(.9)}18%{opacity:1;transform:scale(1)}82%{opacity:1}100%{opacity:0}}
+
+/* A: the line, then the logo answers (navy, white-outline logo, no box) */
+#A{background:var(--navy);color:#fff}
+#A .line{position:absolute;left:0;right:0;top:390px;text-align:center;font-weight:800;font-size:150px;text-transform:uppercase;animation:up 900ms cubic-bezier(.6,0,.2,1) 4800ms both}
+#A .line .w{margin:0 .12em;animation:rise 700ms cubic-bezier(.2,.7,.2,1) both}
+#A .acc{color:var(--orange)}
+#A .logo{position:absolute;left:50%;top:470px;width:1180px;margin-left:-590px;opacity:0;animation:pop 900ms cubic-bezier(.3,.7,.3,1) 5500ms both}
+#A .logo img{width:100%;display:block}
+#A .rule{position:absolute;left:50%;top:965px;width:300px;margin-left:-150px;height:12px;background:var(--orange);border-radius:2px;animation:grow 600ms ease-out 6300ms both}
+
+/* B: words on warm white, logo sweeps in full width. GREAT on an orange block (orange text on light fails contrast) */
+#B{background:var(--warm);color:var(--navy)}
+#B .line{position:absolute;left:150px;top:200px;font-weight:800;font-size:132px;text-transform:uppercase}
+#B .line .w{margin-right:.16em;animation:rise 700ms cubic-bezier(.2,.7,.2,1) both}
+#B .acc{background:var(--orange);padding:0 .14em;border-radius:6px}
+#B .win{position:absolute;left:150px;top:420px;width:1620px;height:650px;overflow:hidden;transform:translateX(-100%);animation:win 1100ms cubic-bezier(.7,0,.2,1) 4900ms both}
+#B .win .in{position:absolute;inset:0;transform:translateX(100%);animation:wint 1100ms cubic-bezier(.7,0,.2,1) 4900ms both}
+#B .win img{width:1520px;display:block;margin-top:10px}
+#B .rule{position:absolute;left:150px;top:1010px;width:420px;height:14px;background:var(--orange);transform-origin:0 50%;animation:grow 700ms ease-out 6100ms both}
+
+/* C: each word lands centre stage, then the logo slams in (white-outline logo, no box) */
+#C{background:var(--navy);color:#fff}
+#C .line{position:absolute;left:0;right:0;top:120px;text-align:center;font-weight:700;font-size:96px;text-transform:uppercase;letter-spacing:.06em}
+#C .line .w{margin:0 .14em;animation:fade 500ms ease-out both}
+#C .acc{color:var(--orange)}
+#C .big{position:absolute;left:0;right:0;top:330px;text-align:center;font-weight:800;font-size:380px;line-height:1;text-transform:uppercase;color:#fff}
+#C .big span{position:absolute;left:0;right:0;opacity:0}
+#C .big span.acc{color:var(--orange)}
+#C .ringwrap{position:absolute;left:50%;top:640px;width:0;height:0}
+#C .ring{position:absolute;left:-460px;top:-460px;width:920px;height:920px;border-radius:50%;border:18px solid var(--orange);opacity:0;animation:ring 1100ms ease-out 5200ms forwards}
+#C .logo{position:absolute;left:50%;top:330px;width:1400px;margin-left:-700px;opacity:0;animation:slam 700ms cubic-bezier(.2,.8,.3,1) 5150ms both}
+#C .logo img{width:100%;display:block}
+
+/* D: navy statement, white panel rises with the logo */
+#D{background:var(--navy);color:#fff}
+#D .line{position:absolute;left:0;right:0;top:330px;text-align:center;font-weight:800;font-size:200px;line-height:1;text-transform:uppercase}
+#D .line .w{margin:0 .1em;animation:rise 800ms cubic-bezier(.2,.7,.2,1) both}
+#D .acc{color:var(--orange)}
+#D .panel{position:absolute;left:0;right:0;top:470px;bottom:0;background:#fff;transform:translateY(100%);animation:panel 1000ms cubic-bezier(.7,0,.2,1) 4900ms both}
+#D .panel img{position:absolute;left:50%;top:70px;width:1100px;margin-left:-550px;opacity:0;animation:rise 800ms cubic-bezier(.2,.7,.2,1) 5700ms both}
+#D .lift{position:absolute;inset:0;animation:up 1000ms cubic-bezier(.7,0,.2,1) 4900ms both}
+</style></head>
+<body>
+<div class="stage" id="stage">
+  <div class="v" id="A"><div class="line"><span class="w" style="animation-delay:1500ms">It's</span><span class="w" style="animation-delay:2100ms">a</span><span class="w acc" style="animation-delay:2700ms">great</span><span class="w" style="animation-delay:3300ms">day</span><span class="w" style="animation-delay:3900ms">at</span></div><div class="logo"><img src="../../../assets/ramstar-logo-reverse.png" alt="Ramstar"></div><div class="rule"></div></div>
+  <div class="v" id="B"><div class="line"><span class="w" style="animation-delay:1500ms">It's</span><span class="w" style="animation-delay:2100ms">a</span><span class="w acc" style="animation-delay:2700ms">great</span><span class="w" style="animation-delay:3300ms">day</span><span class="w" style="animation-delay:3900ms">at</span></div><div class="win"><div class="in"><img src="../../../assets/ramstar-logo.png" alt="Ramstar"></div></div><div class="rule"></div></div>
+  <div class="v" id="C">
+    <div class="big"><span class="" style="animation:flash 650ms ease-out 1500ms both">It's</span><span class="" style="animation:flash 650ms ease-out 2200ms both">a</span><span class="acc" style="animation:flash 650ms ease-out 2900ms both">great</span><span class="" style="animation:flash 650ms ease-out 3600ms both">day</span><span class="" style="animation:flash 650ms ease-out 4300ms both">at</span></div>
+    <div class="line"><span class="w" style="animation-delay:1900ms">It's</span><span class="w" style="animation-delay:2600ms">a</span><span class="w acc" style="animation-delay:3300ms">great</span><span class="w" style="animation-delay:4000ms">day</span><span class="w" style="animation-delay:4700ms">at</span></div>
+    <div class="ringwrap"><div class="ring"></div></div>
+    <div class="logo"><img src="../../../assets/ramstar-logo-reverse.png" alt="Ramstar"></div>
+  </div>
+  <div class="v" id="D"><div class="lift"><div class="line"><span class="w" style="animation-delay:1500ms">It's</span><span class="w" style="animation-delay:2100ms">a</span><span class="w acc" style="animation-delay:2700ms">great</span><span class="w" style="animation-delay:3300ms">day</span><span class="w" style="animation-delay:3900ms">at</span></div></div><div class="panel"><img src="../../../assets/ramstar-logo.png" alt="Ramstar"></div></div>
+</div>
+<script>
+const v=new URLSearchParams(location.search).get('v')||'A';
+document.getElementById('stage').style.transform=`scale(${innerWidth/1920})`;
+document.fonts.ready.then(()=>document.getElementById(v).classList.add('on'));
+</script>
+</body></html>
