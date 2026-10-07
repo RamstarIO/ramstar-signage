@@ -784,101 +784,111 @@
     }
   };
   // ---------- Logo ----------
-  //   { "type": "logo", "intro": "rise" | "wipe" | "words" | "assemble" | "glint",
-  //     "slogan": "Unmatched Service & Technology" }
-  // "intro" can also be a list, e.g. ["rise", "wipe", "glint"]: the slide then
+  //   { "type": "logo", "intro": "answer" | "sweep" | "drumroll" | "curtain",
+  //     "lead": "It's a great day at", "accent": "great" }
+  // "intro" can also be a list, e.g. ["answer", "sweep"]: the slide then
   // uses the next intro in the list each time it comes round in the loop.
   // Logo slides hide the progress bar for a clean look (class no-progress).
-  // A brand break between content slides: the logo, a slogan between two
-  // orange rules, and the star. "intro" picks how it arrives. Every intro
-  // animates only movement and fading, so it's smooth on the Fire Sticks.
-  // The mid-slide moment is a glint of light across the logo itself.
-  const LOGO_INTROS = ["rise", "wipe", "words", "assemble", "glint"];
-  const INTRO_ALIASES = { star: "words" }; // "star" was the old name for "words"
-  const introTurns = new Map();            // how many times each intro list has been shown
+  // A brand break: the words of "lead" arrive one at a time and the logo
+  // completes the sentence; the "accent" word is highlighted. Layout, timings
+  // and easings follow docs/design/logo-great-day/prototype.html. Every intro
+  // animates only movement and fading, and the slide leaves with the player's
+  // plain crossfade (no part-out exit).
+  const LOGO_REVERSE = "assets/ramstar-logo-reverse.png"; // white outline and star, for navy
+  const LOGO_INTROS = {
+    // theme: slide background; logo: the logo for that background;
+    // start/gap: when the first word lands and the spacing between words (ms)
+    answer:   { theme: "navy",  logo: LOGO_REVERSE, start: 1500, gap: 600 },
+    sweep:    { theme: "light", logo: LOGO,         start: 1500, gap: 600 },
+    drumroll: { theme: "navy",  logo: LOGO_REVERSE, start: 1900, gap: 700 },
+    curtain:  { theme: "navy",  logo: LOGO,         start: 1500, gap: 600 }
+  };
+  const LOGO_WORDS = 5;           // the design's timings are for a five-word lead
+  const introTurns = new Map();   // how many times each intro list has been shown
 
   // Picks this showing's intro: a single name, or the next one from a list.
   function pickIntro(slide) {
     const list = (Array.isArray(slide.intro) ? slide.intro : [slide.intro])
-      .map((name) => INTRO_ALIASES[name] || name)
-      .filter((name) => LOGO_INTROS.includes(name));
-    if (list.length === 0) return "rise";
+      .filter((name) => Object.prototype.hasOwnProperty.call(LOGO_INTROS, name));
+    if (list.length === 0) return "answer";
     const key = list.join(",");
     const turn = introTurns.get(key) || 0;
     introTurns.set(key, turn + 1);
     return list[turn % list.length];
   }
 
-  // A light band that sweeps across the logo, shown only where the logo has
-  // pixels (the logo image is used as a fixed mask; only the band moves).
-  function logoGlint(src, which) {
-    const glint = h("div", `lg-glint lg-glint--${which}`);
-    glint.setAttribute("aria-hidden", "true");
-    const mask = `url("${src}")`;
-    glint.style.webkitMaskImage = mask;
-    glint.style.maskImage = mask;
-    glint.appendChild(h("div", "lg-glint-band"));
-    return glint;
+  // Compares words ignoring case and punctuation ("GREAT!" matches "great").
+  const bareWord = (w) => String(w).toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+
+  // The sentence as word spans, each with its arrival time in --d.
+  // The first word matching the accent gets .lg-acc.
+  function logoWords(words, accent, cls, delayAt) {
+    let accented = false;
+    return words.map((w, i) => {
+      const isAccent = !accented && accent !== "" && bareWord(w) === accent;
+      if (isAccent) accented = true;
+      const word = h("span", isAccent ? `${cls} lg-acc` : cls, w);
+      word.style.setProperty("--d", `${delayAt(i)}ms`);
+      return word;
+    });
+  }
+
+  function logoImg(src) {
+    const img = h("img", "lg-img");
+    img.src = src;
+    img.alt = "Ramstar";
+    return img;
   }
 
   types.logo = {
-    load(slide) {
-      return preload(slide.logo || LOGO);
+    load() {
+      return Promise.all([preload(LOGO), preload(LOGO_REVERSE)]);
     },
     render(slide) {
-      const src = slide.logo || LOGO;
       const intro = pickIntro(slide);
-      const slogan = slide.slogan || "Unmatched Service & Technology";
-      const root = slideRoot(`light lg lg--${intro} no-progress`, slide, "sheen");
-
-      // Background star: the corner watermark, which fades in last.
-      root.appendChild(star("t-star--logo", "#E3DED5"));
-
-      const stack = h("div", "lg-stack");
-
-      const logoWrap = h("div", "lg-logo-wrap lg-part");
-      const img = h("img", "lg-logo");
-      img.src = src;
-      img.alt = "Ramstar";
-      logoWrap.appendChild(img);
-      if (intro === "glint") logoWrap.appendChild(logoGlint(src, "intro"));
-      logoWrap.appendChild(logoGlint(src, "moment"));
+      const spec = LOGO_INTROS[intro];
+      const lead = String(slide.lead || "It's a great day at").trim();
+      const words = lead.split(/\s+/);
+      const accent = bareWord(slide.accent == null ? "great" : slide.accent);
+      const root = slideRoot(`${spec.theme} lg lg--${intro} no-progress`, slide, "none");
+      // The logo arrives after the last word, so a longer or shorter lead
+      // moves it by whole word steps (no shift for the five-word default).
+      root.style.setProperty("--shift", `${(words.length - LOGO_WORDS) * spec.gap}ms`);
 
       const line = h("div", "lg-line");
-      const ruleL = h("div", "lg-rule lg-rule--l lg-part");
-      const ruleR = h("div", "lg-rule lg-rule--r lg-part");
-      const sloganEl = h("div", "lg-slogan");
+      add(line, ...logoWords(words, accent, "lg-w", (i) => spec.start + i * spec.gap));
 
-      if (intro === "wipe") {
-        // Revealed by a window sliding right while the text inside slides
-        // left by the same amount: the text stays put and appears to be uncovered.
-        const win = h("span", "lg-wipe lg-part");
-        win.appendChild(h("span", "lg-wipe-in", slogan));
-        sloganEl.appendChild(win);
-      } else if (intro === "assemble") {
-        // Two halves slide in from opposite sides and meet in the middle.
-        const words = slogan.split(" ");
-        const cut = Math.ceil(words.length / 2);
-        sloganEl.appendChild(h("span", "lg-half lg-half--a lg-part", words.slice(0, cut).join(" ")));
-        sloganEl.appendChild(document.createTextNode(" "));
-        sloganEl.appendChild(h("span", "lg-half lg-half--b lg-part", words.slice(cut).join(" ")));
-      } else if (intro === "words") {
-        // Word by word.
-        slogan.split(" ").forEach((w, i, all) => {
-          const word = h("span", "lg-w lg-part", w);
-          word.style.setProperty("--i", String(i));
-          sloganEl.appendChild(word);
-          if (i < all.length - 1) sloganEl.appendChild(document.createTextNode(" "));
-        });
+      if (intro === "answer") {
+        // The line rises in word by word, lifts up, and the logo answers below.
+        const logo = h("div", "lg-logo");
+        logo.appendChild(logoImg(spec.logo));
+        add(root, line, logo, h("div", "lg-rule"));
+      } else if (intro === "sweep") {
+        // A window slides right while the logo inside slides left by the same
+        // amount, so the logo stays put and is uncovered (like the sheen).
+        const win = h("div", "lg-win");
+        const inner = h("div", "lg-win-in");
+        inner.appendChild(logoImg(spec.logo));
+        win.appendChild(inner);
+        add(root, line, win, h("div", "lg-rule"));
+      } else if (intro === "drumroll") {
+        // Each word flashes huge centre stage while the line builds small at
+        // the top; then the logo slams in with a ring bursting behind it.
+        const big = h("div", "lg-big");
+        add(big, ...logoWords(words, accent, "lg-flash", (i) => 1500 + i * spec.gap));
+        const ringWrap = h("div", "lg-ringwrap");
+        ringWrap.appendChild(h("div", "lg-ring"));
+        const logo = h("div", "lg-logo");
+        logo.appendChild(logoImg(spec.logo));
+        add(root, big, line, ringWrap, logo);
       } else {
-        sloganEl.classList.add("lg-part");
-        sloganEl.textContent = slogan;
+        // curtain: a white panel sweeps up with the logo as the line lifts away.
+        const lift = h("div", "lg-lift");
+        lift.appendChild(line);
+        const panel = h("div", "lg-panel");
+        panel.appendChild(logoImg(spec.logo));
+        add(root, lift, panel);
       }
-
-      add(line, ruleL, sloganEl, ruleR);
-      add(stack, logoWrap, line);
-      root.appendChild(stack);
-      root.style.setProperty("--star-at", "2600ms");
       return root;
     }
   };

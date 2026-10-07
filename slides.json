@@ -7,15 +7,13 @@
     {
       "title": "Logo",
       "type": "logo",
-      "slogan": "IT’S A GREAT DAY",
       "intro": [
-        "rise",
-        "wipe",
-        "words",
-        "assemble",
-        "glint"
+        "answer",
+        "sweep",
+        "drumroll",
+        "curtain"
       ],
-      "duration": 8
+      "duration": 10
     },
     {
       "title": "Live weather",

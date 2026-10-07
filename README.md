@@ -75,7 +75,8 @@ ramstar-signage/
 │   ├── bg-navy.png     # Text-free dark background for overlays
 │   └── bg-light.png    # Text-free light background for overlays
 ├── assets/
-│   └── ramstar-logo.png
+│   ├── ramstar-logo.png          # Original colours, for light backgrounds
+│   └── ramstar-logo-reverse.png  # White outline and star, for navy
 ├── scripts/
 │   ├── build-nfl.mjs   # Builds nfl.json from ESPN (run by the workflow, not on the TVs)
 │   └── people_month.py # Prints a month's birthdays + anniversaries entries from HR's spreadsheet
@@ -137,7 +138,7 @@ If something sensitive is committed by mistake, deleting it is **not** enough. T
 - **Type:** Barlow Condensed (headlines) and Barlow (body), both free on Google Fonts.
 - **Never put orange text on white.** It has about 2:1 contrast and washes out on a TV. Use orange as a fill with navy text, or as text on navy.
 - **One message per slide**, readable in about 3 seconds from 3 m (10 ft) away. Headlines ≥ 100 px; nothing smaller than about 40 px.
-- The logo always sits on its white badge, never directly on a dark background (its blue outline disappears).
+- On navy, use the reverse logo (`assets/ramstar-logo-reverse.png`, white outline and star) with no white box. On light backgrounds, use the original `assets/ramstar-logo.png`. Never put the original directly on a dark background (its blue outline disappears).
 
 ### File naming
 
@@ -269,7 +270,7 @@ Each template from the design canvas is a slide type. The player builds it in HT
   "shutdowns": [ { "name": "Winter shutdown", "from": "2026-12-24", "to": "2027-01-01",
                    "note": "Office and manufacturing" } ] }
 
-{ "type": "logo", "intro": ["rise", "wipe", "words", "assemble", "glint"] }
+{ "type": "logo", "intro": ["answer", "sweep", "drumroll", "curtain"], "duration": 10 }
 ```
 
 | Type | Fields (✅ = required) | Notes |
@@ -282,7 +283,7 @@ Each template from the design canvas is a slide type. The player builds it in HT
 | `event` | `name` ✅, `date`, `time`, `location`, `note` | `date` is `YYYY-MM-DD`. The countdown calculates itself, shows **Today** on the day, and the slide **hides itself the day after**. With no date it shows "Save the date". |
 | `safety` | `since` or `days`, `tip`, `label` | Set `since` to the date of the last lost-time incident and the count keeps itself up to date. `days` is a fixed number instead. |
 | `holidays` | `holidays` ✅ (list of `date` ✅ + `name` ✅, optional `observed`, `note`), `shutdowns` (list of `name`, `from` ✅, `to` ✅, `note`) | Upcoming Holidays: a countdown to the next holiday, the next shutdown, and cards for the three holidays after it. Type the dates in once a year from HR's schedule (they aren't calculated, because Ramstar's list differs from Ontario's); all dates are `YYYY-MM-DD`. A weekend holiday goes on its real `date` with the day off as `observed`: the countdown counts to the real date, the card reads "Sat · observed Mon Dec 28", and the holiday stays up until the observed day has passed. On the day the countdown reads **Today**; the next day it moves on to the next holiday. The badge says "Paid holiday" unless the holiday has its own `note` (e.g. `"Vacation day"` for Family Day). A shutdown shows once it starts within 120 days, reads "Until Fri, Jan 1" while it's on, and disappears after `to`. When the list runs out, the slide **hides itself**, so add next year's dates before the last holiday passes. Fit: the hero name shrinks to fit its column (150 px down to 96 px; words never break mid-word) and card names never wrap (40 → 34 → 30 px, then cut short with "…"). See `docs/design/holidays/README.md`. |
-| `logo` | `intro`, `slogan`, `logo` | A clean brand break: the logo with the slogan between two orange rules. `slogan` defaults to "Unmatched Service & Technology". `intro` is one of `rise`, `wipe`, `words`, `assemble`, `glint` (below), **or a list of them**, in which case the slide uses the next intro each time it comes round. The progress bar is hidden on logo slides. |
+| `logo` | `intro`, `lead`, `accent` | A brand break: "It's a great day at…" arrives one word at a time and the logo completes the sentence. `lead` is the sentence (default `"It's a great day at"`) and `accent` the word in it that's highlighted (default `"great"`; matched ignoring case and punctuation, `""` for none). The timings are designed for five words; a longer or shorter lead moves the logo later or earlier by whole word steps. `intro` is one of `answer`, `sweep`, `drumroll`, `curtain` (below), **or a list of them**, in which case the slide uses the next intro each time it comes round. Give it `"duration": 10`. The progress bar is hidden, and the slide leaves with a plain fade. See `docs/design/logo-great-day/README.md`. The old `slogan` and `logo` fields are no longer used. |
 
 All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and the usual `duration`, `start`, `end`, `enabled`. Birthdays and anniversaries also accept `headline`; wrap a word in `*asterisks*` to colour it. Note that `title` is only your own label for the entry and is never shown on screen.
 
@@ -311,19 +312,20 @@ It prints only what the slides show (day, display name, years of service), never
 
 | `intro` | How it arrives |
 |---|---|
-| `rise` | Logo rises in, the rules grow outward, the slogan rises. Matches the other slides. |
-| `wipe` | Logo settles into place, then the slogan is uncovered left to right. |
-| `words` | Logo pops in, then the slogan arrives word by word. |
-| `assemble` | Logo drops in from above; the slogan's two halves slide in from opposite sides and meet. |
-| `glint` | Logo fades in and a band of light sweeps across it, then the slogan follows. |
+| `answer` | Navy. The words rise in, centred; the line lifts up and the logo pops in below it (reverse logo, no box), then a short orange rule grows under it. |
+| `sweep` | Warm white. The words build top-left, the accent as navy on an orange block; the logo sweeps in from the left almost full width, then an orange rule grows. |
+| `drumroll` | Navy. Each word flashes huge centre stage while the sentence builds small at the top; the logo slams in with an orange ring bursting behind it. |
+| `curtain` | Navy, then white. The words rise in big; a white panel sweeps up from the bottom as the line lifts out of its way, and the logo rises in on the white. |
+
+Every intro starts with a 1.2-second pause on the empty background, has everything in place by about 6.5 seconds, and then holds. With "reduce motion" turned on, the slide shows its final frame (sentence and logo) straight away.
 
 Use **one** logo entry with a list, rather than several logo entries, so the brand break takes one slot per loop and varies each time:
 
 ```json
-{ "type": "logo", "intro": ["rise", "wipe", "words", "assemble", "glint"] }
+{ "type": "logo", "intro": ["answer", "sweep", "drumroll", "curtain"], "duration": 10 }
 ```
 
-Each TV keeps its own place in the list, and starts again from the first intro after its 6-hourly reload. The logo image is only 600 px wide, so a larger or vector version of the logo would look sharper on this slide; save it in `assets/` and set `"logo": "assets/<file>"`.
+Each TV keeps its own place in the list, and starts again from the first intro after its 6-hourly reload.
 
 **Give these slides at least 8–10 seconds.** The entrance takes about 2 seconds, and people need time to read after it.
 
@@ -355,7 +357,7 @@ A slide that sits perfectly still for 10 seconds looks frozen. The player adds s
 | Safety | beat | The tip-of-the-week box nudges right and its label flashes white |
 | Weather | beat | The four stats light up one after another |
 | Holidays | beat | The countdown number pulses once (like the milestone), then the three cards bump up in turn |
-| Logo | sheen | A glint of light sweeps across the logo itself |
+| Logo | none | The intro itself is the moment |
 
 Override it for one slide with `"moment"`:
 

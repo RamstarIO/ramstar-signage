@@ -450,140 +450,113 @@
 }
 
 /* ---------- Logo slide (type "logo") ----------
-   Layout from "Logo D — Minimal light". Each intro (lg--rise, lg--wipe,
-   lg--words, lg--assemble, lg--glint) is its own entrance; all animate only
-   transform and opacity. Parts are marked .lg-part; they start hidden and
-   share one exit (below). */
-.t-star--logo { right: -260px; bottom: -330px; width: 1000px; height: 1000px; }
+   "It's a great day at… RAMSTAR", from docs/design/logo-great-day/prototype.html
+   (sizes, easings and delays as there; delays count from the start of the
+   slide's fade-in and include the 1.2 s pause before the first word).
+   Each word's delay is --d, set by templates.js; everything after the words
+   moves by --shift when the lead isn't five words long. Every part animates
+   only transform and opacity. There is no exit animation: the slide leaves
+   with the player's plain crossfade. */
+.lg { font-family: "Barlow Condensed", sans-serif; }
+.lg .lg-img { width: 100%; display: block; }
+.lg-w, .lg-flash { display: inline-block; opacity: 0; will-change: transform, opacity; }
+.lg-acc { color: #F7941D; }
 
-.lg-stack {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 60px;
+@keyframes lg-rise  { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+@keyframes lg-fade  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lg-pop   { 0% { opacity: 0; transform: scale(0.86); } 60% { opacity: 1; transform: scale(1.03); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes lg-slam  { 0% { opacity: 0; transform: scale(1.35); } 55% { opacity: 1; transform: scale(0.97); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes lg-ring  { 0% { opacity: 0.9; transform: scale(0.4); } 100% { opacity: 0; transform: scale(2.2); } }
+@keyframes lg-grow  { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes lg-up    { from { transform: translateY(0); } to { transform: translateY(-250px); } }
+@keyframes lg-panel { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes lg-win   { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes lg-wint  { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes lg-flash { 0% { opacity: 0; transform: scale(0.9); } 18% { opacity: 1; transform: scale(1); } 82% { opacity: 1; } 100% { opacity: 0; } }
+
+/* 1. ANSWER (navy): the line rises in, lifts up, and the logo answers below (no box). */
+.lg--answer .lg-line {
+  position: absolute; left: 0; right: 0; top: 390px;
+  text-align: center; font-weight: 800; font-size: 150px; text-transform: uppercase;
 }
-.lg-logo-wrap { position: relative; }
-.lg-logo { width: 780px; height: auto; display: block; }
-.lg-line { display: flex; align-items: center; gap: 36px; }
-.lg-rule { width: 120px; height: 4px; background: #F7941D; }
-.lg-rule--l { transform-origin: 100% 50%; } /* rules grow outward from the slogan */
-.lg-rule--r { transform-origin: 0% 50%; }
-.lg-slogan {
-  font: 700 46px/1.2 "Barlow Condensed", sans-serif;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: #194B98;
-  white-space: nowrap;
+.lg--answer .lg-w { margin: 0 0.12em; }
+.lg--answer .lg-logo { position: absolute; left: 50%; top: 470px; width: 1180px; margin-left: -590px; opacity: 0; }
+.lg--answer .lg-rule {
+  position: absolute; left: 50%; top: 965px; width: 300px; margin-left: -150px; height: 12px;
+  background: #F7941D; border-radius: 2px; transform: scaleX(0);
 }
-.lg-w, .lg-half { display: inline-block; }
+.layer.is-visible .lg--answer .lg-line { animation: lg-up 900ms cubic-bezier(0.6, 0, 0.2, 1) calc(4800ms + var(--shift, 0ms)) both; }
+.layer.is-visible .lg--answer .lg-w    { animation: lg-rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--d) both; }
+.layer.is-visible .lg--answer .lg-logo { animation: lg-pop 900ms cubic-bezier(0.3, 0.7, 0.3, 1) calc(5500ms + var(--shift, 0ms)) both; }
+.layer.is-visible .lg--answer .lg-rule { animation: lg-grow 600ms ease-out calc(6300ms + var(--shift, 0ms)) both; }
 
-/* Glint across the logo: the logo image masks the effect so the light only
-   lands on the logo itself; only the band moves. */
-.lg-glint {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  -webkit-mask-size: 100% 100%;
-          mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-          mask-repeat: no-repeat;
+/* 2. SWEEP (warm white): the words build top-left, the logo sweeps in almost
+   full width (a window slides right while the logo inside slides left by the
+   same amount, like the sheen). The accent is navy on an orange block:
+   orange text on a light background fails contrast. */
+.lg--sweep .lg-line {
+  position: absolute; left: 150px; top: 200px;
+  font-weight: 800; font-size: 132px; text-transform: uppercase;
 }
-.lg-glint-band {
-  position: absolute;
-  top: -10%;
-  bottom: -10%;
-  left: 0;
-  width: 34%;
-  background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 100%);
-  transform: translateX(-120%) skewX(-12deg);
-  will-change: transform;
+.lg--sweep .lg-w { margin-right: 0.16em; }
+.lg--sweep .lg-acc { color: #0E2A56; background: #F7941D; padding: 0 0.14em; border-radius: 6px; }
+.lg--sweep .lg-win {
+  position: absolute; left: 150px; top: 420px; width: 1620px; height: 650px;
+  overflow: hidden; transform: translateX(-100%);
 }
-@keyframes lg-glint {
-  from { transform: translateX(-120%) skewX(-12deg); }
-  to   { transform: translateX(420%) skewX(-12deg); }
+.lg--sweep .lg-win-in { position: absolute; inset: 0; transform: translateX(100%); }
+.lg--sweep .lg-img { width: 1520px; margin-top: 10px; }
+.lg--sweep .lg-rule {
+  position: absolute; left: 150px; top: 1010px; width: 420px; height: 14px;
+  background: #F7941D; transform-origin: 0 50%; transform: scaleX(0);
 }
-.layer.is-visible .lg-glint--intro .lg-glint-band {
-  animation: lg-glint 1300ms cubic-bezier(0.4, 0, 0.3, 1) both;
-  animation-delay: 1100ms;
+.layer.is-visible .lg--sweep .lg-w      { animation: lg-rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--d) both; }
+.layer.is-visible .lg--sweep .lg-win    { animation: lg-win 1100ms cubic-bezier(0.7, 0, 0.2, 1) calc(4900ms + var(--shift, 0ms)) both; }
+.layer.is-visible .lg--sweep .lg-win-in { animation: lg-wint 1100ms cubic-bezier(0.7, 0, 0.2, 1) calc(4900ms + var(--shift, 0ms)) both; }
+.layer.is-visible .lg--sweep .lg-rule   { animation: lg-grow 700ms ease-out calc(6100ms + var(--shift, 0ms)) both; }
+
+/* 3. DRUMROLL (navy): each word flashes huge centre stage while the sentence
+   builds small at the top; the logo slams in with an orange ring behind it. */
+.lg--drumroll .lg-line {
+  position: absolute; left: 0; right: 0; top: 120px;
+  text-align: center; font-weight: 700; font-size: 96px; text-transform: uppercase; letter-spacing: 0.06em;
 }
-/* The mid-slide moment: the same glint, once, just before halfway */
-.lg-glint--moment { display: none; }
-.stage.amb-sheen .m-sheen .lg-glint--moment { display: block; }
-.stage.amb-sheen .layer.is-visible .m-sheen .lg-glint--moment .lg-glint-band {
-  animation: lg-glint 1500ms cubic-bezier(0.4, 0, 0.3, 1) both;
-  animation-delay: calc(var(--slide-dur, 11s) * 0.42);
+.lg--drumroll .lg-w { margin: 0 0.14em; }
+.lg--drumroll .lg-big {
+  position: absolute; left: 0; right: 0; top: 330px;
+  text-align: center; font-weight: 800; font-size: 380px; line-height: 1; text-transform: uppercase;
 }
-
-/* Shared starting state: every part hidden until its intro brings it in */
-.lg-part { opacity: 0; will-change: transform, opacity; }
-
-@keyframes lg-rise   { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
-@keyframes lg-fade   { from { opacity: 0; } to { opacity: 1; } }
-@keyframes lg-grow   { from { opacity: 1; transform: scaleX(0); } to { opacity: 1; transform: scaleX(1); } }
-@keyframes lg-settle { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
-
-/* 1. RISE: the house style. Logo rises, rules grow out, slogan rises. */
-.layer.is-visible .lg--rise .lg-logo-wrap { animation: lg-rise 800ms cubic-bezier(0.2, 0.7, 0.2, 1) 300ms both; }
-.layer.is-visible .lg--rise .lg-rule      { animation: lg-grow 600ms cubic-bezier(0.3, 0.7, 0.3, 1) 900ms both; }
-.layer.is-visible .lg--rise .lg-slogan    { animation: lg-rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) 1100ms both; }
-
-/* 2. WIPE: logo settles in; the slogan is uncovered left to right. */
-@keyframes lg-wipe-win { from { opacity: 1; transform: translateX(-101%); } to { opacity: 1; transform: none; } }
-@keyframes lg-wipe-txt { from { transform: translateX(101%); } to { transform: none; } }
-.lg-wipe { display: inline-block; overflow: hidden; vertical-align: top; }
-.lg-wipe-in { display: inline-block; will-change: transform; }
-.layer.is-visible .lg--wipe .lg-logo-wrap { animation: lg-settle 900ms cubic-bezier(0.2, 0.7, 0.2, 1) 300ms both; }
-.layer.is-visible .lg--wipe .lg-rule      { animation: lg-grow 500ms cubic-bezier(0.3, 0.7, 0.3, 1) 800ms both; }
-.layer.is-visible .lg--wipe .lg-wipe      { animation: lg-wipe-win 1000ms cubic-bezier(0.6, 0, 0.2, 1) 1100ms both; }
-.layer.is-visible .lg--wipe .lg-wipe-in   { animation: lg-wipe-txt 1000ms cubic-bezier(0.6, 0, 0.2, 1) 1100ms both; }
-
-/* 3. WORDS: the logo pops in, then the slogan arrives word by word. */
-@keyframes lg-pop {
-  0%   { opacity: 0; transform: scale(0.85); }
-  70%  { opacity: 1; transform: scale(1.03); }
-  100% { opacity: 1; transform: none; }
+.lg--drumroll .lg-flash { display: block; position: absolute; left: 0; right: 0; }
+.lg--drumroll .lg-ringwrap { position: absolute; left: 50%; top: 640px; width: 0; height: 0; }
+.lg--drumroll .lg-ring {
+  position: absolute; left: -460px; top: -460px; width: 920px; height: 920px;
+  border-radius: 50%; border: 18px solid #F7941D; opacity: 0;
 }
-.layer.is-visible .lg--words .lg-logo-wrap { animation: lg-pop 900ms cubic-bezier(0.3, 0.7, 0.3, 1) 400ms both; }
-.layer.is-visible .lg--words .lg-rule      { animation: lg-grow 500ms cubic-bezier(0.3, 0.7, 0.3, 1) 1000ms both; }
-.layer.is-visible .lg--words .lg-w {
-  animation: lg-rise 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-delay: calc(1100ms + var(--i, 0) * 130ms);
+.lg--drumroll .lg-logo { position: absolute; left: 50%; top: 330px; width: 1400px; margin-left: -700px; opacity: 0; }
+.layer.is-visible .lg--drumroll .lg-w     { animation: lg-fade 500ms ease-out var(--d) both; }
+.layer.is-visible .lg--drumroll .lg-flash { animation: lg-flash 650ms ease-out var(--d) both; }
+.layer.is-visible .lg--drumroll .lg-ring  { animation: lg-ring 1100ms ease-out calc(5200ms + var(--shift, 0ms)) forwards; }
+.layer.is-visible .lg--drumroll .lg-logo  { animation: lg-slam 700ms cubic-bezier(0.2, 0.8, 0.3, 1) calc(5150ms + var(--shift, 0ms)) both; }
+
+/* 4. CURTAIN (navy, then white): the words rise in big; a white panel sweeps
+   up from the bottom as the line lifts out of its way; the logo rises in on the white. */
+.lg--curtain .lg-lift { position: absolute; inset: 0; }
+.lg--curtain .lg-line {
+  position: absolute; left: 0; right: 0; top: 330px;
+  text-align: center; font-weight: 800; font-size: 200px; line-height: 1; text-transform: uppercase;
 }
+.lg--curtain .lg-w { margin: 0 0.1em; }
+.lg--curtain .lg-panel { position: absolute; left: 0; right: 0; top: 470px; bottom: 0; background: #FFFFFF; transform: translateY(100%); }
+.lg--curtain .lg-panel .lg-img { position: absolute; left: 50%; top: 70px; width: 1100px; margin-left: -550px; opacity: 0; }
+.layer.is-visible .lg--curtain .lg-w     { animation: lg-rise 800ms cubic-bezier(0.2, 0.7, 0.2, 1) var(--d) both; }
+.layer.is-visible .lg--curtain .lg-lift  { animation: lg-up 1000ms cubic-bezier(0.7, 0, 0.2, 1) calc(4900ms + var(--shift, 0ms)) both; }
+.layer.is-visible .lg--curtain .lg-panel { animation: lg-panel 1000ms cubic-bezier(0.7, 0, 0.2, 1) calc(4900ms + var(--shift, 0ms)) both; }
+.layer.is-visible .lg--curtain .lg-panel .lg-img { animation: lg-rise 800ms cubic-bezier(0.2, 0.7, 0.2, 1) calc(5700ms + var(--shift, 0ms)) both; }
 
-/* 4. ASSEMBLE: logo drops in from above; the slogan's halves slide in
-   from opposite sides and meet; the rules close the line. */
-@keyframes lg-drop  { from { opacity: 0; transform: translateY(-60px); } to { opacity: 1; transform: none; } }
-@keyframes lg-from-left  { from { opacity: 0; transform: translateX(-140px); } to { opacity: 1; transform: none; } }
-@keyframes lg-from-right { from { opacity: 0; transform: translateX(140px); }  to { opacity: 1; transform: none; } }
-.layer.is-visible .lg--assemble .lg-logo-wrap { animation: lg-drop 800ms cubic-bezier(0.2, 0.7, 0.2, 1) 300ms both; }
-.layer.is-visible .lg--assemble .lg-half--a   { animation: lg-from-left 800ms cubic-bezier(0.2, 0.7, 0.2, 1) 900ms both; }
-.layer.is-visible .lg--assemble .lg-half--b   { animation: lg-from-right 800ms cubic-bezier(0.2, 0.7, 0.2, 1) 900ms both; }
-.layer.is-visible .lg--assemble .lg-rule      { animation: lg-grow 500ms cubic-bezier(0.3, 0.7, 0.3, 1) 1500ms both; }
-
-/* 5. GLINT: the logo fades in and a band of light sweeps across it,
-   like light catching polished steel; then rules and slogan arrive. */
-.layer.is-visible .lg--glint .lg-logo-wrap { animation: lg-fade 900ms ease-out 300ms both; }
-.layer.is-visible .lg--glint .lg-rule      { animation: lg-grow 500ms cubic-bezier(0.3, 0.7, 0.3, 1) 1700ms both; }
-.layer.is-visible .lg--glint .lg-slogan    { animation: lg-rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) 1900ms both; }
-
-/* Exit, for every intro: parts slip up and fade (part-out, from index.html).
-   This selector outranks the intro rules because the leaving layer is still
-   .is-visible while it leaves. */
-.layer.is-leaving.is-visible .lg .lg-part {
-  animation: part-out 420ms cubic-bezier(0.4, 0, 1, 1) both;
-  animation-delay: 0ms;
-}
-.layer.is-leaving.is-visible .lg .lg-line .lg-part { animation-delay: 60ms; }
-
+/* Reduced motion: no word-by-word build or slam; every animation jumps
+   straight to its end, which is the final frame (sentence + logo). */
 @media (prefers-reduced-motion: reduce) {
-  .layer .lg .lg-part,
-  .layer .lg .lg-wipe-in { animation: none !important; opacity: 1; transform: none; }
-  .layer.is-leaving .lg .lg-part { opacity: 0; }
-  .layer .lg .lg-glint-band { animation: none !important; }
+  .layer.is-visible .lg * { animation-delay: 0s !important; animation-duration: 1ms !important; }
 }
 
 /* Party decorations (birthdays, anniversaries): layout only (motion lives in ambient.css, section 5) */
