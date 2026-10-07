@@ -157,6 +157,22 @@
     padding: 5vw;
   }
   #status.is-shown { display: flex; }
+
+  /* Small wake-lock badge, shown for the first few seconds after load. */
+  #wakelock {
+    position: fixed;
+    right: 1.5vw;
+    bottom: 2vh;
+    z-index: 10;
+    padding: 0.4em 0.8em;
+    border-radius: 0.4em;
+    background: rgba(14, 42, 86, 0.8);
+    color: #F4F2EE;
+    font: 600 1.8vh/1 system-ui, sans-serif;
+    pointer-events: none;
+    transition: opacity 600ms ease;
+  }
+  #wakelock.is-hidden { opacity: 0; }
 </style>
 </head>
 <body>
@@ -166,6 +182,7 @@
   <div class="progress" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div>
 </div>
 <div id="status" role="status"></div>
+<div id="wakelock" aria-hidden="true">wake lock: off</div>
 
 <script src="templates.js"></script>
 <script src="weather.js"></script>
@@ -465,10 +482,39 @@
     hideStatus();
   }
 
+  // ---------- screen wake lock ----------
+  // Stops the TV/browser from sleeping. The browser drops the lock whenever
+  // the page is hidden, so it is re-requested each time it becomes visible.
+
+  const wakeBadge = document.getElementById("wakelock");
+
+  async function requestWakeLock() {
+    let on = false;
+    if ("wakeLock" in navigator) {
+      try {
+        const lock = await navigator.wakeLock.request("screen");
+        on = true;
+        lock.addEventListener("release", () => { wakeBadge.textContent = "wake lock: off"; });
+      } catch (err) {
+        console.info("Wake lock: not granted (" + err.message + ")");
+        wakeBadge.textContent = "wake lock: off";
+        return;
+      }
+    }
+    console.info(on ? "Wake lock: granted" : "Wake lock: not supported");
+    wakeBadge.textContent = on ? "wake lock: on" : "wake lock: off";
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") requestWakeLock();
+  });
+  setTimeout(() => wakeBadge.classList.add("is-hidden"), 5000);
+
   // ---------- start ----------
 
   async function start() {
     showStatus("Loading…");
+    requestWakeLock();
     await refreshConfig();
     setInterval(refreshConfig, config.refreshMinutes * 60 * 1000);
     setTimeout(() => window.location.reload(), config.hardReloadHours * 60 * 60 * 1000);
