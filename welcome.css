@@ -1,0 +1,50 @@
+/* Welcome screen ("welcome mode", welcome.js).
+   Laid out at 1920x1080 like the other templates; sizes and colours follow
+   docs/design/welcome/welcome.html. */
+
+.t-star--welcome-a { right: -220px; top: -200px; width: 900px; height: 900px; }
+.t-star--welcome-b { left: -260px; bottom: -320px; width: 760px; height: 760px; }
+
+.t-welcome-col {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  padding: 0 160px;
+  text-align: center;
+}
+.t-welcome-kicker {
+  font: 700 44px "Barlow Condensed", sans-serif;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #F7941D;
+}
+/* Font size is set inline by the fit rule (200 px, shrinking to fit 1600 px). */
+.t-welcome-guest {
+  margin: 0;
+  font: 800 200px/0.9 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.t-welcome-rule { width: 220px; height: 12px; background: #F7941D; border-radius: 2px; margin: 10px 0; }
+.t-welcome-people { margin: 0; font-size: 54px; font-weight: 500; color: #D6DDEA; }
+.t-welcome-glad { margin: 0; font-size: 44px; color: #AFC0DA; }
+.t-welcome-logo { position: absolute; left: 50%; bottom: 70px; width: 420px; margin-left: -210px; display: block; }
+
+/* Hidden copy used once to measure the guest name (welcome.js, fitGuest). */
+.t-welcome-probe { visibility: hidden; pointer-events: none; transform: none; }
+.t-welcome-probe .t-welcome-guest { display: inline-block; }
+
+/* The screen can stay up for hours: the star keeps drifting back and forth
+   instead of stopping where the usual one-slide drift ends. Transform only;
+   reduce-motion turns it off with the other stars (ambient.css). */
+.stage.amb-star .layer.is-visible .t-slide--welcome .t-star svg {
+  animation: amb-drift-loop 40s ease-in-out infinite alternate;
+}
+@keyframes amb-drift-loop {
+  from { transform: translate(0, 0) rotate(0deg); }
+  to   { transform: translate(-24px, 14px) rotate(7deg); }
+}
