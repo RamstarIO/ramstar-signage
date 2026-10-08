@@ -23,12 +23,13 @@ The whole system is a **static website**: one HTML page, one JSON playlist, and 
 3. [Content rules (read before committing)](#content-rules-read-before-committing)
 4. [Making a slide](#making-a-slide)
 5. [The playlist: `slides.json`](#the-playlist-slidesjson)
-6. [Publishing to GitHub Pages](#publishing-to-github-pages)
-7. [Hardware](#hardware)
-8. [Setting up a Fire TV Stick](#setting-up-a-fire-tv-stick)
-9. [Phase 2: moving to private hosting](#phase-2-moving-to-private-hosting)
-10. [Troubleshooting](#troubleshooting)
-11. [Roadmap](#roadmap)
+6. [Welcome mode: `welcome.json`](#welcome-mode-welcomejson)
+7. [Publishing to GitHub Pages](#publishing-to-github-pages)
+8. [Hardware](#hardware)
+9. [Setting up a Fire TV Stick](#setting-up-a-fire-tv-stick)
+10. [Phase 2: moving to private hosting](#phase-2-moving-to-private-hosting)
+11. [Troubleshooting](#troubleshooting)
+12. [Roadmap](#roadmap)
 
 ---
 
@@ -52,6 +53,7 @@ The whole system is a **static website**: one HTML page, one JSON playlist, and 
 5. Re-reads `slides.json` every `refreshMinutes` (default 5), so pushed changes appear on every TV within minutes.
 6. Does a full page reload every `hardReloadHours` (default 6), which picks up changes to `index.html` itself and clears any browser memory build-up.
 7. Keeps playing the last good playlist if the network drops.
+8. Reads `welcome.json` every 30 s, and while [welcome mode](#welcome-mode-welcomejson) is on shows only the welcome screen.
 
 All paths are relative, so the same files work on GitHub Pages, Cloudflare Pages, or a local test server.
 
@@ -68,8 +70,11 @@ ramstar-signage/
 ├── weather.css         # Live weather slide layout (Design A, 1920×1080)
 ├── nfl.js              # NFL slides: scoreboard, standings, up next (reads nfl.json)
 ├── nfl.css             # NFL slide layouts (1920×1080)
+├── welcome.js          # Welcome screen for visitors (welcome mode)
+├── welcome.css         # Its layout (1920×1080)
 ├── ambient.css         # Ambient motion: star, progress bar, sheen, beats, party decorations, weather icons
 ├── slides.json         # The playlist. Changes whenever content changes.
+├── welcome.json        # Welcome mode switch: on/off, guest, schedule
 ├── slides/             # Slide images, 1920×1080 PNG
 │   ├── 00-test.png     # "Signage is working" test slide
 │   ├── bg-navy.png     # Text-free dark background for overlays
@@ -80,6 +85,7 @@ ramstar-signage/
 ├── scripts/
 │   ├── build-nfl.mjs   # Builds nfl.json from ESPN (run by the workflow, not on the TVs)
 │   └── people_month.py # Prints a month's birthdays + anniversaries entries from HR's spreadsheet
+├── docs/design/        # Approved design references (welcome/, value/, …); not loaded by the TVs
 ├── tests/              # Saved data for testing slides offline (weather, NFL)
 ├── .github/workflows/
 │   └── pages.yml       # Deploys the site to GitHub Pages; rebuilds nfl.json every 15 min
@@ -106,7 +112,7 @@ Until Phase 2 is live, only commit content you would be comfortable putting on t
 | Milestones stated generally ("100,000th cut!") | Anything from P21 or internal reports |
 | Holidays and general announcements | Photos of identifiable people |
 
-This applies to the words in `slides.json` exactly as much as to images: names typed into a `birthdays`, `anniversaries` or `spotlight` slide are just as public.
+This applies to the words in `slides.json` and `welcome.json` exactly as much as to images: names typed into a `birthdays`, `anniversaries` or `spotlight` slide are just as public.
 
 If something sensitive is committed by mistake, deleting it is **not** enough. Treat it as already public, and ask for help cleaning the history before doing anything else.
 
@@ -454,6 +460,53 @@ JSON is strict. These all break the file, and a broken file means the TVs keep s
 - Comments (`//`); JSON does not allow them.
 
 Paste the file into a JSON validator, or run `python3 -m json.tool slides.json` in Terminal, before pushing.
+
+---
+
+## Welcome mode: `welcome.json`
+
+For visits: while welcome mode is on, **every TV shows only a welcome screen** (navy, "WELCOME", the guest's name, the Ramstar logo) instead of the playlist. When it turns off, the TVs fade back to the playlist, starting from the first slide.
+
+It is switched by its own file, `welcome.json`, not by `slides.json`:
+
+```json
+{
+  "on": true,
+  "guest": "Acme Fabrication",
+  "people": "Jane Doe & Sam Patel",
+  "from": "2026-10-09T09:00",
+  "until": "2026-10-09T15:00"
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `on` | `true` turns welcome mode on. Anything else (`false`, missing) means off. |
+| `guest` | The big headline, e.g. the visiting company. Empty or missing shows **"Our Guests"**. Always one line: a long name is shrunk to fit (down to about half size). |
+| `people` | Optional line under the headline, e.g. the visitors' names. Empty or missing leaves the line out. |
+| `from`, `until` | Optional schedule, in the **TV's local time**, written `YYYY-MM-DDTHH:MM` (24-hour). Welcome mode is only on from `from` until `until`. Leave either empty (`""`) for no limit on that side. |
+
+Welcome mode is active when `on` is `true` **and** the time is inside the schedule (if one is given). A schedule that has already passed does nothing, so a forgotten `"on": true` from last week won't come back.
+
+**To turn it on**
+
+1. Edit `welcome.json`: set `"on": true` and fill in `guest` (and `people` if wanted). To prepare a visit in advance, also set `from` and `until`. The TVs switch on and off by themselves at those times.
+2. Check it: `python3 -m json.tool welcome.json > /dev/null && echo "JSON OK"`.
+3. Commit, push / merge to `main`. The TVs switch within about 1–2 minutes of the deploy finishing (each TV re-reads `welcome.json` every 30 seconds, separately from the 5-minute playlist refresh).
+
+**To turn it off:** set `"on": false` and clear the guest details (see Privacy below), then commit and push. The TVs fade back to the first playlist slide within a minute or two. If the visit had an `until`, it turns itself off at that time anyway, but still clear the file afterwards.
+
+The file left in the repo between visits is:
+
+```json
+{ "on": false, "guest": "", "people": "", "from": "", "until": "" }
+```
+
+**If the file is missing, broken or can't be downloaded,** the TVs keep doing what they were doing: they never drop out of a visit, or into one, because of a typo or a network blip. A broken `from`/`until` (e.g. `"9am"`) counts as a broken file. Fix the file and the TVs follow it on the next check. (The schedule keeps being checked against the last good file, so a visit still ends at its `until` even if the network is down.)
+
+**Privacy:** Phase 1 is public (see [Content rules](#content-rules-read-before-committing)). `welcome.json` and its git history show who visited and when. Until hosting is private, prefer a generic welcome (`"guest": ""`, which shows "Our Guests") and leave `people` empty, or at least clear the details right after each visit.
+
+**To try it locally:** run the [local server](#testing-locally-before-pushing), edit `welcome.json`, and wait up to 30 seconds (or reload). The approved design reference is in `docs/design/welcome/`.
 
 ---
 

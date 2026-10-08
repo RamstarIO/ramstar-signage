@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Welcome screen (design reference)</title>
+<!-- Design reference only, not part of the player. Canvas 1920x1080.
+     Try: ?guest=Example%20Precision%20Fabrication%20Ltd.&people=Jane%20Doe  or  ?guest=  (generic) -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600&display=swap">
+<style>body{margin:0;font-family:'Barlow',sans-serif}</style>
+</head>
+<body>
+<div style="width: 1920px; height: 1080px; position: relative; overflow: hidden; background: #0E2A56; color: #FFFFFF; font-family: 'Barlow', sans-serif;">
+<svg viewBox="0 0 100 100" style="position: absolute; right: -220px; top: -200px; width: 900px; height: 900px;" fill="none" stroke="#194B98" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><polygon points="50,2 61.76,33.82 95.65,35.17 69.02,56.18 78.21,88.83 50,70 21.79,88.83 30.98,56.18 4.35,35.17 38.24,33.82"></polygon></svg>
+<svg viewBox="0 0 100 100" style="position: absolute; left: -260px; bottom: -320px; width: 760px; height: 760px;" fill="none" stroke="#163A72" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><polygon points="50,2 61.76,33.82 95.65,35.17 69.02,56.18 78.21,88.83 50,70 21.79,88.83 30.98,56.18 4.35,35.17 38.24,33.82"></polygon></svg>
+<div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; text-align: center; padding: 0 160px;">
+<div style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 44px; letter-spacing: 0.3em; text-transform: uppercase; color: #F7941D;">Welcome</div>
+<h1 id="guest" style="margin: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 200px; line-height: 0.9; text-transform: uppercase; white-space: nowrap;">Acme Fabrication</h1>
+<div style="width: 220px; height: 12px; background: #F7941D; border-radius: 2px; margin: 10px 0;"></div>
+<p id="people" style="margin: 0; font-size: 54px; font-weight: 500; color: #D6DDEA;">Jane Doe &amp; Sam Patel</p>
+<p style="margin: 0; font-size: 44px; color: #AFC0DA;">We're glad you're here.</p>
+</div>
+<img src="../../../assets/ramstar-logo-reverse.png" alt="Ramstar" style="position: absolute; left: 50%; bottom: 70px; width: 420px; margin-left: -210px; display: block;">
+</div>
+<script>
+// Fit rule: the guest name stays on ONE line; shrink from 200px until it fits 1600px (min 110px).
+// No guest given -> generic headline "Our Guests"; no people -> that line is removed.
+const q=new URLSearchParams(location.search);
+const g=document.getElementById('guest'), p=document.getElementById('people');
+if(q.has('guest')) g.textContent=q.get('guest')||'Our Guests';
+if(q.has('people')) { if(q.get('people')) p.textContent=q.get('people'); else p.remove(); }
+document.fonts.ready.then(()=>{ let fs=200; g.style.fontSize=fs+'px';
+  while(g.scrollWidth>1600 && fs>110){ fs-=4; g.style.fontSize=fs+'px'; } });
+</script>
+</body>
+</html>

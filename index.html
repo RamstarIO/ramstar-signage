@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="templates.css">
 <link rel="stylesheet" href="weather.css">
 <link rel="stylesheet" href="nfl.css">
+<link rel="stylesheet" href="welcome.css">
 <link rel="stylesheet" href="ambient.css">
 <style>
   :root {
@@ -187,12 +188,17 @@
 <script src="templates.js"></script>
 <script src="weather.js"></script>
 <script src="nfl.js"></script>
+<script src="welcome.js"></script>
 <script>
 /*
  * Ramstar signage player.
  * Reads slides.json, shows each active slide full-screen with a crossfade,
  * and re-reads slides.json every few minutes so new content appears
  * without anyone touching the TVs. See README.md for the file format.
+ *
+ * Welcome mode: welcome.json is read every 30 s on its own. While it's
+ * active, the TVs show only the welcome screen (welcome.js); when it ends,
+ * they crossfade back to the first playlist slide.
  *
  * Two kinds of slide:
  *   Image slides:  { "src": "slides/x.png" }, optionally with
@@ -207,6 +213,8 @@
   "use strict";
 
   const CONFIG_URL = "slides.json";
+  const WELCOME_URL = "welcome.json";
+  const WELCOME_POLL_MS = 30 * 1000;
   const DEFAULTS = {
     defaultDuration: 10,   // seconds per slide
     defaultEffect: "none", // "none" or "zoom", used when a slide has no "effect"
@@ -242,6 +250,9 @@
   let timer = null;
   let enterTimer = null;
   let cleanupTimer = null;
+  let welcome = null;     // last good welcome.json
+  let welcomeOn = false;  // the welcome screen is showing instead of the playlist
+  let welcomeShown = "";  // guest/people currently on screen, to spot edits
 
   // Transition timing. Keep FADE_MS in step with --fade-ms in the CSS above.
   const EXIT_MS = 550;    // outgoing text/panels leave before the next slide starts
@@ -379,6 +390,7 @@
       const keepGoing = await loadConfig();
       if (!keepGoing) return;
       if (position >= playlist.length) position = -1;
+      if (welcomeOn) return; // the playlist resumes when welcome mode ends
       if (playlist.length === 0) {
         showStatus("No slides are scheduled right now.");
       } else if (timer === null) {
@@ -387,8 +399,73 @@
       }
     } catch (err) {
       console.warn("Config refresh failed:", err);
-      if (playlist.length === 0) showStatus("Waiting for network…");
+      if (playlist.length === 0 && !welcomeOn) showStatus("Waiting for network…");
     }
+  }
+
+  // ---------- welcome mode ----------
+
+  // "YYYY-MM-DDTHH:MM" as a local time (the TV's clock), or null if malformed.
+  function parseLocal(text) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(String(text));
+    return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5])) : null;
+  }
+
+  // "from" / "until" are optional: empty or missing means no limit.
+  const given = (value) => value !== undefined && value !== null && value !== "";
+
+  function welcomeActive(w, now) {
+    if (!w || w.on !== true) return false;
+    if (given(w.from) && now < parseLocal(w.from)) return false;
+    if (given(w.until) && now >= parseLocal(w.until)) return false;
+    return true;
+  }
+
+  // Missing file, bad JSON or a network error keeps the current state, so a
+  // hiccup never drops the TVs out of a visit, or into one, by accident.
+  async function pollWelcome() {
+    try {
+      const response = await fetch(withCacheBust(WELCOME_URL), { cache: "no-store" });
+      if (!response.ok) throw new Error(`welcome.json returned HTTP ${response.status}`);
+      const data = await response.json();
+      if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("welcome.json is not an object");
+      ["from", "until"].forEach((key) => {
+        if (given(data[key]) && !parseLocal(data[key])) throw new Error(`welcome.json "${key}" should look like 2026-10-09T09:00`);
+      });
+      welcome = data;
+    } catch (err) {
+      console.warn("Welcome check failed, keeping the current state:", err.message);
+      if (welcome === null) return;
+    }
+    // Re-checked on every poll (with the last good file), so from/until apply on time.
+    applyWelcome();
+  }
+
+  function applyWelcome() {
+    const active = welcomeActive(welcome, new Date());
+    if (active) {
+      const slide = { type: "welcome", guest: welcome.guest, people: welcome.people, progress: false };
+      const key = JSON.stringify([slide.guest, slide.people]);
+      if (welcomeOn && key === welcomeShown) return;
+      welcomeOn = true;
+      welcomeShown = key;
+      clearTimeout(timer);
+      timer = null;
+      showWelcome(slide, key);
+    } else if (welcomeOn) {
+      welcomeOn = false;
+      welcomeShown = "";
+      position = -1; // back to the first playlist slide
+      if (playlist.length === 0) showStatus("No slides are scheduled right now.");
+      else advance();
+    }
+  }
+
+  async function showWelcome(slide, key) {
+    const type = typeOf(slide);
+    const data = type.load ? await type.load(slide) : null;
+    if (!welcomeOn || welcomeShown !== key) return; // changed while loading
+    show(slide, 0, data);
   }
 
   // ---------- playback ----------
@@ -396,7 +473,7 @@
   async function advance() {
     clearTimeout(timer);
     timer = null;
-    if (playlist.length === 0) return;
+    if (welcomeOn || playlist.length === 0) return;
 
     for (let attempt = 0; attempt < playlist.length; attempt++) {
       position = (position + 1) % playlist.length;
@@ -412,6 +489,7 @@
         } else {
           await preload(slide.src);
         }
+        if (welcomeOn) return; // welcome mode started while this slide was loading
         const seconds = Number(slide.duration) || config.defaultDuration;
         show(slide, seconds, data);
         timer = setTimeout(advance, seconds * 1000);
@@ -421,6 +499,7 @@
       }
     }
 
+    if (welcomeOn) return;
     showStatus("None of the scheduled slides could be loaded.");
     timer = setTimeout(advance, 30 * 1000);
   }
@@ -515,7 +594,9 @@
   async function start() {
     showStatus("Loading…");
     requestWakeLock();
+    await pollWelcome(); // first, so a TV that starts mid-visit goes straight to the welcome screen
     await refreshConfig();
+    setInterval(pollWelcome, WELCOME_POLL_MS);
     setInterval(refreshConfig, config.refreshMinutes * 60 * 1000);
     setTimeout(() => window.location.reload(), config.hardReloadHours * 60 * 60 * 1000);
   }
