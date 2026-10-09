@@ -465,7 +465,7 @@ Paste the file into a JSON validator, or run `python3 -m json.tool slides.json` 
 
 ## Welcome mode: `welcome.json`
 
-For visits: while welcome mode is on, **every TV shows only a welcome screen** (navy, "WELCOME", the guest's name, the Ramstar logo) instead of the playlist. When it turns off, the TVs fade back to the playlist, starting from the first slide.
+For visits: while welcome mode is on, **every TV shows only a welcome screen** (navy, "WELCOME", the guest's name, the Ramstar logo, with two slowly drifting, gently pulsing stars) instead of the playlist. When it turns off, the TVs fade back to the playlist, starting from the first slide.
 
 It is switched by its own file, `welcome.json`, not by `slides.json`:
 
