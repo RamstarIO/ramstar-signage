@@ -38,6 +38,17 @@
     return fs;
   }
 
+  // A star with a brighter copy of its outline on top. The copy fades in and
+  // out to make the star pulse (opacity only, no colour animation).
+  function pulsingStar(className, color, glowColor) {
+    const wrap = star(className, color);
+    const glow = wrap.firstChild.cloneNode(true);
+    glow.classList.add("t-star-glow");
+    glow.setAttribute("stroke", glowColor);
+    wrap.appendChild(glow);
+    return wrap;
+  }
+
   types.welcome = {
     // Wait for the headline font, so the fit is measured with the real letters.
     async load() {
@@ -53,7 +64,7 @@
 
       const root = slideRoot("navy", slide, "none");
       root.classList.add("t-slide--welcome", "no-progress");
-      add(root, star("t-star--welcome-a", "#194B98"), star("t-star--welcome-b", "#163A72"));
+      add(root, pulsingStar("t-star--welcome-a", "#194B98", "#3A72C8"), pulsingStar("t-star--welcome-b", "#163A72", "#2C5DA8"));
 
       const anim = sequencer();
       const col = h("div", "t-welcome-col");

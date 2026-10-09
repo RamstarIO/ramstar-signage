@@ -38,13 +38,31 @@
 .t-welcome-probe { visibility: hidden; pointer-events: none; transform: none; }
 .t-welcome-probe .t-welcome-guest { display: inline-block; }
 
-/* The screen can stay up for hours: the star keeps drifting back and forth
-   instead of stopping where the usual one-slide drift ends. Transform only;
-   reduce-motion turns it off with the other stars (ambient.css). */
+/* The screen can stay up for hours: the stars keep drifting back and forth
+   instead of stopping where the usual one-slide drift ends, and pulse: a
+   brighter copy of each outline (.t-star-glow, welcome.js) fades in and out
+   on top, once the star has faded in. The two stars pulse half a beat apart.
+   Transform and opacity only; reduce-motion keeps them still (ambient.css). */
+.t-slide--welcome .t-star svg { position: absolute; inset: 0; }
+.t-slide--welcome .t-star-glow { opacity: 0; }
 .stage.amb-star .layer.is-visible .t-slide--welcome .t-star svg {
-  animation: amb-drift-loop 40s ease-in-out infinite alternate;
+  animation: amb-drift-loop 30s ease-in-out infinite alternate;
+}
+.stage.amb-star .layer.is-visible .t-slide--welcome .t-star .t-star-glow {
+  animation: amb-drift-loop 30s ease-in-out infinite alternate,
+             welcome-pulse 5s ease-in-out calc(var(--star-at, 2000ms) + 1400ms) infinite;
+}
+.stage.amb-star .layer.is-visible .t-slide--welcome .t-star--welcome-b.t-star .t-star-glow {
+  animation-delay: 0s, calc(var(--star-at, 2000ms) + 3900ms);
 }
 @keyframes amb-drift-loop {
   from { transform: translate(0, 0) rotate(0deg); }
   to   { transform: translate(-24px, 14px) rotate(7deg); }
+}
+@keyframes welcome-pulse {
+  0%, 100% { opacity: 0; }
+  50%      { opacity: 0.7; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage .layer .t-slide--welcome .t-star .t-star-glow { opacity: 0 !important; }
 }
