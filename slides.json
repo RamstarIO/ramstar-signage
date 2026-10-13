@@ -135,17 +135,17 @@
     {
       "title": "NFL scoreboard",
       "type": "nfl-scoreboard",
-      "duration": 14
+      "duration": 16
     },
     {
       "title": "NFL standings",
       "type": "nfl-standings",
-      "duration": 16
+      "duration": 18
     },
     {
       "title": "NFL up next",
       "type": "nfl-next",
-      "duration": 14
+      "duration": 16
     },
     {
       "title": "Company value",
