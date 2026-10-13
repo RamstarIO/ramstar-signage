@@ -32,9 +32,9 @@
         "Family members are prohibited from winning"
       ],
       "closes": "Guesses close Fri, Oct 16 · 12:00 PM",
-      "reveal": false,
-      "answer": "",
-      "winner": "",
+      "reveal": true,
+      "answer": "Evan Da Dalt",
+      "winner": "Emily Kimball",
       "duration": 15
     },
     {
