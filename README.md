@@ -76,6 +76,7 @@ ramstar-signage/
 ├── slides.json         # The playlist. Changes whenever content changes.
 ├── welcome.json        # Welcome mode switch: on/off, guest, schedule
 ├── slides/             # Slide images, 1920×1080 PNG
+│   ├── baby/           # Photo-game photos, named by date (2026-10.jpg), never by person
 │   ├── 00-test.png     # "Signage is working" test slide
 │   ├── bg-navy.png     # Text-free dark background for overlays
 │   └── bg-light.png    # Text-free light background for overlays
@@ -84,7 +85,8 @@ ramstar-signage/
 │   └── ramstar-logo-reverse.png  # White outline and star, for navy
 ├── scripts/
 │   ├── build-nfl.mjs   # Builds nfl.json from ESPN (run by the workflow, not on the TVs)
-│   └── people_month.py # Prints a month's birthdays + anniversaries entries from HR's spreadsheet
+│   ├── people_month.py # Prints a month's birthdays + anniversaries entries from HR's spreadsheet
+│   └── resize_photo.py # Shrinks a photo for the photo-game slide and strips its metadata
 ├── docs/design/        # Approved design references (welcome/, value/, …); not loaded by the TVs
 ├── tests/              # Saved data for testing slides offline (weather, NFL)
 ├── .github/workflows/
@@ -277,6 +279,12 @@ Each template from the design canvas is a slide type. The player builds it in HT
                    "note": "Office and manufacturing" } ] }
 
 { "type": "logo", "intro": ["answer", "sweep", "drumroll", "curtain"], "duration": 10 }
+
+{ "type": "photo-game", "title": "Guess the Baby", "photo": "slides/baby/2026-10.jpg",
+  "rules": ["One guess per person", "Write your name and guess on a slip",
+            "Drop it in the box at the front desk", "No hints from the baby in question",
+            "First correct slip drawn wins a prize"],
+  "closes": "Guesses close Fri, Oct 16 · 12:00 PM", "reveal": false, "answer": "", "winner": "" }
 ```
 
 | Type | Fields (✅ = required) | Notes |
@@ -290,8 +298,9 @@ Each template from the design canvas is a slide type. The player builds it in HT
 | `safety` | `since` or `days`, `tip`, `label` | Set `since` to the date of the last lost-time incident and the count keeps itself up to date. `days` is a fixed number instead. |
 | `holidays` | `holidays` ✅ (list of `date` ✅ + `name` ✅, optional `observed`, `note`), `shutdowns` (list of `name`, `from` ✅, `to` ✅, `note`) | Upcoming Holidays: a countdown to the next holiday, the next shutdown, and cards for the three holidays after it. Type the dates in once a year from HR's schedule (they aren't calculated, because Ramstar's list differs from Ontario's); all dates are `YYYY-MM-DD`. A weekend holiday goes on its real `date` with the day off as `observed`: the countdown counts to the real date, the card reads "Sat · observed Mon Dec 28", and the holiday stays up until the observed day has passed. On the day the countdown reads **Today**; the next day it moves on to the next holiday. The badge says "Paid holiday" unless the holiday has its own `note` (e.g. `"Vacation day"` for Family Day). A shutdown shows once it starts within 120 days, reads "Until Fri, Jan 1" while it's on, and disappears after `to`. When the list runs out, the slide **hides itself**, so add next year's dates before the last holiday passes. Fit: the hero name shrinks to fit its column (150 px down to 96 px; words never break mid-word) and card names never wrap (40 → 34 → 30 px, then cut short with "…"). See `docs/design/holidays/README.md`. |
 | `logo` | `intro`, `lead`, `accent` | A brand break: "It's a great day at…" arrives one word at a time and the logo completes the sentence. `lead` is the sentence (default `"It's a great day at"`) and `accent` the word in it that's highlighted (default `"great"`; matched ignoring case and punctuation, `""` for none). The timings are designed for five words; a longer or shorter lead moves the logo later or earlier by whole word steps. `intro` is one of `answer`, `sweep`, `drumroll`, `curtain` (below), **or a list of them**, in which case the slide uses the next intro each time it comes round. Give it `"duration": 10`. The progress bar is hidden, and the slide leaves with a plain fade. See `docs/design/logo-great-day/README.md`. The old `slogan` and `logo` fields are no longer used. |
+| `photo-game` | `photo` ✅, `title`, `rules`, `closes`, `reveal`, `answer`, `winner` | Guess the baby: a tilted photo frame ("Who is it?") on navy, with two states. **Game** (`"reveal": false`): a "Game time" tag, the `title` with its **last word in orange on its own line** ("GUESS THE / **BABY**"), 1–5 numbered `rules` (extras are dropped with a console warning) and the optional `closes` line by the logo. **Reveal** (`"reveal": true`): the same frame, "The baby was…", the `answer` in big letters and "Winner: …" if `winner` is set. If `reveal` is true but `answer` is empty, the game is shown instead. `photo` is a JPEG from `scripts/resize_photo.py` (below); if it's missing or won't load, the slide is skipped. Fit: rules stay on one line, shrinking together 42 → 34 px, then cut short with "…"; the answer stays on one line, 170 px down to 100 px, then "…". The beat bumps each rule in turn (on the reveal, the answer once). See `docs/design/baby-game/README.md`. |
 
-All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and the usual `duration`, `start`, `end`, `enabled`. Birthdays and anniversaries also accept `headline`; wrap a word in `*asterisks*` to colour it. Note that `title` is only your own label for the entry and is never shown on screen.
+All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and the usual `duration`, `start`, `end`, `enabled`. Birthdays and anniversaries also accept `headline`; wrap a word in `*asterisks*` to colour it. Note that `title` is only your own label for the entry and is never shown on screen, **except on `photo-game`**, where it is the headline.
 
 **Birthday and anniversary decorations** (`"decor"`, default `"balloons"` on birthdays, `"confetti"` on anniversaries):
 
@@ -332,6 +341,23 @@ Use **one** logo entry with a list, rather than several logo entries, so the bra
 ```
 
 Each TV keeps its own place in the list, and starts again from the first intro after its 6-hourly reload.
+
+**Guess the baby (`photo-game`), step by step.**
+
+1. Get the person's OK to use their baby photo (the site is public, see Privacy below).
+2. Shrink the photo and strip its metadata with `scripts/resize_photo.py` (needs `python3 -m pip install Pillow` once; iPhone `.HEIC` photos also need `pillow-heif`):
+   ```bash
+   python3 scripts/resize_photo.py ~/Documents/ramstar-private/baby/original.jpg slides/baby/2026-10.jpg
+   ```
+   It resizes to 1200 px on the long side as a progressive JPEG (quality 82), applies the phone's rotation and **drops all metadata, including GPS**. It warns if the file is over 400 KB or landscape (the frame is portrait, so the sides get cropped; crop it yourself first if the face is off-centre). Keep the **original outside the repo**.
+3. **Name the file by date (`2026-10.jpg`), never by the person**, or the filename gives the answer away.
+4. Point the `photo-game` entry at it with `"reveal": false` and `"answer": ""`. (The sample entry in `slides.json` already points at `slides/baby/2026-10.jpg`: until that file exists, the slide is simply skipped.)
+5. On reveal day, set `"reveal": true` **and** fill in `answer` (and `winner`) in the **same commit**.
+
+**Privacy (Phase 1 is public).** Anyone can read `slides.json` and browse `slides/baby/`:
+- Get each person's OK before using their photo.
+- Keep `answer` **empty** until reveal day. An answer typed in early is readable by anyone, and stays in git history.
+- Git history keeps old photos after you delete them. Only commit photos the person is happy to have public.
 
 **Give these slides at least 8–10 seconds.** The entrance takes about 2 seconds, and people need time to read after it.
 

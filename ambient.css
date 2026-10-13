@@ -330,9 +330,15 @@
 /* Value: each example bumps up in turn, with the birthday names' timing.
    No colour flash: orange text on the light side would be off-brand.
    The beat moves the row inside each <li>, because the <li> itself carries
-   the entrance animation. --i is the example's position, set by templates.js. */
-.stage.amb-beat .m-beat .t-ex-row { will-change: transform; }
-.stage.amb-beat .layer.is-visible .m-beat .t-ex-row {
+   the entrance animation. --i is the example's position, set by templates.js.
+   The photo game uses the same bump: each rule in turn, or (on the reveal)
+   the answer once. */
+.stage.amb-beat .m-beat .t-ex-row,
+.stage.amb-beat .m-beat .t-pg-rule-row,
+.stage.amb-beat .m-beat .t-pg-answer-text { will-change: transform; }
+.stage.amb-beat .layer.is-visible .m-beat .t-ex-row,
+.stage.amb-beat .layer.is-visible .m-beat .t-pg-rule-row,
+.stage.amb-beat .layer.is-visible .m-beat .t-pg-answer-text {
   animation: beat-stat 900ms ease-in-out both;
   animation-delay: calc(var(--beat-at) + var(--i, 0) * 250ms);
 }
@@ -464,6 +470,8 @@
   .stage .layer .wx-stat,
   .stage .layer .t-name,
   .stage .layer .t-ex-row,
+  .stage .layer .t-pg-rule-row,
+  .stage .layer .t-pg-answer-text,
   .stage .layer .t-hol-card-row { animation: none !important; }
   /* Party decorations: keep the cake (flames still), drop moving pieces */
   .stage .layer .bd-decor,

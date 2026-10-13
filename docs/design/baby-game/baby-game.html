@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Guess the baby (design reference)</title>
+<!-- Design reference only, not part of the player. Sample data.
+     Canvas 1920x1080. Open with ?reveal=1 for the reveal state, ?long=1 to see the rule fit rule,
+     ?photo=path/to/photo.jpg to try a real photo. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600&display=swap">
+<style>
+  body { margin: 0; font-family: 'Barlow', sans-serif; }
+  .slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; background: #0E2A56; color: #FFFFFF; }
+  .star { position: absolute; fill: none; stroke: #194B98; stroke-width: 1.4; stroke-linejoin: round; }
+  .star.game   { right: -220px; top: -200px; width: 900px; height: 900px; }
+  .star.reveal { left: -260px; bottom: -320px; width: 860px; height: 860px; }
+
+  /* Photo frame: white border, tilted -4deg, caption on the bottom strip */
+  .frame { position: absolute; left: 150px; top: 110px; background: #FFFFFF; padding: 28px 28px 96px; border-radius: 6px;
+           transform: rotate(-4deg); box-shadow: 0 24px 50px rgba(0,0,0,0.35); }
+  .frame .photo { width: 620px; height: 700px; display: block; object-fit: cover; object-position: center 30%;
+                  background: linear-gradient(160deg, #DCE4F1, #B9C7DE); }
+  .frame .caption { position: absolute; left: 0; right: 0; bottom: 22px; text-align: center; color: #0E2A56;
+                    font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 54px; text-transform: uppercase; }
+
+  /* Game state: right column */
+  .col { position: absolute; left: 960px; right: 110px; top: 90px; bottom: 80px; display: flex; flex-direction: column; gap: 28px; }
+  .tag { align-self: flex-start; background: #F7941D; color: #0E2A56; font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+         font-size: 40px; letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 28px; border-radius: 6px; }
+  h1 { margin: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 130px; line-height: 0.88; text-transform: uppercase; }
+  h1 .accent { color: #F7941D; }
+  .rules { display: flex; flex-direction: column; gap: 16px; --rule-size: 42px; }
+  .rule { display: flex; align-items: center; gap: 30px; }
+  .rule .n { flex: none; width: 64px; height: 64px; border-radius: 50%; background: #F7941D; color: #0E2A56; display: flex;
+             align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 42px; }
+  .rule .t { font-size: var(--rule-size); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .spacer { flex-grow: 1; }
+  .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; }
+  .closes { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 38px; letter-spacing: 0.04em;
+            text-transform: uppercase; color: #AFC0DA; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .foot img { width: 220px; display: block; flex: none; }
+
+  /* Reveal state */
+  .rcol { position: absolute; left: 960px; right: 110px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; gap: 30px; }
+  .kicker { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 48px; letter-spacing: 0.24em; text-transform: uppercase; color: #F7941D; }
+  .answer { margin: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 170px; line-height: 0.9;
+            text-transform: uppercase; white-space: nowrap; }
+  .bar { width: 220px; height: 12px; background: #F7941D; border-radius: 2px; }
+  .winner { margin: 0; font-size: 50px; font-weight: 600; color: #D6DDEA; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rlogo { position: absolute; right: 110px; bottom: 90px; width: 260px; display: block; }
+</style>
+</head>
+<body>
+<div class="slide" id="slide"></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const STAR = "50,2 61.76,33.82 95.65,35.17 69.02,56.18 78.21,88.83 50,70 21.79,88.83 30.98,56.18 4.35,35.17 38.24,33.82";
+  const LOGO = "../../../assets/ramstar-logo-reverse.png";
+  const data = {
+    type: "photo-game", title: "Guess the Baby", photo: q.get("photo") || "",
+    rules: q.has("long")
+      ? ["One guess per person, please, and make it count", "Write your name and your guess on a slip of paper",
+         "Drop it in the box at the front desk by the coffee", "No hints from the baby in question, no matter what",
+         "First correct slip drawn on Monday morning wins a prize"]
+      : ["One guess per person", "Write your name and guess on a slip", "Drop it in the box at the front desk",
+         "No hints from the baby in question", "First correct slip drawn wins a prize"],
+    closes: "Guesses close Fri, Oct 16 · 12:00 PM",
+    reveal: q.has("reveal"), answer: "Jane Doe", winner: "Sam Patel"
+  };
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const frame = `<div class="frame">${data.photo ? `<img class="photo" src="${esc(data.photo)}" alt="">` : `<div class="photo"></div>`}
+                 <div class="caption">Who is it?</div></div>`;
+  const slide = document.getElementById("slide");
+  if (data.reveal && data.answer) {
+    slide.innerHTML = `<svg class="star reveal" viewBox="0 0 100 100"><polygon points="${STAR}"/></svg>${frame}
+      <div class="rcol"><div class="kicker">The baby was&hellip;</div><h1 class="answer">${esc(data.answer)}</h1><div class="bar"></div>
+      ${data.winner ? `<p class="winner">Winner: ${esc(data.winner)}</p>` : ""}</div>
+      <img class="rlogo" src="${LOGO}" alt="Ramstar">`;
+  } else {
+    // Title: last word in orange on its own line ("GUESS THE / BABY")
+    const words = data.title.trim().split(/\s+/), last = words.pop();
+    slide.innerHTML = `<svg class="star game" viewBox="0 0 100 100"><polygon points="${STAR}"/></svg>${frame}
+      <div class="col"><div class="tag">Game time</div>
+      <h1>${esc(words.join(" "))}<br><span class="accent">${esc(last)}</span></h1>
+      <div class="rules">${data.rules.slice(0, 5).map((r, i) =>
+        `<div class="rule" style="--i:${i}"><span class="n">${i + 1}</span><span class="t">${esc(r)}</span></div>`).join("")}</div>
+      <div class="spacer"></div>
+      <div class="foot">${data.closes ? `<span class="closes">${esc(data.closes)}</span>` : "<span></span>"}<img src="${LOGO}" alt="Ramstar"></div></div>`;
+  }
+  // Fit rules, measured once after fonts load:
+  //  - Rules: one line each. Shrink ALL rules together from 42px in 2px steps to a 34px minimum
+  //    until the widest fits; anything still too long ends in an ellipsis.
+  //  - Answer: one line. Shrink from 170px in 4px steps to 100px until it fits the column.
+  document.fonts.ready.then(() => {
+    const rules = slide.querySelector(".rules");
+    if (rules) {
+      const over = () => [...rules.querySelectorAll(".t")].some(t => t.scrollWidth > t.clientWidth + 1);
+      for (let s = 42; s >= 34 && (rules.style.setProperty("--rule-size", s + "px"), over()); s -= 2) {}
+    }
+    const a = slide.querySelector(".answer");
+    if (a) for (let s = 170; s >= 100 && (a.style.fontSize = s + "px", a.scrollWidth > a.parentElement.clientWidth); s -= 4) {}
+  });
+</script>
+</body>
+</html>

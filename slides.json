@@ -159,6 +159,22 @@
         "We have a relaxed and positive environment"
       ],
       "duration": 10
+    },
+    {
+      "type": "photo-game",
+      "title": "Guess the Baby",
+      "photo": "slides/baby/2026-10.jpg",
+      "rules": [
+        "One guess per person",
+        "Write your name and guess on a slip",
+        "Drop it in the box at the front desk",
+        "No hints from the baby in question",
+        "First correct slip drawn wins a prize"
+      ],
+      "closes": "Guesses close Fri, Oct 16 · 12:00 PM",
+      "reveal": false,
+      "answer": "",
+      "winner": ""
     }
   ]
 }
