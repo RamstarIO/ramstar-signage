@@ -51,9 +51,10 @@ The whole system is a **static website**: one HTML page, one JSON playlist, and 
 3. Preloads the next image before fading, so there is never a blank frame.
 4. Skips any slide whose image is missing instead of stopping.
 5. Re-reads `slides.json` every `refreshMinutes` (default 5), so pushed changes appear on every TV within minutes.
-6. Does a full page reload every `hardReloadHours` (default 6), which picks up changes to `index.html` itself and clears any browser memory build-up.
-7. Keeps playing the last good playlist if the network drops.
-8. Reads `welcome.json` every 30 s, and while [welcome mode](#welcome-mode-welcomejson) is on shows only the welcome screen.
+6. Reloads itself when new **code** is deployed. Each deploy publishes `version.json`, a fingerprint of `index.html` and the `.js`/`.css` files. When a TV sees it change (checked with every `slides.json` refresh), it waits `codeReloadMinutes` (default 10, so GitHub's caches have expired) and reloads. Code changes therefore reach every TV within about 15 minutes of the deploy, with no manual restart. Content changes (`slides.json`, `welcome.json`, photos) don't change the fingerprint and never cause a reload.
+7. Also does a full page reload every `hardReloadHours` (default 6) as a backstop, which clears any browser memory build-up.
+8. Keeps playing the last good playlist if the network drops.
+9. Reads `welcome.json` every 30 s, and while [welcome mode](#welcome-mode-welcomejson) is on shows only the welcome screen.
 
 All paths are relative, so the same files work on GitHub Pages, Cloudflare Pages, or a local test server.
 
@@ -178,7 +179,8 @@ If something sensitive is committed by mistake, deleting it is **not** enough. T
 | `defaultDuration` | number | `10` | Seconds per slide when a slide has no `duration`. |
 | `defaultEffect` | string | `"none"` | `"zoom"` gives every slide a slow push-in unless the slide sets its own `effect`. |
 | `refreshMinutes` | number | `5` | How often each TV re-reads this file. |
-| `hardReloadHours` | number | `6` | How often each TV fully reloads the page. |
+| `codeReloadMinutes` | number | `10` | After new code is deployed, how long each TV waits before reloading itself. Don't go below 10: GitHub Pages can serve the old files for up to 10 minutes. |
+| `hardReloadHours` | number | `6` | How often each TV fully reloads the page anyway (a backstop). |
 | `moveTo` | string or `null` | `null` | If set to a URL, every TV navigates there on its next refresh. Used once, for the [Phase 2](#phase-2-moving-to-private-hosting) switch. |
 | `ambient` | object | all `true` | Switches for each ambient effect: `star`, `progress`, `sheen`, `beat`, `weatherIcons`. See [Ambient motion](#ambient-motion). |
 | `slides` | array | `[]` | The playlist, in playback order. |
@@ -565,7 +567,7 @@ git commit -m "Add October safety slide"
 git push
 ```
 
-The Deploy site workflow redeploys in about a minute. The TVs pick up the change on their next refresh (within `refreshMinutes`, plus up to about 10 minutes of GitHub's own caching).
+The Deploy site workflow redeploys in about a minute. The TVs pick up the change on their next refresh (within `refreshMinutes`, plus up to about 10 minutes of GitHub's own caching). A change to the **code** (`index.html`, `.js`, `.css`) makes each TV reload itself about 10 minutes after it notices the new `version.json`, so allow about 15–20 minutes. Nobody needs to restart the TVs.
 
 ### Testing locally before pushing
 

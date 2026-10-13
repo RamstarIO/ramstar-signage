@@ -10,6 +10,9 @@
 #                        whose data is over 36 h old)
 #   manual            -> Actions -> Deploy site -> Run workflow
 #
+# Every deploy also writes version.json, a fingerprint of the player code;
+# the TVs reload themselves when it changes (see index.html).
+#
 # If ESPN can't be reached, the currently published nfl.json is kept, so a
 # blip never wipes the data or blocks a content deploy.
 
@@ -51,6 +54,17 @@ jobs:
           mkdir _site
           git archive HEAD | tar -x -C _site
           rm -rf _site/.github _site/scripts
+
+      # A fingerprint of the player code (index.html and the .js/.css files).
+      # The TVs re-read it every few minutes and reload themselves when it
+      # changes, so code changes reach them without a manual restart.
+      # Content (slides.json, welcome.json, photos, nfl.json) isn't included,
+      # so content edits and the 15-minute NFL runs never trigger a reload.
+      - name: Write version.json
+        run: |
+          code=$(cd _site && cat index.html *.js *.css | sha256sum | cut -c1-16)
+          printf '{ "code": "%s" }\n' "$code" > _site/version.json
+          cat _site/version.json
 
       - name: Build nfl.json
         env:
