@@ -34,7 +34,8 @@
       "closes": "Guesses close Fri, Oct 16 · 12:00 PM",
       "reveal": false,
       "answer": "",
-      "winner": ""
+      "winner": "",
+      "duration": 15
     },
     {
       "title": "Birthdays",
