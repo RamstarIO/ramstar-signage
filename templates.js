@@ -18,6 +18,9 @@
  *   { "type": "safety", "since": "2026-01-12", "tip": "Gloves on for every cut." }
  *   { "type": "holidays", "holidays": [{ "date": "2026-12-26", "name": "Boxing Day", "observed": "2026-12-28" }],
  *     "shutdowns": [{ "name": "Winter shutdown", "from": "2026-12-24", "to": "2027-01-01", "note": "Office and manufacturing" }] }
+ *   { "type": "photo-game", "title": "Guess the Baby", "photo": "slides/baby/2026-10.jpg", "rules": ["One guess per person"],
+ *     "closes": "Guesses close Fri, Oct 16", "reveal": false, "answer": "", "winner": "" }
+ *   (for photo-game, "title" IS shown: its last word goes orange on its own line.)
  *
  * Each type is { render(slide, data), load?(slide), isActive?(slide) } and is
  * registered on window.RamstarTypes, which the player (index.html) looks up.
@@ -890,6 +893,136 @@
         add(root, lift, panel);
       }
       return root;
+    }
+  };
+
+  // ---------- Photo game ("guess the baby") ----------
+  // A tilted photo frame on navy, from docs/design/baby-game. Two states,
+  // chosen by "reveal": the game (title, numbered rules, closing time) and
+  // the reveal (the answer, and the winner if given). The frame stays put
+  // between the two, so flipping "reveal" feels like the same slide.
+
+  const PG_RULE_SIZES = [42, 40, 38, 36, 34]; // all rules shrink together, then "…"
+  const PG_ANSWER_MAX = 170;
+  const PG_ANSWER_MIN = 100;
+  const PG_ANSWER_STEP = 4;
+  const PG_RULES_MAX = 5;
+
+  function photoFrame(src) {
+    const wrap = h("div", "t-pg-frame-wrap"); // rises in
+    const frame = h("div", "t-pg-frame");     // settles into its tilt
+    const img = h("img", "t-pg-photo");
+    img.src = src;
+    img.alt = "";
+    add(frame, img, h("div", "t-pg-caption", "Who is it?"));
+    wrap.appendChild(frame);
+    return wrap;
+  }
+
+  // "Guess the Baby" -> "Guess the" / "*Baby*": the last word on its own line, in orange.
+  function gameTitle(text) {
+    const words = String(text || "Guess the Baby").replace(/\*/g, "").trim().split(/\s+/);
+    const last = words.pop();
+    return withAccent("t-title t-pg-title", words.length ? `${words.join(" ")}\n*${last}*` : `*${last}*`);
+  }
+
+  // Fit rules (docs/design/baby-game/README.md), measured once in the hidden
+  // 1920x1080 box, like the value slide: rules step 42 -> 34 px together until
+  // the widest fits (CSS ends anything longer in "…"); the answer steps
+  // 170 -> 100 px until it fits its column.
+  function fitPhotoGame(root, rules, answer) {
+    const probe = h("div", "t-measure");
+    probe.appendChild(root);
+    document.body.appendChild(probe);
+    if (rules) {
+      const texts = [...rules.querySelectorAll(".t-pg-rule-text")];
+      const over = () => texts.some((t) => t.scrollWidth > t.clientWidth + 1);
+      for (const size of PG_RULE_SIZES) {
+        rules.style.setProperty("--rule-size", `${size}px`);
+        if (!over()) break;
+      }
+    }
+    if (answer) {
+      const text = answer.firstChild; // CSS ends it in "…" if still too long at 100 px
+      let size = PG_ANSWER_MAX;
+      answer.style.fontSize = `${size}px`;
+      while (size > PG_ANSWER_MIN && text.scrollWidth > text.clientWidth + 1) {
+        size = Math.max(PG_ANSWER_MIN, size - PG_ANSWER_STEP);
+        answer.style.fontSize = `${size}px`;
+      }
+    }
+    probe.remove();
+    root.remove();
+  }
+
+  types["photo-game"] = {
+    // The photo must load, or the slide is skipped. Fonts are waited for so
+    // the fit rules measure real text; without them the slide still shows.
+    load(slide) {
+      if (!slide.photo) return Promise.reject(new Error("photo-game slide has no photo"));
+      const fonts = document.fonts && document.fonts.load
+        ? Promise.all([
+          document.fonts.load(`800 ${PG_ANSWER_MAX}px "Barlow Condensed"`),
+          document.fonts.load(`600 ${PG_RULE_SIZES[0]}px "Barlow"`)
+        ]).catch(() => null)
+        : null;
+      return Promise.all([preload(slide.photo), fonts]).then(() => null);
+    },
+
+    render(slide) {
+      const answerText = String(slide.answer || "").trim();
+      const reveal = slide.reveal === true && answerText !== "";
+      if (slide.reveal === true && !reveal) {
+        console.warn("photo-game: \"reveal\" is true but \"answer\" is empty; showing the game instead");
+      }
+
+      const anim = sequencer();
+      const root = slideRoot("navy t-slide--pg", slide, "beat");
+
+      if (reveal) {
+        const col = h("div", "t-pg-reveal");
+        const answer = h("h1", "t-pg-answer");
+        answer.appendChild(h("span", "t-pg-answer-text", answerText)); // the beat bumps this once
+        const winner = String(slide.winner || "").trim();
+        const logo = h("img", "t-pg-reveal-logo");
+        logo.src = LOGO_REVERSE;
+        logo.alt = "Ramstar";
+        add(root, star("t-star--pg-reveal", "#194B98"), anim(photoFrame(slide.photo)));
+        add(col,
+          anim(h("div", "t-pg-kicker", "The baby was…")),
+          anim(answer),
+          anim(h("div", "t-pg-bar")),
+          winner ? anim(h("p", "t-pg-winner", `Winner: ${winner}`)) : null);
+        add(root, col, anim(logo));
+        fitPhotoGame(root, null, answer);
+        return starLast(root, anim);
+      }
+
+      let rules = (Array.isArray(slide.rules) ? slide.rules : []).map((r) => String(r || "").trim()).filter(Boolean);
+      if (rules.length > PG_RULES_MAX) {
+        console.warn(`photo-game: ${rules.length} rules given, showing the first ${PG_RULES_MAX}`);
+        rules = rules.slice(0, PG_RULES_MAX);
+      }
+
+      const col = h("div", "t-pg-col");
+      add(root, star("t-star--pg-game", "#194B98"), anim(photoFrame(slide.photo)));
+      add(col, anim(tag(slide.tag || "Game time")), anim(gameTitle(slide.title)));
+      const list = h("ol", "t-pg-rules");
+      rules.forEach((text, i) => {
+        const row = h("div", "t-pg-rule-row");
+        row.style.setProperty("--i", i); // the beat bumps each rule in turn
+        add(row, h("span", "t-pg-rule-n", String(i + 1)), h("span", "t-pg-rule-text", text));
+        list.appendChild(anim(add(h("li", "t-pg-rule"), row)));
+      });
+      const foot = h("div", "t-pg-foot");
+      const logo = h("img", "t-pg-foot-logo");
+      logo.src = LOGO_REVERSE;
+      logo.alt = "Ramstar";
+      add(foot, slide.closes ? h("span", "t-pg-closes", slide.closes) : h("span"), logo);
+      add(col, list, h("div", "t-pg-spacer"), anim(foot));
+      add(root, col);
+      fitPhotoGame(root, list, null);
+      return starLast(root, anim);
     }
   };
 

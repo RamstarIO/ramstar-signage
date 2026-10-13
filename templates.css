@@ -570,3 +570,151 @@
   background: radial-gradient(circle, rgba(247,148,29,0.55) 0%, rgba(247,148,29,0) 70%);
 }
 .bd-sparkle { position: absolute; opacity: 0; }
+
+/* ---------- Photo game (type "photo-game", "guess the baby") ----------
+   From docs/design/baby-game/baby-game.html. Fit rules and the two states
+   are in templates.js; the beat (rules bump in turn, the answer once) is in
+   ambient.css with the value examples. */
+.t-star--pg-game   { right: -220px; top: -200px; width: 900px; height: 900px; }
+.t-star--pg-reveal { left: -260px; bottom: -320px; width: 860px; height: 860px; }
+
+/* Photo frame: the wrapper rises in (t-in); the frame inside settles from
+   upright into its -4deg tilt at the same moment. Both are transforms only. */
+.t-pg-frame-wrap { position: absolute; left: 150px; top: 110px; }
+.t-pg-frame {
+  position: relative;
+  background: #FFFFFF;
+  padding: 28px 28px 96px;
+  border-radius: 6px;
+  transform: rotate(-4deg);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+}
+.t-pg-photo {
+  display: block;
+  width: 620px;
+  height: 700px;
+  object-fit: cover;
+  object-position: center 30%; /* faces sit high in most photos */
+  background: linear-gradient(160deg, #DCE4F1, #B9C7DE);
+}
+.t-pg-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 22px;
+  text-align: center;
+  color: #0E2A56;
+  font: 800 54px/1.2 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+}
+.layer.is-visible .t-pg-frame {
+  animation: pg-settle 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--d, 300ms);
+}
+@keyframes pg-settle {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-4deg); }
+}
+
+/* Game state: the right-hand column */
+.t-pg-col {
+  position: absolute;
+  left: 960px;
+  right: 110px;
+  top: 90px;
+  bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.t-pg-title { font-size: 130px; line-height: 0.88; }
+.t-pg-rules { --rule-size: 42px; display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.t-pg-rule { min-width: 0; }
+.t-pg-rule-row { display: flex; align-items: center; gap: 30px; }
+.t-pg-rule-n {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #F7941D;
+  color: #0E2A56;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 800 42px/1 "Barlow Condensed", sans-serif;
+}
+/* One line each: shrunk by the fit rule, then cut short with "…" */
+.t-pg-rule-text {
+  min-width: 0;
+  font-size: var(--rule-size);
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.t-pg-spacer { flex-grow: 1; }
+.t-pg-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; }
+.t-pg-closes {
+  min-width: 0;
+  font: 700 38px/1.2 "Barlow Condensed", sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #AFC0DA;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.t-pg-foot-logo { flex: none; display: block; width: 220px; }
+
+/* Reveal state */
+.t-pg-reveal {
+  position: absolute;
+  left: 960px;
+  right: 110px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 30px;
+}
+.t-pg-kicker {
+  font: 700 48px/1.2 "Barlow Condensed", sans-serif;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #F7941D;
+}
+/* Font size is set inline by the fit rule (170 px, shrinking to 100 px).
+   Anything still too long at 100 px ends in "…" rather than running off
+   the screen. The inner span carries the clip (and the beat's bump), with a
+   little room above and below so accents aren't cut. */
+.t-pg-answer {
+  margin: 0;
+  font: 800 170px/0.9 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.t-pg-answer-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.1em 0;
+  margin: -0.1em 0;
+}
+.t-pg-bar { width: 220px; height: 12px; background: #F7941D; border-radius: 2px; }
+.t-pg-winner {
+  margin: 0;
+  font-size: 50px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #D6DDEA;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.t-pg-reveal-logo { position: absolute; right: 110px; bottom: 90px; width: 260px; display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  .layer.is-visible .t-pg-frame { animation: none; }
+}
