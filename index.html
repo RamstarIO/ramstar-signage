@@ -215,11 +215,13 @@
   const CONFIG_URL = "slides.json";
   const WELCOME_URL = "welcome.json";
   const WELCOME_POLL_MS = 30 * 1000;
+  const VERSION_URL = "version.json"; // code fingerprint, written by the deploy workflow
   const DEFAULTS = {
     defaultDuration: 10,   // seconds per slide
     defaultEffect: "none", // "none" or "zoom", used when a slide has no "effect"
-    refreshMinutes: 5,     // how often to re-read slides.json
-    hardReloadHours: 6,    // full page reload to pick up code changes
+    refreshMinutes: 5,     // how often to re-read slides.json (and version.json)
+    codeReloadMinutes: 10, // after new code is deployed, wait this long (for caches) then reload
+    hardReloadHours: 6,    // full page reload anyway, as a backstop
     moveTo: null,          // Phase 2: URL to send all TVs to
     // Ambient motion that keeps a slide from looking frozen. Each can be
     // switched off in slides.json, e.g. "ambient": { "sheen": false }.
@@ -253,6 +255,8 @@
   let welcome = null;     // last good welcome.json
   let welcomeOn = false;  // the welcome screen is showing instead of the playlist
   let welcomeShown = "";  // guest/people currently on screen, to spot edits
+  let codeVersion = null; // fingerprint of the code this page was loaded with
+  let reloadPending = false;
 
   // Transition timing. Keep FADE_MS in step with --fade-ms in the CSS above.
   const EXIT_MS = 550;    // outgoing text/panels leave before the next slide starts
@@ -385,7 +389,34 @@
     return true;
   }
 
+  // New code deployed? The deploy workflow publishes version.json with a
+  // fingerprint of index.html and the .js/.css files (content edits don't
+  // change it). When it differs from the one this page started with, reload,
+  // but only after codeReloadMinutes: GitHub Pages and the browser can serve
+  // the old files for up to 10 minutes, and reloading onto old code would
+  // leave the TV there until the 6-hour reload. A missing or broken file
+  // (e.g. on a local test server) changes nothing.
+  async function checkCodeVersion() {
+    if (reloadPending) return;
+    try {
+      const response = await fetch(withCacheBust(VERSION_URL), { cache: "no-store" });
+      if (!response.ok) return;
+      const code = (await response.json()).code;
+      if (typeof code !== "string" || code === "") return;
+      if (codeVersion === null) {
+        codeVersion = code;
+      } else if (code !== codeVersion) {
+        reloadPending = true;
+        console.info(`New code deployed (${codeVersion} -> ${code}); reloading in ${config.codeReloadMinutes} min`);
+        setTimeout(() => window.location.reload(), config.codeReloadMinutes * 60 * 1000);
+      }
+    } catch (err) {
+      // offline or invalid: try again on the next refresh
+    }
+  }
+
   async function refreshConfig() {
+    checkCodeVersion();
     try {
       const keepGoing = await loadConfig();
       if (!keepGoing) return;

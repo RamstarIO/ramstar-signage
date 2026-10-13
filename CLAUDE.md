@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Office TV signage for Ramstar: a **static site** (no build step, no dependencies, no package manager) served by GitHub Pages (deployed by the `.github/workflows/pages.yml` Actions workflow, not from a branch) and opened full-screen by kiosk browsers on Amazon Fire TV Sticks. Pushing to `main` is deploying: TVs pick up `slides.json` changes within `refreshMinutes` (5) and code changes on their 6-hourly hard reload. README.md is the detailed user-facing spec for every `slides.json` field; keep it in sync when behaviour changes.
+Office TV signage for Ramstar: a **static site** (no build step, no dependencies, no package manager) served by GitHub Pages (deployed by the `.github/workflows/pages.yml` Actions workflow, not from a branch) and opened full-screen by kiosk browsers on Amazon Fire TV Sticks. Pushing to `main` is deploying: TVs pick up `slides.json` changes within `refreshMinutes` (5). Code changes: the workflow publishes a generated `version.json` (a hash of `index.html` + root `*.js`/`*.css`, never committed); each TV checks it on every config refresh and, when it changes, reloads after `codeReloadMinutes` (10, for the Pages/browser cache). The 6-hourly hard reload remains as a backstop. README.md is the detailed user-facing spec for every `slides.json` field; keep it in sync when behaviour changes.
 
 ## Commands
 
