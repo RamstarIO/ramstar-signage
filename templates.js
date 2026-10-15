@@ -21,6 +21,12 @@
  *   { "type": "photo-game", "title": "Guess the Baby", "photo": "slides/baby/2026-10.jpg", "rules": ["One guess per person"],
  *     "closes": "Guesses close Fri, Oct 16", "reveal": false, "answer": "", "winner": "" }
  *   (for photo-game, "title" IS shown: its last word goes orange on its own line.)
+ *   { "type": "shoutout", "theme": "orange", "team": "MFG Team",
+ *     "achievement": "Our Manufacturing Team hit its *on-time delivery targets* two weeks in a row!",
+ *     "streak": { "done": 2, "unit": "Week", "next": "keep it going" },
+ *     "message": "Your hard work is paying off.", "until": "2026-10-30" }
+ *   (shoutout: "theme" is "orange" (default) or "navy"; "tag" and "cheer" are optional;
+ *    "streak.done" 1-4 shows a chip per period, 5+ one "N Weeks in a row" chip.)
  *
  * Each type is { render(slide, data), load?(slide), isActive?(slide) } and is
  * registered on window.RamstarTypes, which the player (index.html) looks up.
@@ -90,8 +96,8 @@
   }
 
   // "Happy *October*" -> October highlighted.
-  function withAccent(className, text) {
-    const node = h("h1", className);
+  function withAccent(className, text, tagName = "h1") {
+    const node = h(tagName, className);
     String(text || "").split(/(\*[^*]+\*)/).forEach((part) => {
       if (!part) return;
       if (part.startsWith("*") && part.endsWith("*")) node.appendChild(h("span", "t-accent", part.slice(1, -1)));
@@ -1022,6 +1028,137 @@
       add(col, list, h("div", "t-pg-spacer"), anim(foot));
       add(root, col);
       fitPhotoGame(root, list, null);
+      return starLast(root, anim);
+    }
+  };
+
+  // ---------- Team shout-out ----------
+  // A team achievement with an optional streak, on orange (default) or navy.
+  // Layout, colours and fit rules follow docs/design/shoutout/README.md.
+  // On orange nothing is orange or white-on-orange: emphasis comes from navy
+  // blocks, weight and the accent's underline.
+
+  const SO_HEAD_MAX = 150;
+  const SO_HEAD_MIN = 110;
+  const SO_HEAD_STEP = 4;
+  const SO_HEAD_AREA = 1680;
+  const SO_ACH_SIZES = [54, 50, 46]; // at most 2 lines
+  const SO_MSG_SIZES = [40, 36, 34]; // at most 3 lines
+  const SO_PAD_BOTTOM = 84;
+  const SO_TICK = '<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4,12.5 9.5,18 20,6.5"/></svg>';
+
+  // Up to 4 completed periods get a chip each ("Week 1".."Week 4"); from 5 on
+  // they collapse into one ("6 Weeks in a row"). The dashed "next" chip
+  // ("Week 3 · keep it going") follows when streak.next is set. --i orders the beat.
+  function streakChips(streak) {
+    const done = Number(streak.done);
+    if (!Number.isInteger(done) || done < 1) {
+      if (streak.done !== undefined) console.warn(`shoutout: streak.done must be a whole number of 1 or more, got ${JSON.stringify(streak.done)}`);
+      return null;
+    }
+    const unit = String(streak.unit || "Week").trim();
+    const next = String(streak.next || "").trim();
+    const chips = [];
+    if (done >= 5) chips.push(["done", `${done} ${unit}s in a row`]);
+    else for (let i = 1; i <= done; i += 1) chips.push(["done", `${unit} ${i}`]);
+    if (next) chips.push(["next", `${unit} ${done + 1} · ${next}`]);
+    const row = h("div", "t-so-streak");
+    chips.forEach(([kind, label], i) => {
+      const chip = h("div", `t-so-chip t-so-chip--${kind}`);
+      chip.style.setProperty("--i", i); // the beat bumps each chip in turn
+      if (kind === "done") chip.innerHTML = SO_TICK;
+      chip.appendChild(h("span", null, label));
+      row.appendChild(chip);
+    });
+    return row;
+  }
+
+  // Lines of text in a block, from its height and line-height (design px).
+  function lineCount(node) {
+    return Math.round(node.offsetHeight / parseFloat(getComputedStyle(node).lineHeight));
+  }
+
+  // Fit rules, measured once in the hidden 1920x1080 box like the value slide:
+  // 1. both headline lines shrink together 150 -> 110 px (4 px steps) until
+  //    neither is wider than 1680 px; 2. the achievement steps 54 -> 50 -> 46 px
+  //    until it is at most 2 lines; 3. the message steps 40 -> 36 -> 34 px until
+  //    it is at most 3 lines; 4. if the foot still reaches into the bottom
+  //    padding, the message is dropped rather than overlap.
+  function fitShoutout(root, { frame, team, cheer, ach, msg, foot }) {
+    const probe = h("div", "t-measure");
+    probe.appendChild(root);
+    document.body.appendChild(probe);
+    for (let size = SO_HEAD_MAX; size >= SO_HEAD_MIN; size -= SO_HEAD_STEP) {
+      root.style.setProperty("--so-h", `${size}px`);
+      if (team.offsetWidth <= SO_HEAD_AREA && cheer.offsetWidth <= SO_HEAD_AREA) break;
+    }
+    for (const size of SO_ACH_SIZES) {
+      root.style.setProperty("--so-a", `${size}px`);
+      if (lineCount(ach) <= 2) break;
+    }
+    if (msg) {
+      for (const size of SO_MSG_SIZES) {
+        root.style.setProperty("--so-m", `${size}px`);
+        if (lineCount(msg) <= 3) break;
+      }
+      if (foot.offsetTop + foot.offsetHeight > frame.clientHeight - SO_PAD_BOTTOM) {
+        console.warn("shoutout: not enough room for the message; it is left out");
+        msg.remove();
+      }
+    }
+    probe.remove();
+    root.remove();
+  }
+
+  types.shoutout = {
+    // Shout-outs go stale: hide the slide after "until" (if set).
+    isActive(slide) {
+      const until = parseDay(slide.until);
+      return !until || today() <= until;
+    },
+    // Wait for the fonts so the fit rules measure real text; without them the slide still shows.
+    load() {
+      if (!document.fonts || !document.fonts.load) return null;
+      return Promise.all([
+        document.fonts.load(`800 ${SO_HEAD_MAX}px "Barlow Condensed"`),
+        document.fonts.load(`600 ${SO_ACH_SIZES[0]}px "Barlow"`),
+        document.fonts.load(`800 ${SO_ACH_SIZES[0]}px "Barlow"`),
+        document.fonts.load(`500 ${SO_MSG_SIZES[0]}px "Barlow"`)
+      ]).then(() => null, () => null);
+    },
+    render(slide) {
+      const orange = slide.theme !== "navy";
+      const anim = sequencer();
+      const root = slideRoot(`${orange ? "orange" : "navy"} t-slide--shoutout`, slide, "beat");
+      const frame = h("div", "t-so-frame");
+
+      const head = h("h1", "t-so-head");
+      const team = h("span", "t-so-team", `${String(slide.team || "").trim()} —`);
+      const cheer = h("span", "t-so-cheer", slide.cheer || "Way to go!");
+      add(head, team, h("br"), cheer);
+
+      // Hyphens inside the *accent* become non-breaking, so the phrase stays on one line.
+      const achText = String(slide.achievement || "").replace(/\*[^*]+\*/g, (m) => m.replace(/-/g, "‑"));
+      const ach = withAccent("t-so-ach", achText, "p");
+      const streak = slide.streak && typeof slide.streak === "object" ? streakChips(slide.streak) : null;
+
+      const foot = h("div", "t-so-foot");
+      const msg = slide.message ? h("p", "t-so-msg", slide.message) : null;
+      const logo = h("div", "t-so-logo");
+      const img = h("img");
+      img.src = LOGO_REVERSE;
+      img.alt = "Ramstar";
+      logo.appendChild(img);
+
+      add(frame,
+        anim(tag(slide.tag || "Team shout-out", orange ? "navy" : null)),
+        anim(head),
+        anim(ach),
+        anim(streak),
+        h("div", "t-so-spacer"),
+        add(foot, anim(msg), anim(logo)));
+      add(root, star("t-star--shoutout", orange ? "#FFAE4A" : "#194B98"), frame);
+      fitShoutout(root, { frame, team, cheer, ach, msg, foot });
       return starLast(root, anim);
     }
   };

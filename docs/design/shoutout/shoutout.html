@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Team shout-out (design reference)</title>
+<!-- Design reference only, not part of the player. Canvas 1920x1080.
+     Query options: ?theme=navy  ?done=6  ?nonext=1  ?long=1  -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600;800&display=swap">
+<style>
+  body { margin: 0; font-family: 'Barlow', sans-serif; }
+  .slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; }
+  /* ---- theme tokens ---- */
+  .orange { --bg: #F7941D; --fg: #0E2A56; --star: #FFAE4A; --tag-bg: #0E2A56; --tag-fg: #FFFFFF;
+            --done-bg: #0E2A56; --done-fg: #FFFFFF; --tick: #F7941D; --next-line: #0E2A56; --next-fg: #0E2A56;
+            --next-bg: rgba(255,255,255,0.22); --msg: #0E2A56; }
+  .navy   { --bg: #0E2A56; --fg: #FFFFFF; --star: #194B98; --tag-bg: #F7941D; --tag-fg: #0E2A56;
+            --done-bg: #F7941D; --done-fg: #0E2A56; --tick: #0E2A56; --next-line: #5E7AA8; --next-fg: #AFC0DA;
+            --next-bg: transparent; --msg: #D6DDEA; }
+  .slide { background: var(--bg); color: var(--fg); }
+  .star { position: absolute; right: -220px; top: -200px; width: 900px; height: 900px; fill: none; stroke: var(--star); stroke-width: 1.4; stroke-linejoin: round; }
+  .frame { position: absolute; inset: 0; box-sizing: border-box; padding: 84px 120px; display: flex; flex-direction: column; gap: 28px; }
+  .tag { align-self: flex-start; background: var(--tag-bg); color: var(--tag-fg); font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+         font-size: 40px; letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 28px; border-radius: 6px; }
+  h1 { margin: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: var(--h, 150px); line-height: 0.9; text-transform: uppercase; max-width: 1680px; }
+  h1 .team, h1 .cheer { white-space: nowrap; }
+  /* cheer: orange theme = white on a navy block; navy theme = orange text */
+  .orange h1 .cheer { display: inline-block; margin-top: 14px; background: #0E2A56; color: #FFFFFF; padding: 0.06em 0.14em 0.02em; line-height: 1; border-radius: 10px; }
+  .navy h1 .cheer { color: #F7941D; }
+  .achievement { margin: 6px 0 0; font-size: var(--a, 54px); font-weight: 600; line-height: 1.2; max-width: 1500px; text-wrap: balance; }
+  .achievement .accent { white-space: nowrap; }
+  .orange .achievement .accent { font-weight: 800; text-decoration: underline; text-decoration-thickness: 6px; text-underline-offset: 10px; text-decoration-skip-ink: none; }
+  .navy .achievement .accent { color: #F7941D; }
+  .streak { display: flex; gap: 24px; margin-top: 6px; }
+  .chip { display: flex; align-items: center; gap: 16px; border-radius: 12px; font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+          font-size: 50px; text-transform: uppercase; white-space: nowrap; }
+  .chip.done { background: var(--done-bg); color: var(--done-fg); padding: 16px 30px 16px 22px; }
+  .chip.done svg { width: 44px; height: 44px; display: block; fill: none; stroke: var(--tick); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+  .chip.next { border: 4px dashed var(--next-line); color: var(--next-fg); background: var(--next-bg); padding: 12px 28px; font-weight: 700; }
+  .orange .chip.next { font-weight: 800; }
+  .spacer { flex-grow: 1; }
+  .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 60px; }
+  .message { margin: 0; font-size: var(--m, 40px); line-height: 1.3; font-weight: 500; color: var(--msg); max-width: 1240px; text-wrap: balance; }
+  .logo { flex: none; }
+  .logo img { width: 260px; display: block; }
+  .orange .logo { background: #0E2A56; border-radius: 14px; padding: 22px 34px; }
+  .navy .logo img { width: 280px; }
+</style>
+</head>
+<body>
+<div class="slide" id="slide"></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const STAR = "50,2 61.76,33.82 95.65,35.17 69.02,56.18 78.21,88.83 50,70 21.79,88.83 30.98,56.18 4.35,35.17 38.24,33.82";
+  const data = {
+    type: "shoutout",
+    theme: q.get("theme") || "orange",
+    tag: "Team shout-out",
+    team: q.has("long") ? "Shipping & Receiving Team" : "MFG Team",
+    cheer: "Way to go!",
+    achievement: q.has("long")
+      ? "Our Shipping & Receiving Team cleared *every same-day order before 3 PM* for six weeks straight, a new record for the building!"
+      : "Our Manufacturing Team hit its *on-time delivery targets* two weeks in a row!",
+    streak: { done: Number(q.get("done") || 2), unit: "Week", next: q.has("nonext") ? "" : "keep it going" },
+    message: "Your hard work, teamwork, and commitment are paying off. This is terrific progress, and we're proud to see the team moving in the right direction!"
+  };
+
+  // Same element helpers as templates.js: text is set with textContent, never innerHTML.
+  const h = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text) n.textContent = text; return n; };
+  // "*phrase*" marks the accent, like withAccent() in templates.js.
+  function withAccent(tag, cls, text) {
+    const n = h(tag, cls);
+    String(text).split(/(\*[^*]+\*)/).forEach(part => {
+      if (/^\*[^*]+\*$/.test(part)) n.appendChild(h("span", "accent", part.slice(1, -1).replace(/-/g, "‑")));
+      else if (part) n.appendChild(document.createTextNode(part));
+    });
+    return n;
+  }
+  const tick = () => { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 24 24");
+    s.innerHTML = '<polyline points="4,12.5 9.5,18 20,6.5"/>'; return s; };
+
+  // Streak chips. Up to 4 completed periods get a chip each ("Week 1".."Week 4").
+  // From 5 on, they collapse into one chip: "5 weeks in a row". The dashed
+  // "next" chip ("Week N+1 · keep it going") is added when streak.next is set.
+  function streakChips(s) {
+    const row = h("div", "streak"), unit = s.unit || "Week";
+    const chips = [];
+    if (s.done >= 5) chips.push(["done", `${s.done} ${unit}s in a row`]);
+    else for (let i = 1; i <= s.done; i++) chips.push(["done", `${unit} ${i}`]);
+    if (s.next) chips.push(["next", `${unit} ${s.done + 1} · ${s.next}`]);
+    chips.forEach(([kind, label], i) => {
+      const c = h("div", `chip ${kind}`); c.style.setProperty("--i", i);
+      if (kind === "done") c.appendChild(tick());
+      c.appendChild(document.createTextNode(label)); row.appendChild(c);
+    });
+    return row;
+  }
+
+  const slide = document.getElementById("slide");
+  slide.className = `slide ${data.theme === "navy" ? "navy" : "orange"}`;
+  slide.innerHTML = `<svg class="star" viewBox="0 0 100 100"><polygon points="${STAR}"/></svg>`;
+  const frame = h("div", "frame");
+  const h1 = h("h1");
+  h1.append(h("span", "team", `${data.team} —`), h("br"), h("span", "cheer", data.cheer));
+  const logo = h("div", "logo"); const img = h("img"); img.src = "../../../assets/ramstar-logo-reverse.png"; img.alt = "Ramstar"; logo.appendChild(img);
+  const foot = h("div", "foot"); foot.append(data.message ? h("p", "message", data.message) : h("span"), logo);
+  frame.append(h("div", "tag", data.tag), h1, withAccent("p", "achievement", data.achievement));
+  if (data.streak && data.streak.done > 0) frame.appendChild(streakChips(data.streak));
+  frame.append(h("div", "spacer"), foot);
+  slide.appendChild(frame);
+
+  // Fit rules (measure once after fonts load; sizes in design px):
+  //  1. Headline: team line and cheer each stay on one line. Shrink both together
+  //     from 150 px in 4 px steps to 110 px until neither is wider than 1680 px.
+  //  2. Achievement: at most 2 lines. 54 -> 50 -> 46 px.
+  //  3. Message: at most 3 lines. 40 -> 36 -> 34 px.
+  //  4. If the content still runs into the bottom padding, shrink the message
+  //     a further step, then drop it rather than overlap (console.warn).
+  document.fonts.ready.then(() => {
+    const lines = el => Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight));
+    for (let s = 150; s >= 110; s -= 4) {
+      frame.style.setProperty("--h", s + "px");
+      if ([...h1.querySelectorAll(".team,.cheer")].every(e => e.getBoundingClientRect().width <= 1680)) break;
+    }
+    const a = frame.querySelector(".achievement");
+    for (const s of [54, 50, 46]) { frame.style.setProperty("--a", s + "px"); if (lines(a) <= 2) break; }
+    const m = frame.querySelector(".message");
+    if (m) for (const s of [40, 36, 34]) { frame.style.setProperty("--m", s + "px"); if (lines(m) <= 3) break; }
+  });
+</script>
+</body>
+</html>

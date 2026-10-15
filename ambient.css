@@ -332,13 +332,16 @@
    The beat moves the row inside each <li>, because the <li> itself carries
    the entrance animation. --i is the example's position, set by templates.js.
    The photo game uses the same bump: each rule in turn, or (on the reveal)
-   the answer once. */
+   the answer once. The shout-out bumps each streak chip in turn, the dashed
+   "next" chip last; the streak row carries the entrance. */
 .stage.amb-beat .m-beat .t-ex-row,
 .stage.amb-beat .m-beat .t-pg-rule-row,
-.stage.amb-beat .m-beat .t-pg-answer-text { will-change: transform; }
+.stage.amb-beat .m-beat .t-pg-answer-text,
+.stage.amb-beat .m-beat .t-so-chip { will-change: transform; }
 .stage.amb-beat .layer.is-visible .m-beat .t-ex-row,
 .stage.amb-beat .layer.is-visible .m-beat .t-pg-rule-row,
-.stage.amb-beat .layer.is-visible .m-beat .t-pg-answer-text {
+.stage.amb-beat .layer.is-visible .m-beat .t-pg-answer-text,
+.stage.amb-beat .layer.is-visible .m-beat .t-so-chip {
   animation: beat-stat 900ms ease-in-out both;
   animation-delay: calc(var(--beat-at) + var(--i, 0) * 250ms);
 }
@@ -472,6 +475,7 @@
   .stage .layer .t-ex-row,
   .stage .layer .t-pg-rule-row,
   .stage .layer .t-pg-answer-text,
+  .stage .layer .t-so-chip,
   .stage .layer .t-hol-card-row { animation: none !important; }
   /* Party decorations: keep the cake (flames still), drop moving pieces */
   .stage .layer .bd-decor,

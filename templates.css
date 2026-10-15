@@ -718,3 +718,95 @@
 @media (prefers-reduced-motion: reduce) {
   .layer.is-visible .t-pg-frame { animation: none; }
 }
+
+/* ---------- Team shout-out (spec: docs/design/shoutout/README.md) ----------
+   Orange (default) or navy. On orange nothing is orange or white-on-orange:
+   the cheer is a navy block and the accent is bold and underlined. Sizes
+   marked var(--so-*) are set by the fit rules in templates.js. */
+.t-star--shoutout { right: -220px; top: -200px; width: 900px; height: 900px; }
+.t-slide--shoutout .t-star svg { stroke-width: 1.4; }
+.t-so-frame {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding: 84px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.t-so-head {
+  margin: 0;
+  font: 800 var(--so-h, 150px)/0.9 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+}
+.t-so-team, .t-so-cheer { white-space: nowrap; }
+.t-slide--orange .t-so-cheer {
+  display: inline-block;
+  margin-top: 14px;
+  background: #0E2A56;
+  color: #FFFFFF;
+  padding: 0.06em 0.14em 0.02em;
+  line-height: 1;
+  border-radius: 10px;
+}
+.t-slide--navy .t-so-cheer { color: #F7941D; }
+
+.t-so-ach {
+  margin: 6px 0 0;
+  font-size: var(--so-a, 54px);
+  font-weight: 600;
+  line-height: 1.2;
+  max-width: 1500px;
+  text-wrap: balance;
+}
+.t-so-ach .t-accent { white-space: nowrap; }
+.t-slide--orange .t-so-ach .t-accent {
+  color: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-thickness: 6px;
+  text-underline-offset: 10px;
+  text-decoration-skip-ink: none;
+}
+
+.t-so-streak { display: flex; gap: 24px; margin-top: 6px; }
+.t-so-chip {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-radius: 12px;
+  font: 800 50px/1.2 "Barlow Condensed", sans-serif;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.t-so-chip--done { padding: 16px 30px 16px 22px; background: #0E2A56; color: #FFFFFF; --tick: #F7941D; }
+.t-slide--navy .t-so-chip--done { background: #F7941D; color: #0E2A56; --tick: #0E2A56; }
+.t-so-chip svg {
+  width: 44px;
+  height: 44px;
+  display: block;
+  fill: none;
+  stroke: var(--tick);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.t-so-chip--next { padding: 12px 28px; border: 4px dashed #0E2A56; color: #0E2A56; background: rgba(255, 255, 255, 0.22); }
+.t-slide--navy .t-so-chip--next { border-color: #5E7AA8; color: #AFC0DA; background: transparent; font-weight: 700; }
+
+.t-so-spacer { flex-grow: 1; }
+.t-so-foot { display: flex; align-items: flex-end; gap: 60px; }
+.t-so-msg {
+  margin: 0;
+  font-size: var(--so-m, 40px);
+  font-weight: 500;
+  line-height: 1.3;
+  max-width: 1240px;
+  text-wrap: balance;
+  color: #0E2A56;
+}
+.t-slide--navy .t-so-msg { color: #D6DDEA; }
+.t-so-logo { flex: none; margin-left: auto; }
+.t-so-logo img { width: 280px; display: block; }
+.t-slide--orange .t-so-logo { background: #0E2A56; border-radius: 14px; padding: 22px 34px; }
+.t-slide--orange .t-so-logo img { width: 260px; }

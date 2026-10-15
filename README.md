@@ -287,6 +287,11 @@ Each template from the design canvas is a slide type. The player builds it in HT
             "Drop it in the box at the front desk", "No hints from the baby in question",
             "First correct slip drawn wins a prize"],
   "closes": "Guesses close Fri, Oct 16 · 12:00 PM", "reveal": false, "answer": "", "winner": "" }
+
+{ "type": "shoutout", "theme": "orange", "team": "MFG Team",
+  "achievement": "Our Manufacturing Team hit its *on-time delivery targets* two weeks in a row!",
+  "streak": { "done": 2, "unit": "Week", "next": "keep it going" },
+  "message": "Your hard work, teamwork, and commitment are paying off.", "until": "2026-10-30" }
 ```
 
 | Type | Fields (✅ = required) | Notes |
@@ -301,6 +306,7 @@ Each template from the design canvas is a slide type. The player builds it in HT
 | `holidays` | `holidays` ✅ (list of `date` ✅ + `name` ✅, optional `observed`, `note`), `shutdowns` (list of `name`, `from` ✅, `to` ✅, `note`) | Upcoming Holidays: a countdown to the next holiday, the next shutdown, and cards for the three holidays after it. Type the dates in once a year from HR's schedule (they aren't calculated, because Ramstar's list differs from Ontario's); all dates are `YYYY-MM-DD`. A weekend holiday goes on its real `date` with the day off as `observed`: the countdown counts to the real date, the card reads "Sat · observed Mon Dec 28", and the holiday stays up until the observed day has passed. On the day the countdown reads **Today**; the next day it moves on to the next holiday. The badge says "Paid holiday" unless the holiday has its own `note` (e.g. `"Vacation day"` for Family Day). A shutdown shows once it starts within 120 days, reads "Until Fri, Jan 1" while it's on, and disappears after `to`. When the list runs out, the slide **hides itself**, so add next year's dates before the last holiday passes. Fit: the hero name shrinks to fit its column (150 px down to 96 px; words never break mid-word) and card names never wrap (40 → 34 → 30 px, then cut short with "…"). See `docs/design/holidays/README.md`. |
 | `logo` | `intro`, `lead`, `accent` | A brand break: "It's a great day at…" arrives one word at a time and the logo completes the sentence. `lead` is the sentence (default `"It's a great day at"`) and `accent` the word in it that's highlighted (default `"great"`; matched ignoring case and punctuation, `""` for none). The timings are designed for five words; a longer or shorter lead moves the logo later or earlier by whole word steps. `intro` is one of `answer`, `sweep`, `drumroll`, `curtain` (below), **or a list of them**, in which case the slide uses the next intro each time it comes round. Give it `"duration": 10`. The progress bar is hidden, and the slide leaves with a plain fade. See `docs/design/logo-great-day/README.md`. The old `slogan` and `logo` fields are no longer used. |
 | `photo-game` | `photo` ✅, `title`, `rules`, `closes`, `reveal`, `answer`, `winner` | Guess the baby: a tilted photo frame ("Who is it?") on navy, with two states. **Game** (`"reveal": false`): a "Game time" tag, the `title` with its **last word in orange on its own line** ("GUESS THE / **BABY**"), 1–5 numbered `rules` (extras are dropped with a console warning) and the optional `closes` line by the logo. **Reveal** (`"reveal": true`): the same frame, "The baby was…", the `answer` in big letters and "Winner: …" if `winner` is set. If `reveal` is true but `answer` is empty, the game is shown instead. `photo` is a JPEG from `scripts/resize_photo.py` (below); if it's missing or won't load, the slide is skipped. Fit: rules stay on one line, shrinking together 42 → 34 px, then cut short with "…"; the answer stays on one line, 170 px down to 100 px, then "…". The beat bumps each rule in turn (on the reveal, the answer once). See `docs/design/baby-game/README.md`. |
+| `shoutout` | `team` ✅, `achievement` ✅, `theme`, `tag`, `cheer`, `streak` (`done`, `unit`, `next`), `message`, `until` | Team shout-out: a "Team shout-out" tag, the headline "`team` —" / "WAY TO GO!" (`cheer`), the `achievement`, an optional streak row, the `message` and the logo. `theme` is `"orange"` (default) or `"navy"`. On orange nothing is orange and no white text sits on orange: the cheer is white on a navy block, the `*accent*` phrase in the achievement is bold and underlined, and the logo sits on a navy plate. On navy, the cheer and accent are orange. Wrap one phrase of `achievement` in `*asterisks*` for the accent; it never wraps. **Streak:** `done` (a whole number, 1 or more) 1–4 shows a ✓ chip per period ("Week 1", "Week 2", …); from 5 it becomes one "6 Weeks in a row" chip. `unit` defaults to `"Week"`. If `next` is set, a dashed "Week 3 · keep it going" chip follows. Each week, just set `done` to the new number. Without `streak` there is no chip row. `until` (`YYYY-MM-DD`) hides the slide after that day; set it, because shout-outs go stale. Fit: the two headline lines shrink together (150 px down to 110 px) to stay on one line each; the achievement steps 54 → 50 → 46 px to stay within 2 lines; the message steps 40 → 36 → 34 px to stay within 3 lines and is left out (with a console warning) if it still doesn't fit. The beat bumps each chip in turn, the dashed one last. See `docs/design/shoutout/README.md`. |
 
 All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and the usual `duration`, `start`, `end`, `enabled`. Birthdays and anniversaries also accept `headline`; wrap a word in `*asterisks*` to colour it. Note that `title` is only your own label for the entry and is never shown on screen, **except on `photo-game`**, where it is the headline.
 
@@ -391,6 +397,7 @@ A slide that sits perfectly still for 10 seconds looks frozen. The player adds s
 | Safety | beat | The tip-of-the-week box nudges right and its label flashes white |
 | Weather | beat | The four stats light up one after another |
 | Holidays | beat | The countdown number pulses once (like the milestone), then the three cards bump up in turn |
+| Shout-out | beat | Each streak chip bumps up in turn, the dashed "next" chip last |
 | Logo | none | The intro itself is the moment |
 
 Override it for one slide with `"moment"`:
@@ -399,7 +406,7 @@ Override it for one slide with `"moment"`:
 { "type": "milestone", "number": "250,000", "label": "Cuts completed", "moment": "sheen" }
 ```
 
-`"sheen"` works on every type; `"beat"` only does something on birthdays, anniversaries, value, milestone, event, safety, weather and holidays; `"none"` turns the moment off for that slide.
+`"sheen"` works on every type; `"beat"` only does something on birthdays, anniversaries, value, milestone, event, safety, weather, holidays and shoutout; `"none"` turns the moment off for that slide.
 
 **Turning effects off everywhere** (at the top of `slides.json`; leave out any you want to keep on):
 
