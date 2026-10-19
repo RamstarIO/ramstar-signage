@@ -31,17 +31,17 @@
         "One baby per week",
         "Family members are prohibited from winning"
       ],
-      "closes": "Guesses close Fri, Oct 16 · 12:00 PM",
-      "reveal": true,
-      "answer": "Evan Da Dalt",
-      "winner": "Emily Kimball",
-      "duration": 10
+      "closes": "Guesses close Fri, Oct 23 · 12:00 PM",
+      "reveal": false,
+      "answer": "",
+      "winner": "",
+      "duration": 20
     },
     {
       "title": "Event countdown",
       "type": "event",
-      "name": "Ramstar SOCA",
-      "date": "2026-10-19",
+      "name": "Ramstar Financials Address",
+      "date": "2026-10-26",
       "time": "9:00am",
       "location": "Lunch Room",
       "note": "Bring your questions",
