@@ -20,6 +20,7 @@
       "type": "weather",
       "station": "on-94",
       "label": "Oldcastle, ON",
+      "units": "F",
       "duration": 12
     },
     {
