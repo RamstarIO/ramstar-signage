@@ -442,6 +442,7 @@ A slide with `"type": "weather"` needs no image. Each TV builds it from live Env
 | `station` | ECCC city page ID. `on-94` is Windsor (observations from Windsor Airport), the closest to Oldcastle. |
 | `label` | The place name shown next to the date. |
 | `duration` | Seconds on screen. 12 is a good length for this slide; it has more to read. |
+| `units` | Optional. `"F"` shows temperatures in °F and wind in mph; `"C"` (the default; also used if it's missing or anything else) shows °C and km/h. The slide shows only `°`, never the letter, so the unit is set by this field alone. |
 
 What it shows: the date; the current temperature, conditions and icon; "feels like" (wind chill below 10 °C, humidex above 20 °C, only when it differs); today's high and low, or tonight's low after the daytime forecast ends; wind (with gusts when they're notable), humidity, UV index and the next sunrise or sunset; a 5-day strip with a chance-of-precipitation % when ECCC gives one; and an **orange alert banner** whenever ECCC has a warning, watch or statement in effect.
 
@@ -449,6 +450,7 @@ How it behaves:
 - **Source:** MSC GeoMet (`api.weather.gc.ca`), Environment and Climate Change Canada's open-data API. It's free, needs no account or key, and allows commercial use with attribution, which the slide shows in its footer. Don't remove that footer line.
 - **Refresh:** each TV fetches at most every 15 minutes and reuses the data in between. Five TVs make about 500 requests a day, far below any fair-use concern.
 - **Outages:** if a fetch fails, the TV keeps showing the last good data for up to 6 hours; after that the weather slide is skipped until the feed returns. The rest of the playlist carries on either way.
+- **Units:** ECCC always sends °C and km/h, and each TV caches that. `"units": "F"` converts when the slide is drawn (°F = °C × 9/5 + 32, mph = km/h × 0.621371), rounding only at the end, so switching back to `"C"` takes effect on the next pass. Gusts are shown when they're at least 10 above the wind speed in the units on screen. The "feels like" thresholds stay 10 °C / 20 °C (50 °F / 68 °F).
 - **Why not Open-Meteo?** Its free tier is for non-commercial use only, and a company's office signage is at best a grey area under its terms.
 
 To change the design, edit `weather.css` (layout and sizes) or the `render` function in `weather.js` (what appears). Test changes locally with the saved sample response in `tests/fixture-on-94.json` before pushing.
