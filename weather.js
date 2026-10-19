@@ -6,11 +6,16 @@
  * with attribution (shown on the slide).
  *
  * Used from slides.json as:
- *   { "type": "weather", "station": "on-94", "label": "Oldcastle, ON" }
+ *   { "type": "weather", "station": "on-94", "label": "Oldcastle, ON", "units": "F" }
+ *
+ * "units" is optional: "F" shows °F and mph; anything else (or missing) is
+ * °C and km/h. The feed and the cached model stay in Celsius and km/h,
+ * unrounded; render() converts and rounds, so switching units never leaves
+ * converted values in the per-station cache.
  *
  * The player calls:
  *   RamstarWeather.load(slide)   -> Promise<model>   (network, cached)
- *   RamstarWeather.render(model) -> HTMLElement      (pure, no network)
+ *   RamstarWeather.render(model, units) -> HTMLElement (pure, no network)
  * Keeping "get the data" and "draw the data" separate means the drawing can
  * be tested with a saved JSON file (see tests/).
  */
@@ -41,6 +46,20 @@
     const list = period && period.temperatures && period.temperatures.temperature;
     const t = (Array.isArray(list) ? list : []).find((item) => en(item.class) === cls);
     return t ? num(t) : null;
+  }
+
+  // ---------- units ----------
+  // The model is always Celsius and km/h, unrounded; these convert at render time.
+  function unitsOf(slide) {
+    return slide && slide.units === "F" ? "F" : "C";
+  }
+
+  function fmtTemp(c, units) {
+    return `${Math.round(units === "F" ? c * 9 / 5 + 32 : c)}°`;
+  }
+
+  function windSpeed(kmh, units) {
+    return units === "F" ? kmh * 0.621371 : kmh;
   }
 
   // Maps ECCC icon codes (https://weather.gc.ca/weathericons/NN.gif) to our icon set.
@@ -85,30 +104,22 @@
     if (temp >= 20 && humidex !== null && humidex > temp) feels = humidex;
 
     // Today's range. After the day period has passed, ECCC starts with "Tonight".
+    // Raw Celsius: render() converts and rounds (see the units note at the top).
     const firstIsDay = tempOf(first, "high") !== null;
-    let range;
+    let range = null;
     if (firstIsDay) {
-      const low = tempOf(forecasts[1], "low");
-      range = `High ${Math.round(tempOf(first, "high"))}°` + (low !== null ? ` / Low ${Math.round(low)}°` : "");
-    } else if (first) {
-      range = `Tonight: low ${Math.round(tempOf(first, "low"))}°`;
-    } else {
-      range = "";
+      range = { high: tempOf(first, "high"), low: tempOf(forecasts[1], "low") };
+    } else if (first && tempOf(first, "low") !== null) {
+      range = { tonight: tempOf(first, "low") };
     }
-    // One line each, so a long combination never wraps mid-phrase.
-    const detail = [feels !== null ? `Feels like ${Math.round(feels)}°` : null, range].filter(Boolean);
 
     // Stats: wind, humidity, UV (or pressure), sunrise/sunset.
+    // Wind stays raw km/h; render() formats it in the slide's units.
     const stats = [];
     const speed = num(cc.wind && cc.wind.speed);
     const gust = num(cc.wind && cc.wind.gust);
     const dir = en(cc.wind && cc.wind.direction) || "";
-    if (speed !== null) {
-      stats.push({
-        label: gust !== null && gust >= speed + 10 ? `Wind · gusts ${Math.round(gust)}` : "Wind",
-        value: speed === 0 ? "Calm" : `${Math.round(speed)} km/h ${dir}`.trim()
-      });
-    }
+    if (speed !== null) stats.push({ wind: { speed, gust, dir } });
     const rh = num(cc.relativeHumidity);
     if (rh !== null) stats.push({ label: "Humidity", value: `${Math.round(rh)}%` });
 
@@ -143,7 +154,7 @@
         name: name.slice(0, 3),
         icon: iconType(en(f.abbreviatedForecast && f.abbreviatedForecast.icon)),
         summary: en(f.abbreviatedForecast && f.abbreviatedForecast.textSummary) || "",
-        high: Math.round(high),
+        high: high,
         low: tempOf(forecasts[i + 1], "low"),
         pop: pop
       });
@@ -160,10 +171,11 @@
     return {
       place: slide.label || en(p.name) || "",
       station: en(cc.station) || en(p.name) || "",
-      temp: Math.round(temp),
+      temp,
       condition: en(cc.condition) || "",
       icon: iconType(en(cc.iconCode)),
-      detail,
+      feels,
+      range,
       stats: stats.slice(0, 4),
       days,
       alert,
@@ -284,8 +296,30 @@
 
   const STAR = '<svg viewBox="0 0 100 100" fill="none" stroke="#194B98" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><polygon points="50,2 61.76,33.82 95.65,35.17 69.02,56.18 78.21,88.83 50,70 21.79,88.83 30.98,56.18 4.35,35.17 38.24,33.82"/></svg>';
 
+  // "Feels like" and today's range, one line each so a long combination never wraps mid-phrase.
+  function detailLines(model, units) {
+    const lines = [];
+    if (model.feels !== null && model.feels !== undefined) lines.push(`Feels like ${fmtTemp(model.feels, units)}`);
+    const r = model.range;
+    if (r && r.tonight !== undefined) lines.push(`Tonight: low ${fmtTemp(r.tonight, units)}`);
+    else if (r) lines.push(`High ${fmtTemp(r.high, units)}` + (r.low !== null ? ` / Low ${fmtTemp(r.low, units)}` : ""));
+    return lines;
+  }
+
+  // The gusts rule is applied to the converted values, so it reads the same in either unit.
+  function windStat(w, units) {
+    const speed = windSpeed(w.speed, units);
+    const gust = w.gust !== null ? windSpeed(w.gust, units) : null;
+    return {
+      label: gust !== null && gust >= speed + 10 ? `Wind · gusts ${Math.round(gust)}` : "Wind",
+      value: w.speed === 0 ? "Calm" : `${Math.round(speed)} ${units === "F" ? "mph" : "km/h"} ${w.dir}`.trim()
+    };
+  }
+
   // Builds Design A ("Big Number") at a fixed 1920x1080; the player scales it.
-  function render(model) {
+  // units: "C" (default) or "F"; the model itself is always Celsius and km/h.
+  function render(model, units) {
+    units = units === "F" ? "F" : "C";
     const root = el("div", model.alert ? "wx wx--alert" : "wx");
 
     const star = el("div", "wx-star");
@@ -319,18 +353,19 @@
     now.appendChild(icon(model.icon, 230, 2.6, "wx-now-icon"));
     const nowText = el("div", "wx-now-text");
     const temp = el("div", "wx-temp");
-    const tempText = el("span", null, `${model.temp}°`);
+    const tempText = el("span", null, fmtTemp(model.temp, units));
     temp.appendChild(window.RamstarHero ? window.RamstarHero.makeHero(tempText) : tempText);
     nowText.appendChild(temp);
     const condition = el("div", "wx-condition", model.condition);
     if (model.condition.length > 16) condition.classList.add("is-long");
     nowText.appendChild(condition);
-    model.detail.forEach((line) => nowText.appendChild(el("div", "wx-detail", line)));
+    detailLines(model, units).forEach((line) => nowText.appendChild(el("div", "wx-detail", line)));
     now.appendChild(nowText);
     middle.appendChild(now);
 
     const stats = el("div", "wx-stats wx-anim");
     model.stats.forEach((s) => {
+      if (s.wind) s = windStat(s.wind, units);
       const stat = el("div", "wx-stat");
       const label = el("span", "wx-stat-label", s.label);
       label.dataset.label = s.label; // drawn again, orange, for the beat's highlight
@@ -350,8 +385,8 @@
       const name = el("span", "wx-day-name", d.name);
       if (d.pop) name.appendChild(el("span", "wx-day-pop", ` ${d.pop}%`));
       text.appendChild(name);
-      const temps = el("span", "wx-day-temps", `${d.high}°`);
-      if (d.low !== null && d.low !== undefined) temps.appendChild(el("span", "wx-day-low", ` ${Math.round(d.low)}°`));
+      const temps = el("span", "wx-day-temps", fmtTemp(d.high, units));
+      if (d.low !== null && d.low !== undefined) temps.appendChild(el("span", "wx-day-low", ` ${fmtTemp(d.low, units)}`));
       text.appendChild(temps);
       card.appendChild(text);
       card.title = d.summary;
@@ -372,7 +407,7 @@
   window.RamstarTypes.weather = {
     load: (slide) => load(slide),
     render: (slide, model) => {
-      const root = render(model);
+      const root = render(model, unitsOf(slide));
       root.classList.add(`m-${slide.moment || "beat"}`);
       return root;
     }

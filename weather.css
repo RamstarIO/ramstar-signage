@@ -178,7 +178,7 @@
   text-transform: uppercase;
 }
 .wx-day-pop { color: #7FB2FF; }
-.wx-day-temps { font-size: 40px; font-weight: 600; }
+.wx-day-temps { font-size: 40px; font-weight: 600; white-space: nowrap; } /* high and low never stack */
 .wx-day-low { color: #AFC0DA; }
 
 .wx-source {
