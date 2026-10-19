@@ -32,10 +32,10 @@
         "Family members are prohibited from winning"
       ],
       "closes": "Guesses close Fri, Oct 23 · 12:00 PM",
-      "reveal": false,
-      "answer": "",
-      "winner": "",
-      "duration": 30
+      "reveal": true,
+      "answer": "John Winkfield Jr",
+      "winner": "Derek Bavetta",
+      "duration": 10
     },
     {
       "title": "MFG on-time shout-out",
