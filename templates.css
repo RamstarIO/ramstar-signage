@@ -51,7 +51,7 @@
   display: flex;
 }
 .t-logo--right { right: 96px; }
-.t-logo--left  { left: 120px; }
+.t-logo--bare  { background: none; } /* reverse logo on navy: no box, image in the same spot */
 .t-logo img { height: 96px; width: auto; display: block; }
 
 /* Shared type */
@@ -275,7 +275,7 @@
 .t-examples--44 .t-ex-star,
 .t-examples--40 .t-ex-star { transform: translateY(2px); }
 
-/* Upcoming holidays (docs/design/holidays): countdown hero, shutdown line, three cards */
+/* Upcoming holidays (docs/design/holidays): countdown hero, shutdown line, two cards */
 .t-star--holidays { right: -200px; top: -180px; width: 900px; height: 900px; }
 .t-hol-frame {
   position: absolute;
@@ -287,8 +287,6 @@
   gap: 32px;
 }
 .t-hol-head { display: flex; align-items: center; justify-content: space-between; }
-.t-logo--top { position: static; padding: 16px 28px; }
-.t-logo--top img { height: 80px; }
 .t-hol-main { flex-grow: 1; display: flex; align-items: center; gap: 72px; min-height: 0; }
 .t-hol-count { flex: none; display: flex; flex-direction: column; align-items: flex-start; }
 .t-hol-n {
@@ -331,7 +329,7 @@
 }
 .t-hol-shut-name { color: #F7941D; }
 .t-hol-shut-note { font: 500 32px/1.2 "Barlow", sans-serif; color: #AFC0DA; text-transform: none; letter-spacing: 0; }
-.t-hol-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.t-hol-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; margin-right: 320px; } /* ends 40 px left of the logo */
 .t-hol-card { background: #163A72; border-radius: 12px; min-width: 0; }
 .t-hol-card-row { padding: 22px 28px; display: flex; align-items: center; gap: 24px; }
 .t-hol-cal { flex: none; width: 92px; border-radius: 12px; overflow: hidden; background: #FFFFFF; text-align: center; }

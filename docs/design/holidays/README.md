@@ -3,10 +3,10 @@
 Approved layout (option A, navy countdown) for a new `holidays` slide type. **Design reference only**: not loaded by the player. Shown as it looks on Tue Oct 6, 2026, using Ramstar's 2026 holiday schedule.
 
 Layout (1920×1080, same template conventions as the other slides):
-- Top: "Upcoming Holidays" tag (orange), Ramstar logo badge top right, star watermark.
+- Top: "Upcoming Holidays" tag (orange), star watermark. The Ramstar logo (reverse, no box) sits bottom right like on the other slides.
 - Hero: days-to-go number (Barlow Condensed 800, 300 px, orange) + "days to go"; "Next holiday" label, holiday name (150 px, uppercase), full date, and a badge ("Paid holiday" by default, or the entry's own `note`).
 - Shutdown line (only when a shutdown is upcoming within the window): "Winter shutdown · Thu, Dec 24 – Fri, Jan 1 · Office and manufacturing".
-- Bottom: the next three holidays after the hero as cards (calendar tile, name, weekday + "in N days" or "observed …").
+- Bottom: the next two holidays after the hero as cards (calendar tile, name, weekday + "in N days" or "observed …"); the card row ends left of the logo.
 
 Behaviour:
 - Dates come from data, entered once a year from HR's schedule (not calculated from Ontario rules: Ramstar's list differs).
@@ -15,7 +15,7 @@ Behaviour:
 - Shutdowns show while upcoming or in progress, and disappear after their `to` date.
 - No upcoming holidays in the data (e.g. next year not entered yet) → the slide hides itself (`isActive` false).
 - Fit rule: holiday names never wrap in cards; the hero name shrinks to fit its column like the value name does.
-- Mid-slide moment: beat. The countdown number pulses once (same as the milestone number), then the three cards bump in turn.
+- Mid-slide moment: beat. The countdown number pulses once (same as the milestone number), then the two cards bump in turn.
 
 Data (slides.json):
 ```json
