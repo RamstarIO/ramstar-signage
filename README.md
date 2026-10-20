@@ -614,6 +614,8 @@ A Raspberry Pi is the upgrade path if we later need live data the Fire Sticks ca
    - Reload on network reconnect / on error: **on**
 
    Check which of these the free version covers before relying on it.
+
+   **TVs still on Silk:** the player scrolls the page down on load, which should slide Silk's address bar away. If the bar stays, press any button on the remote once: the first press puts the page in full screen, which hides the bar completely. A reload (every `hardReloadHours`, or after a code change) leaves full screen, so the bar can come back until someone presses a button again. Fully Kiosk has no bar at all.
 4. Reboot the stick and confirm it comes back to the slideshow **with no remote input**. That is the real test.
 5. Label the stick with its location (e.g. "Front Office") so you know which screen is which.
 
