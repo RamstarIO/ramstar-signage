@@ -27,6 +27,9 @@
     overflow: hidden;
     cursor: none; /* hide the mouse pointer on the TV */
   }
+  /* 2px taller than the screen so the player can scroll down, which slides
+     Silk's address bar away. Everything on screen is position: fixed. */
+  body { height: calc(100% + 2px); }
 
   /* The stage is always 16:9 and centred, so overlay text lines up with the
      background image on any screen. --u is "one design pixel" of a
@@ -620,6 +623,31 @@
     if (document.visibilityState === "visible") requestWakeLock();
   });
   setTimeout(() => wakeBadge.classList.add("is-hidden"), 5000);
+
+  // ---------- browser bar ----------
+  // Silk shows its address bar until the page scrolls, so scroll to the
+  // bottom on load (Silk lays out late, hence the retries) and on resize.
+  // Full screen hides the bar for good but needs a user action, so the first
+  // remote press asks for it. A reload leaves full screen.
+
+  function hideBrowserBar() {
+    window.scrollTo(0, document.documentElement.scrollHeight);
+  }
+  hideBrowserBar();
+  setTimeout(hideBrowserBar, 1000);
+  setTimeout(hideBrowserBar, 3000);
+  window.addEventListener("resize", hideBrowserBar);
+
+  function enterFullscreen() {
+    const root = document.documentElement;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      const request = root.requestFullscreen || root.webkitRequestFullscreen;
+      if (request) Promise.resolve(request.call(root)).catch(() => {});
+    }
+    hideBrowserBar();
+  }
+  window.addEventListener("keydown", enterFullscreen);
+  window.addEventListener("pointerdown", enterFullscreen);
 
   // ---------- start ----------
 
