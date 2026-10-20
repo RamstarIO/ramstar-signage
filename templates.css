@@ -51,7 +51,7 @@
   display: flex;
 }
 .t-logo--right { right: 96px; }
-.t-logo--bare  { background: none; } /* reverse logo on navy: no box, image in the same spot */
+.t-logo--bare  { background: none; } /* no box (navy or light slides), image in the same spot */
 .t-logo img { height: 96px; width: auto; display: block; }
 
 /* Shared type */

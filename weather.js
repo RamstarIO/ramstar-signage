@@ -339,7 +339,7 @@
     header.appendChild(left);
     const badge = el("div", "wx-logo");
     const logo = el("img");
-    logo.src = "assets/ramstar-logo.png";
+    logo.src = "assets/ramstar-logo-reverse.png"; // reverse, no box, on navy
     logo.alt = "Ramstar";
     badge.appendChild(logo);
     header.appendChild(badge);

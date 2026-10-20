@@ -83,12 +83,14 @@
     return wrap;
   }
 
-  // The corner logo. `reverse` is for navy: the reverse logo with no white
-  // box, same size and spot as the boxed one.
-  function logoBadge(position, reverse) {
-    const badge = h("div", `t-logo t-logo--${position || "right"}${reverse ? " t-logo--bare" : ""}`);
+  // The corner logo. `bg` is what it sits on: "navy" gets the reverse logo
+  // and "light" the original, both with no box; anything else (orange) keeps
+  // the white badge. Same size and spot either way.
+  function logoBadge(position, bg) {
+    const bare = bg === "navy" || bg === "light";
+    const badge = h("div", `t-logo t-logo--${position || "right"}${bare ? " t-logo--bare" : ""}`);
     const img = h("img");
-    img.src = reverse ? LOGO_REVERSE : LOGO;
+    img.src = bg === "navy" ? LOGO_REVERSE : LOGO;
     img.alt = "Ramstar";
     badge.appendChild(img);
     return badge;
@@ -367,7 +369,7 @@
       grid.appendChild(row);
     });
     add(frame, grid);
-    add(root, frame, logoBadge("right", true));
+    add(root, frame, logoBadge("right", "navy"));
     starLast(root, anim);
     return root;
   }
@@ -433,7 +435,7 @@
         slide.since ? anim(h("div", "t-kicker", `Partners since ${slide.since}`)) : null,
         slide.blurb ? anim(h("p", "t-body t-body--50", slide.blurb)) : null
       );
-      add(root, left, right, logoBadge("right"));
+      add(root, left, right, logoBadge("right", "light"));
       starLast(root, anim);
       return root;
     }
@@ -455,7 +457,7 @@
         slide.note ? anim(h("p", "t-body t-body--48 t-muted", slide.note)) : null
       );
       countUp(number.heroSpan, slide.number || "", 600);
-      add(root, frame, logoBadge("right", true));
+      add(root, frame, logoBadge("right", "navy"));
       starLast(root, anim);
       return root;
     }
@@ -548,7 +550,7 @@
       add(left, main, h("div", "t-value-spacer"));
 
       const right = h("div", "t-value-right");
-      const badge = logoBadge("right");
+      const badge = logoBadge("right", "light");
       const parts = { name, text: slide.name, badge };
       if (examples.length) {
         const label = anim(h("div", "t-value-label", "What it looks like here"));
@@ -716,7 +718,7 @@
       const head = h("div", "t-hol-head");
       add(head, anim(tag(slide.tag || "Upcoming Holidays")));
       add(frame, head);
-      if (!model) return add(root, frame, logoBadge("right", true));
+      if (!model) return add(root, frame, logoBadge("right", "navy"));
       const { day, next, days, cards, shutdown } = model;
 
       const main = h("div", "t-hol-main");
@@ -756,7 +758,7 @@
         cards.forEach((x, i) => grid.appendChild(anim(holidayCard(x, day, i))));
         add(frame, grid);
       }
-      add(root, frame, logoBadge("right", true));
+      add(root, frame, logoBadge("right", "navy"));
       fitHolidays(root, name, next.name, info);
       starLast(root, anim);
       return root;
