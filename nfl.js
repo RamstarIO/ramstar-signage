@@ -224,7 +224,7 @@
       add(line, h("h1", "nfl-title", title), kicker ? h("div", "nfl-kicker", kicker) : null);
       add(left, line);
     }
-    add(head, left, T.logoBadge("nfl"));
+    add(head, left, T.logoBadge("nfl", "navy"));
     return head;
   }
 
