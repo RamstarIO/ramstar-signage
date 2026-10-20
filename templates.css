@@ -362,6 +362,7 @@
   padding: 96px 80px 96px 120px;
   display: flex;
   flex-direction: column;
+  justify-content: center; /* centred with the countdown panel */
   gap: 40px;
 }
 .t-event-when { display: flex; flex-direction: column; gap: 14px; font-size: 52px; font-weight: 600; }
