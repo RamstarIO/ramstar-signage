@@ -37,6 +37,7 @@
   const types = (window.RamstarTypes = window.RamstarTypes || {});
   const DAY_MS = 24 * 60 * 60 * 1000;
   const LOGO = "assets/ramstar-logo.png";
+  const LOGO_REVERSE = "assets/ramstar-logo-reverse.png"; // white outline and star, for navy
   const STAR_POINTS = "50,2 61.76,33.82 95.65,35.17 69.02,56.18 78.21,88.83 50,70 21.79,88.83 30.98,56.18 4.35,35.17 38.24,33.82";
 
   // ---------- small helpers ----------
@@ -82,10 +83,12 @@
     return wrap;
   }
 
-  function logoBadge(position) {
-    const badge = h("div", `t-logo t-logo--${position || "right"}`);
+  // The corner logo. `reverse` is for navy: the reverse logo with no white
+  // box, same size and spot as the boxed one.
+  function logoBadge(position, reverse) {
+    const badge = h("div", `t-logo t-logo--${position || "right"}${reverse ? " t-logo--bare" : ""}`);
     const img = h("img");
-    img.src = LOGO;
+    img.src = reverse ? LOGO_REVERSE : LOGO;
     img.alt = "Ramstar";
     badge.appendChild(img);
     return badge;
@@ -364,7 +367,7 @@
       grid.appendChild(row);
     });
     add(frame, grid);
-    add(root, frame, logoBadge("right"));
+    add(root, frame, logoBadge("right", true));
     starLast(root, anim);
     return root;
   }
@@ -452,7 +455,7 @@
         slide.note ? anim(h("p", "t-body t-body--48 t-muted", slide.note)) : null
       );
       countUp(number.heroSpan, slide.number || "", 600);
-      add(root, frame, logoBadge("right"));
+      add(root, frame, logoBadge("right", true));
       starLast(root, anim);
       return root;
     }
@@ -606,14 +609,14 @@
       } else {
         add(side, anim(h("div", "t-event-unit", "Save the date")));
       }
-      add(root, main, side, logoBadge("left"));
+      add(root, main, side, logoBadge("right"));
       starLast(root, anim);
       return root;
     }
   };
 
   // ---------- Upcoming holidays ----------
-  // Countdown to the next paid holiday, the next shutdown, and the three
+  // Countdown to the next paid holiday, the next shutdown, and the two
   // holidays after it. Dates are typed in once a year from HR's schedule
   // (see docs/design/holidays/README.md).
 
@@ -637,7 +640,7 @@
   }
 
   // What the slide shows on a given day (local midnight): the hero holiday
-  // and its countdown, up to three cards after it, and the shutdown line.
+  // and its countdown, up to two cards after it, and the shutdown line.
   function holidaysModel(slide, day) {
     const upcoming = holidayList(slide).filter((x) => x.lastDay >= day);
     if (!upcoming.length) return null;
@@ -649,7 +652,7 @@
       .map((x) => ({ name: x && x.name, note: x && x.note, from: parseDay(x && x.from), to: parseDay(x && x.to) }))
       .filter((x) => x.from && x.to && x.to >= day && x.from <= horizon)
       .sort((a, b) => a.from - b.from)[0] || null;
-    return { day, next, days: daysBetween(day, target), cards: upcoming.slice(1, 4), shutdown };
+    return { day, next, days: daysBetween(day, target), cards: upcoming.slice(1, 3), shutdown };
   }
 
   const fmt = (date, opts) => date.toLocaleDateString("en-US", opts);
@@ -711,9 +714,9 @@
       const frame = h("div", "t-hol-frame");
 
       const head = h("div", "t-hol-head");
-      add(head, anim(tag(slide.tag || "Upcoming Holidays")), logoBadge("top"));
+      add(head, anim(tag(slide.tag || "Upcoming Holidays")));
       add(frame, head);
-      if (!model) return add(root, frame);
+      if (!model) return add(root, frame, logoBadge("right", true));
       const { day, next, days, cards, shutdown } = model;
 
       const main = h("div", "t-hol-main");
@@ -753,7 +756,7 @@
         cards.forEach((x, i) => grid.appendChild(anim(holidayCard(x, day, i))));
         add(frame, grid);
       }
-      add(root, frame);
+      add(root, frame, logoBadge("right", true));
       fitHolidays(root, name, next.name, info);
       starLast(root, anim);
       return root;
@@ -803,7 +806,6 @@
   // and easings follow docs/design/logo-great-day/prototype.html. Every intro
   // animates only movement and fading, and the slide leaves with the player's
   // plain crossfade (no part-out exit).
-  const LOGO_REVERSE = "assets/ramstar-logo-reverse.png"; // white outline and star, for navy
   const LOGO_INTROS = {
     // theme: slide background; logo: the logo for that background;
     // start/gap: when the first word lands and the spacing between words (ms)
