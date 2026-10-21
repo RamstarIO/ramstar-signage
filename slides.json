@@ -24,6 +24,18 @@
       "duration": 12
     },
     {
+      "title": "Thank you Walter (Mapal)",
+      "type": "shoutout",
+      "theme": "orange",
+      "tag": "Pizza Friday",
+      "team": "MFG Team",
+      "cheer": "Pizza's on Mapal!",
+      "achievement": "Your great work caught Walter's eye, so *Mapal is buying pizza* this Friday!",
+      "message": "Walter will be here Friday. Grab a slice and say thanks, and let's keep up the great work!"
+      "until": "2026-10-23",
+      "duration": 12
+    }
+    {
       "type": "photo-game",
       "title": "Guess the Baby",
       "photo": "slides/baby/2026-10-19.jpg",
@@ -37,15 +49,6 @@
       "answer": "John Winkfield Jr",
       "winner": "Derek Bavetta",
       "duration": 10
-    },
-    {
-      "title": "MFG on-time shout-out",
-      "type": "shoutout",
-      "theme": "orange",
-      "team": "MFG Team",
-      "achievement": "Our Manufacturing Team hit its *on-time delivery targets* THREE weeks in a row!",
-      "streak": { "done": 3, "unit": "Week", "next": "keep it going" },
-      "message": "Your hard work, teamwork, and commitment are paying off. This is terrific progress, and we're proud to see the team moving in the right direction!"
     },
     {
       "title": "Birthdays",
@@ -88,6 +91,15 @@
         "We have similar values"
       ],
       "duration": 10
+    },
+    {
+      "title": "MFG on-time shout-out",
+      "type": "shoutout",
+      "theme": "orange",
+      "team": "MFG Team",
+      "achievement": "Our Manufacturing Team hit its *on-time delivery targets* THREE weeks in a row!",
+      "streak": { "done": 3, "unit": "Week", "next": "keep it going" },
+      "message": "Your hard work, teamwork, and commitment are paying off. This is terrific progress, and we're proud to see the team moving in the right direction!"
     },
     {
       "title": "Work anniversaries",
