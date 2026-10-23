@@ -146,7 +146,8 @@
 .t-slide--light .t-accent.t-hero            { --glint: #8DB0E8; }
 .t-slide--value .t-value-left .t-hero       { --glint: #F7941D; } /* value name sits on navy */
 .t-slide--orange .t-hero,
-.t-event-side .t-hero                       { --glint: #FFFFFF; }
+.t-event-side .t-hero,
+.t-slide--pf .t-accent .t-hero              { --glint: #FFFFFF; } /* photo feature: navy text on the orange block */
 
 /* 3b. Second beat (birthdays, anniversaries, value, milestone, event, safety, weather, holidays): a small event that
    re-draws the eye to the slide's key detail. Each targets an inner element,

@@ -809,3 +809,112 @@
 .t-so-logo img { width: 280px; display: block; }
 .t-slide--orange .t-so-logo { background: #0E2A56; border-radius: 14px; padding: 22px 34px; }
 .t-slide--orange .t-so-logo img { width: 260px; }
+
+/* ---------- Photo feature (docs/design/photo-feature/README.md) ----------
+   Photo 1180 px on the left, white 740 px panel on the right. White so
+   partner logos (usually supplied on white) sit cleanly without boxes. */
+.t-slide--pf {
+  background: #FFFFFF;
+  display: grid;
+  grid-template-columns: 1180px minmax(0, 1fr);
+}
+.t-pf-photo { position: relative; overflow: hidden; }
+.t-pf-img {
+  display: block;
+  width: 1180px;
+  height: 1080px;
+  object-fit: cover; /* object-position and transform-origin come from "photoPosition" */
+}
+.t-pf-label {
+  position: absolute;
+  left: 48px;
+  bottom: 48px;
+  max-width: 1084px;
+  box-sizing: border-box;
+  padding: 8px 28px;
+  border-radius: 6px;
+  background: #0E2A56;
+  color: #FFFFFF;
+  font-family: "Barlow Condensed", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 40px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.t-pf-panel {
+  position: relative; /* fit rules measure the foot against it */
+  box-sizing: border-box;
+  height: 1080px;
+  padding: 70px 90px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow: hidden;
+  color: #0E2A56;
+}
+.t-pf-logo {
+  display: block;
+  flex: none;
+  width: 290px;
+  height: auto;
+  max-height: 220px;
+  object-fit: contain;
+  object-position: left center;
+  margin-left: -8px;
+}
+.t-pf-head {
+  margin: 0;
+  font-family: "Barlow Condensed", system-ui, sans-serif;
+  font-weight: 800;
+  font-size: var(--pf-h, 104px);
+  line-height: 0.9;
+  text-transform: uppercase;
+  white-space: pre-line;
+}
+/* Never orange text on the white panel: orange is only the accent block. */
+.t-slide--pf .t-pf-head .t-accent {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 0.04em 0.12em 0;
+  border-radius: 8px;
+  background: #F7941D;
+  color: #0E2A56;
+  line-height: 1;
+  white-space: nowrap;
+}
+.t-slide--pf .t-pf-head--wrap .t-accent { white-space: normal; }
+.t-pf-body {
+  margin: 0;
+  font-size: var(--pf-b, 36px);
+  font-weight: 500;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+.t-pf-spacer { flex-grow: 1; }
+.t-pf-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; }
+.t-pf-partners { display: flex; align-items: flex-end; gap: 24px; min-width: 0; }
+.t-pf-partners img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 250px;
+  max-height: 100px;
+  object-fit: contain;
+}
+.t-pf-ramstar { display: block; flex: none; width: 220px; height: auto; }
+
+/* Motion: the photo fades in first (opacity, not t-in: a rise would show a
+   white strip under it), then pushes in slowly for the whole slide. */
+.t-pf-photo { opacity: 0; }
+.layer.is-visible .t-pf-photo { animation: pf-fade 800ms ease-out forwards; }
+.layer.is-visible .t-pf-img { animation: pf-push var(--slide-dur, 11s) linear forwards; will-change: transform; }
+@keyframes pf-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pf-push { from { transform: scale(1); } to { transform: scale(1.05); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .layer.is-visible .t-pf-photo,
+  .layer.is-visible .t-pf-img { animation: none; opacity: 1; }
+}

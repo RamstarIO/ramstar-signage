@@ -36,6 +36,19 @@
       "duration": 12
     },
     {
+      "title": "Carve 4 Cancer - thank you Vanessa",
+      "type": "photo-feature",
+      "photo": "slides/c4c/2026-pumpkins.jpg",
+      "photoPosition": "30% 50%",
+      "label": "Our Carve 4 Cancer entry",
+      "logo": "slides/c4c/carve4cancer-logo.png",
+      "headline": "Thank you,\n*Vanessa!*",
+      "body": "Vanessa painted our witch and her bubbling cauldron for the Windsor Cancer Centre Foundation's Carve 4 Cancer fundraiser.",
+      "partners": ["slides/c4c/wccf-logo.png"],
+      "until": "2026-10-31",
+      "duration": 12
+    },
+    {
       "type": "photo-game",
       "title": "Guess the Baby",
       "photo": "slides/baby/2026-10-19.jpg",
