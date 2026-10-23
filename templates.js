@@ -27,6 +27,12 @@
  *     "message": "Your hard work is paying off.", "until": "2026-10-30" }
  *   (shoutout: "theme" is "orange" (default) or "navy"; "tag" and "cheer" are optional;
  *    "streak.done" 1-4 shows a chip per period, 5+ one "N Weeks in a row" chip.)
+ *   { "type": "photo-feature", "photo": "slides/c4c/2026-pumpkins.jpg", "photoPosition": "30% 50%",
+ *     "label": "Our Carve 4 Cancer entry", "logo": "slides/c4c/carve4cancer-logo.png",
+ *     "headline": "Thank you,\n*Vanessa!*", "body": "Vanessa painted our witch...",
+ *     "partners": ["slides/c4c/wccf-logo.png"], "until": "2026-10-31" }
+ *   (photo-feature: "photo" and "headline" are required; "\n" breaks the headline and its
+ *    *accent* is navy on an orange block; "partners" is 0-2 logos; a failed photo skips the slide.)
  *
  * Each type is { render(slide, data), load?(slide), isActive?(slide) } and is
  * registered on window.RamstarTypes, which the player (index.html) looks up.
@@ -1164,6 +1170,160 @@
       add(root, star("t-star--shoutout", orange ? "#FFAE4A" : "#194B98"), frame);
       fitShoutout(root, { frame, team, cheer, ach, msg, foot });
       return starLast(root, anim);
+    }
+  };
+
+  // ---------- Photo feature ----------
+  // A big photo on the left with a thank-you or story on a white panel.
+  // Layout, fit rules and motion follow docs/design/photo-feature/README.md.
+
+  const PF_HEAD_MAX = 104;
+  const PF_HEAD_MIN = 60;
+  const PF_HEAD_STEP = 4;
+  const PF_HEAD_AREA = 560; // panel content width
+  const PF_BODY_SIZES = [36, 32, 30];
+  const PF_PAD_BOTTOM = 64;
+  const PF_PARTNERS_MAX = 2;
+
+  // Loads an image and resolves its natural size. The fit is measured right
+  // after render(), so the img tags get these as width/height and lay out at
+  // their real size even before the browser has decoded them.
+  function imageSize(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve({ src, w: img.naturalWidth, h: img.naturalHeight });
+      img.onerror = () => reject(new Error(`Could not load ${src}`));
+      img.src = src;
+    });
+  }
+
+  function sizedImg(className, info, alt) {
+    const img = h("img", className);
+    img.src = info.src;
+    img.alt = alt || "";
+    if (info.w && info.h) { img.width = info.w; img.height = info.h; }
+    return img;
+  }
+
+  // Logos are optional: one that fails to load is left out, not fatal.
+  function optionalImage(src, what) {
+    return imageSize(src).catch(() => {
+      console.warn(`photo-feature: could not load ${what} ${src}; it is left out`);
+      return null;
+    });
+  }
+
+  // Fit rules, measured once in the hidden 1920x1080 box like the shoutout:
+  // 1. the headline (every line, including the accent block) shrinks
+  //    104 -> 60 px in 4 px steps until it fits 560 px; still too wide at
+  //    60 px, the accent may wrap; 2. the body steps 36 -> 32 -> 30 px until
+  //    the footer ends inside the bottom padding; 3. if it still doesn't,
+  //    the event logo is dropped.
+  function fitPhotoFeature(root, { panel, head, body, foot, logo }) {
+    const probe = h("div", "t-measure");
+    probe.appendChild(root);
+    document.body.appendChild(probe);
+    const accents = [...head.querySelectorAll(".t-accent")];
+    const fits = () => head.scrollWidth <= PF_HEAD_AREA + 1 && accents.every((a) => a.offsetWidth <= PF_HEAD_AREA + 1);
+    let fit = false;
+    for (let size = PF_HEAD_MAX; size >= PF_HEAD_MIN; size -= PF_HEAD_STEP) {
+      root.style.setProperty("--pf-h", `${size}px`);
+      if ((fit = fits())) break;
+    }
+    if (!fit) head.classList.add("t-pf-head--wrap");
+    const over = () => foot.offsetTop + foot.offsetHeight > panel.clientHeight - PF_PAD_BOTTOM + 1;
+    if (body) {
+      for (const size of PF_BODY_SIZES) {
+        root.style.setProperty("--pf-b", `${size}px`);
+        if (!over()) break;
+      }
+    }
+    if (over() && logo) {
+      console.warn("photo-feature: content too tall; the event logo is left out");
+      logo.remove();
+    }
+    probe.remove();
+    root.remove();
+  }
+
+  types["photo-feature"] = {
+    // Thank-yous go stale: hide the slide after "until" (if set).
+    isActive(slide) {
+      const until = parseDay(slide.until);
+      return !until || today() <= until;
+    },
+    // The photo must load, or the slide is skipped; logos are optional.
+    // Fonts are waited for so the fit rules measure real text.
+    load(slide) {
+      if (!slide.photo) return Promise.reject(new Error("photo-feature slide has no photo"));
+      if (!String(slide.headline || "").trim()) return Promise.reject(new Error("photo-feature slide has no headline"));
+      let partners = (Array.isArray(slide.partners) ? slide.partners : []).filter(Boolean);
+      if (partners.length > PF_PARTNERS_MAX) {
+        console.warn(`photo-feature: ${partners.length} partner logos given, showing the first ${PF_PARTNERS_MAX}`);
+        partners = partners.slice(0, PF_PARTNERS_MAX);
+      }
+      const fonts = document.fonts && document.fonts.load
+        ? Promise.all([
+          document.fonts.load(`800 ${PF_HEAD_MAX}px "Barlow Condensed"`),
+          document.fonts.load(`700 40px "Barlow Condensed"`),
+          document.fonts.load(`500 ${PF_BODY_SIZES[0]}px "Barlow"`)
+        ]).catch(() => null)
+        : null;
+      return Promise.all([
+        preload(slide.photo),
+        slide.logo ? optionalImage(slide.logo, "event logo") : null,
+        Promise.all(partners.map((src) => optionalImage(src, "partner logo"))),
+        optionalImage(LOGO, "logo"),
+        fonts
+      ]).then(([, logo, partnerInfo, ramstar]) => ({ logo, partners: partnerInfo.filter(Boolean), ramstar }));
+    },
+
+    render(slide, data) {
+      const info = data || {};
+      const anim = sequencer();
+      const root = slideRoot("light t-slide--pf", slide, "sheen");
+
+      // The push-in grows from the same focus point the crop keeps.
+      const position = String(slide.photoPosition || "50% 50%");
+      const photo = h("div", "t-pf-photo");
+      const img = h("img", "t-pf-img");
+      img.src = slide.photo;
+      img.alt = "";
+      img.style.objectPosition = position;
+      img.style.transformOrigin = position;
+      const label = slide.label ? h("div", "t-pf-label", slide.label) : null;
+      add(photo, img, label);
+
+      const panel = h("div", "t-pf-panel");
+      const logo = info.logo ? sizedImg("t-pf-logo", info.logo) : null;
+
+      // "\n" breaks the line (white-space: pre-line). The accent keeps the
+      // orange block; its text sits in an inner hero span so the sheen
+      // lines up with the text, not the block's padding.
+      const head = withAccent("t-pf-head", slide.headline);
+      head.querySelectorAll(".t-accent").forEach((accent) => {
+        const inner = h("span", null, accent.textContent);
+        accent.replaceChildren(inner);
+        makeHero(inner);
+      });
+      const body = slide.body ? h("p", "t-pf-body", slide.body) : null;
+
+      const foot = h("div", "t-pf-foot");
+      const partners = h("div", "t-pf-partners");
+      (info.partners || []).forEach((p) => partners.appendChild(sizedImg(null, p)));
+      const ramstar = sizedImg("t-pf-ramstar", info.ramstar || { src: LOGO }, "Ramstar");
+      add(foot, partners, ramstar);
+
+      const first = anim(logo || head);
+      add(panel, first, logo ? anim(head) : null, anim(body), h("div", "t-pf-spacer"), anim(foot));
+      if (label) { // rises with the panel's first item
+        label.classList.add("t-in");
+        label.style.setProperty("--d", first.style.getPropertyValue("--d"));
+      }
+
+      add(root, photo, panel);
+      fitPhotoFeature(root, { panel, head, body, foot, logo });
+      return root;
     }
   };
 

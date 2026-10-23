@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Photo feature (design reference)</title>
+<!-- Design reference only, not part of the player. Canvas 1920x1080.
+     Query options: ?long=1 (fit rules)  ?nologo=1 (no event logo, no partners)  -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600&display=swap">
+<style>
+  body { margin: 0; font-family: 'Barlow', sans-serif; }
+  .slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; background: #FFFFFF; color: #0E2A56;
+           display: grid; grid-template-columns: 1180px minmax(0, 1fr); }
+  /* Photo: fills the left 1180x1080, cropped with object-fit: cover; "photoPosition" picks the focus. */
+  .photo { position: relative; overflow: hidden; }
+  .photo img { width: 1180px; height: 1080px; object-fit: cover; display: block; }
+  .label { position: absolute; left: 48px; bottom: 48px; background: #0E2A56; color: #FFFFFF; font-family: 'Barlow Condensed', sans-serif;
+           font-weight: 700; font-size: 40px; letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 28px; border-radius: 6px;
+           max-width: 1084px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-sizing: border-box; }
+  /* Panel: 740 wide, white so partner logos (usually on white) sit natively. */
+  .panel { box-sizing: border-box; height: 1080px; padding: 70px 90px 64px; display: flex; flex-direction: column; gap: 24px; overflow: hidden; }
+  .event-logo { width: 290px; max-height: 220px; object-fit: contain; object-position: left center; display: block; margin-left: -8px; }
+  h1 { margin: 0; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: var(--hs, 104px); line-height: 0.9;
+       text-transform: uppercase; white-space: pre-line; }
+  h1 .accent { display: inline-block; margin-top: 10px; background: #F7941D; color: #0E2A56; padding: 0.04em 0.12em 0; line-height: 1;
+               border-radius: 8px; white-space: nowrap; }
+  .body { margin: 0; font-size: var(--bs, 36px); line-height: 1.3; font-weight: 500; text-wrap: balance; }
+  .spacer { flex-grow: 1; }
+  .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; }
+  .partners { display: flex; align-items: flex-end; gap: 24px; min-width: 0; }
+  .partners img { max-width: 250px; max-height: 100px; object-fit: contain; display: block; }
+  .ramstar { width: 220px; display: block; flex: none; }
+</style>
+</head>
+<body>
+<div class="slide" id="slide"></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const data = {
+    type: "photo-feature",
+    photo: "../../../slides/c4c/2026-pumpkins.jpg",
+    photoPosition: "30% 50%",
+    label: q.has("long") ? "Our entry for the 2026 Windsor Cancer Centre Foundation Carve 4 Cancer fundraiser" : "Our Carve 4 Cancer entry",
+    logo: q.has("nologo") ? "" : "../../../slides/c4c/carve4cancer-logo.png",
+    headline: q.has("long") ? "A huge thank you,\n*Vanessa Montgomery!*" : "Thank you,\n*Vanessa!*",
+    body: q.has("long")
+      ? "Vanessa painted our witch and her bubbling cauldron for the Windsor Cancer Centre Foundation's Carve 4 Cancer fundraiser, spending two lunch breaks and an evening on the details. Stop by shipping to see them in person before they go to the gala."
+      : "Vanessa painted our witch and her bubbling cauldron for the Windsor Cancer Centre Foundation's Carve 4 Cancer fundraiser.",
+    partners: q.has("nologo") ? [] : ["../../../slides/c4c/wccf-logo.png"]
+  };
+  const h = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text) n.textContent = text; return n; };
+  function withAccent(tag, cls, text) {           // "*phrase*" = accent, "\n" = line break (white-space: pre-line)
+    const n = h(tag, cls);
+    String(text).split(/(\*[^*]+\*)/).forEach(p => {
+      if (/^\*[^*]+\*$/.test(p)) n.appendChild(h("span", "accent", p.slice(1, -1)));
+      else if (p) n.appendChild(document.createTextNode(p));
+    });
+    return n;
+  }
+  const slide = document.getElementById("slide");
+  const photo = h("div", "photo"); const img = h("img"); img.src = data.photo; img.alt = ""; img.style.objectPosition = data.photoPosition || "50% 50%";
+  photo.appendChild(img); if (data.label) photo.appendChild(h("div", "label", data.label));
+  const panel = h("div", "panel");
+  if (data.logo) { const l = h("img", "event-logo"); l.src = data.logo; l.alt = ""; panel.appendChild(l); }
+  const head = withAccent("h1", null, data.headline);
+  panel.append(head);
+  const body = data.body ? h("p", "body", data.body) : null; if (body) panel.append(body);
+  panel.append(h("div", "spacer"));
+  const foot = h("div", "foot"), partners = h("div", "partners");
+  (data.partners || []).slice(0, 2).forEach(src => { const p = h("img"); p.src = src; p.alt = ""; partners.appendChild(p); });
+  const rs = h("img", "ramstar"); rs.src = "../../../assets/ramstar-logo.png"; rs.alt = "Ramstar";
+  foot.append(partners, rs); panel.append(foot);
+  slide.append(photo, panel);
+
+  // Fit rules (measure once after fonts and images load; design px):
+  //  1. Headline: every line (including the accent block) fits the 560 px panel
+  //     width. Shrink from 104 px in 4 px steps to 60 px.
+  //     Still too wide at 60 px: let the accent wrap (white-space: normal).
+  //  2. Body: shrink 36 -> 32 -> 30 px until nothing overflows, i.e. the footer
+  //     still ends inside the bottom padding (foot bottom <= 1080 - 64). If it
+  //     still overflows at 30 px, drop the event logo (console.warn).
+  Promise.all([document.fonts.ready, ...[...document.images].map(i => i.complete ? 0 : new Promise(r => i.onload = i.onerror = r))]).then(() => {
+    const W = panel.clientWidth - 180;
+    const lines = () => [head, ...head.querySelectorAll(".accent")].every(e => e.scrollWidth <= W + 1);
+    let fit = false;
+    for (let s = 104; s >= 60; s -= 4) { panel.style.setProperty("--hs", s + "px"); if ((fit = lines())) break; }
+    if (!fit) head.querySelectorAll(".accent").forEach(a => a.style.whiteSpace = "normal");
+    const over = () => foot.getBoundingClientRect().bottom > 1080 - 64 + 1;
+    for (const s of [36, 32, 30]) { panel.style.setProperty("--bs", s + "px"); if (!over()) break; }
+    const logo = panel.querySelector(".event-logo");
+    if (over() && logo) { logo.remove(); console.warn("photo-feature: content too tall, event logo dropped"); }
+  });
+</script>
+</body>
+</html>
