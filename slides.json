@@ -24,15 +24,16 @@
       "duration": 12
     },
     {
-      "title": "Carve 4 Cancer - thank you Vanessa",
+      "title": "Carve 4 Cancer - vote for our pumpkin",
       "type": "photo-feature",
       "photo": "slides/c4c/2026-pumpkins.jpg",
       "photoPosition": "30% 50%",
-      "label": "Our Carve 4 Cancer entry",
+      "label": "Painted by Vanessa. Thank you!",
       "logo": "slides/c4c/carve4cancer-logo.png",
-      "headline": "Thank you,\n*Vanessa!*",
-      "body": "Vanessa painted our witch and her bubbling cauldron for the Windsor Cancer Centre Foundation's Carve 4 Cancer fundraiser.",
+      "headline": "Vote for\n*our pumpkin!*",
+      "body": "Voting is open for Best Pumpkin! Vote in person, or online: like our witch in the Carve 4 Cancer gallery post on Facebook. 1 like = 1 vote.",
       "partners": ["slides/c4c/wccf-logo.png"],
+      "qr": {"src": "slides/c4c/vote-qr.svg", "caption": "Scan to vote"},
       "until": "2026-10-31",
       "duration": 12
     },

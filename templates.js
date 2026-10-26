@@ -30,9 +30,12 @@
  *   { "type": "photo-feature", "photo": "slides/c4c/2026-pumpkins.jpg", "photoPosition": "30% 50%",
  *     "label": "Our Carve 4 Cancer entry", "logo": "slides/c4c/carve4cancer-logo.png",
  *     "headline": "Thank you,\n*Vanessa!*", "body": "Vanessa painted our witch...",
- *     "partners": ["slides/c4c/wccf-logo.png"], "until": "2026-10-31" }
+ *     "partners": ["slides/c4c/wccf-logo.png"], "qr": { "src": "slides/c4c/vote-qr.svg", "caption": "Scan to vote" },
+ *     "until": "2026-10-31" }
  *   (photo-feature: "photo" and "headline" are required; "\n" breaks the headline and its
- *    *accent* is navy on an orange block; "partners" is 0-2 logos; a failed photo skips the slide.)
+ *    *accent* is navy on an orange block; "partners" is 0-2 logos in a top row beside "logo";
+ *    "qr" is an optional code (with its own quiet zone) bottom left; a failed photo skips the
+ *    slide, a failed logo or QR is just left out.)
  *
  * Each type is { render(slide, data), load?(slide), isActive?(slide) } and is
  * registered on window.RamstarTypes, which the player (index.html) looks up.
@@ -1205,7 +1208,7 @@
     return img;
   }
 
-  // Logos are optional: one that fails to load is left out, not fatal.
+  // Logos and the QR code are optional: one that fails to load is left out, not fatal.
   function optionalImage(src, what) {
     return imageSize(src).catch(() => {
       console.warn(`photo-feature: could not load ${what} ${src}; it is left out`);
@@ -1218,8 +1221,8 @@
   //    104 -> 60 px in 4 px steps until it fits 560 px; still too wide at
   //    60 px, the accent may wrap; 2. the body steps 36 -> 32 -> 30 px until
   //    the footer ends inside the bottom padding; 3. if it still doesn't,
-  //    the event logo is dropped.
-  function fitPhotoFeature(root, { panel, head, body, foot, logo }) {
+  //    the top row (event and partner logos) is dropped.
+  function fitPhotoFeature(root, { panel, head, body, foot, top }) {
     const probe = h("div", "t-measure");
     probe.appendChild(root);
     document.body.appendChild(probe);
@@ -1238,9 +1241,9 @@
         if (!over()) break;
       }
     }
-    if (over() && logo) {
-      console.warn("photo-feature: content too tall; the event logo is left out");
-      logo.remove();
+    if (over() && top) {
+      console.warn("photo-feature: content too tall; the top row of logos is left out");
+      top.remove();
     }
     probe.remove();
     root.remove();
@@ -1252,7 +1255,7 @@
       const until = parseDay(slide.until);
       return !until || today() <= until;
     },
-    // The photo must load, or the slide is skipped; logos are optional.
+    // The photo must load, or the slide is skipped; logos and the QR are optional.
     // Fonts are waited for so the fit rules measure real text.
     load(slide) {
       if (!slide.photo) return Promise.reject(new Error("photo-feature slide has no photo"));
@@ -1262,6 +1265,8 @@
         console.warn(`photo-feature: ${partners.length} partner logos given, showing the first ${PF_PARTNERS_MAX}`);
         partners = partners.slice(0, PF_PARTNERS_MAX);
       }
+      const qrSrc = slide.qr && slide.qr.src;
+      if (slide.qr && !qrSrc) console.warn("photo-feature: qr has no src; it is left out");
       const fonts = document.fonts && document.fonts.load
         ? Promise.all([
           document.fonts.load(`800 ${PF_HEAD_MAX}px "Barlow Condensed"`),
@@ -1274,8 +1279,9 @@
         slide.logo ? optionalImage(slide.logo, "event logo") : null,
         Promise.all(partners.map((src) => optionalImage(src, "partner logo"))),
         optionalImage(LOGO, "logo"),
+        qrSrc ? optionalImage(qrSrc, "QR code") : null,
         fonts
-      ]).then(([, logo, partnerInfo, ramstar]) => ({ logo, partners: partnerInfo.filter(Boolean), ramstar }));
+      ]).then(([, logo, partnerInfo, ramstar, qr]) => ({ logo, partners: partnerInfo.filter(Boolean), ramstar, qr }));
     },
 
     render(slide, data) {
@@ -1295,7 +1301,11 @@
       add(photo, img, label);
 
       const panel = h("div", "t-pf-panel");
-      const logo = info.logo ? sizedImg("t-pf-logo", info.logo) : null;
+
+      // Top row: the event logo, then the partner logos beside it.
+      const logos = [info.logo && sizedImg("t-pf-logo", info.logo),
+        ...(info.partners || []).map((p) => sizedImg("t-pf-partner", p))].filter(Boolean);
+      const top = logos.length ? add(h("div", "t-pf-top"), ...logos) : null;
 
       // "\n" breaks the line (white-space: pre-line). The accent keeps the
       // orange block; its text sits in an inner hero span so the sheen
@@ -1308,21 +1318,23 @@
       });
       const body = slide.body ? h("p", "t-pf-body", slide.body) : null;
 
-      const foot = h("div", "t-pf-foot");
-      const partners = h("div", "t-pf-partners");
-      (info.partners || []).forEach((p) => partners.appendChild(sizedImg(null, p)));
+      // Footer: the optional QR code on the left, the Ramstar logo on the right.
+      // The QR rises in with the footer and then never moves: phones can't
+      // focus on a moving code.
+      const qr = info.qr ? add(h("div", "t-pf-qr"), sizedImg("t-pf-qr-img", info.qr),
+        slide.qr.caption ? h("div", "t-pf-qr-cap", slide.qr.caption) : null) : null;
       const ramstar = sizedImg("t-pf-ramstar", info.ramstar || { src: LOGO }, "Ramstar");
-      add(foot, partners, ramstar);
+      const foot = add(h("div", "t-pf-foot"), qr, ramstar);
 
-      const first = anim(logo || head);
-      add(panel, first, logo ? anim(head) : null, anim(body), h("div", "t-pf-spacer"), anim(foot));
+      const first = anim(top || head);
+      add(panel, first, top ? anim(head) : null, anim(body), h("div", "t-pf-spacer"), anim(foot));
       if (label) { // rises with the panel's first item
         label.classList.add("t-in");
         label.style.setProperty("--d", first.style.getPropertyValue("--d"));
       }
 
       add(root, photo, panel);
-      fitPhotoFeature(root, { panel, head, body, foot, logo });
+      fitPhotoFeature(root, { panel, head, body, foot, top });
       return root;
     }
   };
