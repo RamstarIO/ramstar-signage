@@ -46,9 +46,9 @@
         "Family members are prohibited from winning"
       ],
       "closes": "Guesses close Fri, Oct 30 · 12:00 PM",
-      "reveal": false,
-      "answer": "",
-      "winner": "",
+      "reveal": true,
+      "answer": "Dino Bavetta",
+      "winner": "John Winkfield Sr",
       "duration": 10
     },
     {
