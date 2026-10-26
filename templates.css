@@ -812,7 +812,7 @@
 
 /* ---------- Photo feature (docs/design/photo-feature/README.md) ----------
    Photo 1180 px on the left, white 740 px panel on the right. White so
-   partner logos (usually supplied on white) sit cleanly without boxes. */
+   partner logos and the QR code (usually supplied on white) sit cleanly without boxes. */
 .t-slide--pf {
   background: #FFFFFF;
   display: grid;
@@ -855,15 +855,25 @@
   overflow: hidden;
   color: #0E2A56;
 }
+/* Top row: the event logo, then up to 2 partner logos beside it. */
+.t-pf-top { display: flex; align-items: center; gap: 36px; margin-left: -8px; flex: none; }
 .t-pf-logo {
   display: block;
   flex: none;
-  width: 290px;
+  width: 215px;
   height: auto;
-  max-height: 220px;
+  max-height: 165px;
   object-fit: contain;
   object-position: left center;
-  margin-left: -8px;
+}
+.t-pf-partner {
+  display: block;
+  min-width: 0; /* two wide partners shrink to share the row */
+  width: auto;
+  height: auto;
+  max-width: 250px;
+  max-height: 110px;
+  object-fit: contain;
 }
 .t-pf-head {
   margin: 0;
@@ -895,16 +905,20 @@
 }
 .t-pf-spacer { flex-grow: 1; }
 .t-pf-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; }
-.t-pf-partners { display: flex; align-items: flex-end; gap: 24px; min-width: 0; }
-.t-pf-partners img {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: 250px;
-  max-height: 100px;
-  object-fit: contain;
+/* QR code bottom left. The code brings its own white quiet zone, so no card;
+   it rises in with the footer and is never animated after that. */
+.t-pf-qr { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: none; }
+.t-pf-qr-img { display: block; width: 290px; height: 290px; }
+.t-pf-qr-cap {
+  font-family: "Barlow Condensed", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
 }
-.t-pf-ramstar { display: block; flex: none; width: 220px; height: auto; }
+.t-pf-ramstar { display: block; flex: none; width: 220px; height: auto; margin-left: auto; }
 
 /* Motion: the photo fades in first (opacity, not t-in: a rise would show a
    white strip under it), then pushes in slowly for the whole slide. */
