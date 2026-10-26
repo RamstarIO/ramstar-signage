@@ -39,16 +39,16 @@
     {
       "type": "photo-game",
       "title": "Guess the Baby",
-      "photo": "slides/baby/2026-10-19.jpg",
+      "photo": "slides/baby/2026-10-26.jpg",
       "rules": [
         "Guesses submitted on WhatsApp",
         "One baby per week",
         "Family members are prohibited from winning"
       ],
-      "closes": "Guesses close Fri, Oct 23 · 12:00 PM",
-      "reveal": true,
-      "answer": "John Winkfield Jr",
-      "winner": "Derek Bavetta",
+      "closes": "Guesses close Fri, Oct 30 · 12:00 PM",
+      "reveal": false,
+      "answer": "",
+      "winner": "",
       "duration": 10
     },
     {
