@@ -99,8 +99,8 @@
       "type": "shoutout",
       "theme": "orange",
       "team": "MFG Team",
-      "achievement": "Our Manufacturing Team hit its *on-time delivery targets* THREE weeks in a row!",
-      "streak": { "done": 3, "unit": "Week", "next": "keep it going" },
+      "achievement": "Our Manufacturing Team hit its *on-time delivery targets* FOUR weeks in a row!",
+      "streak": { "done": 4, "unit": "Week", "next": "keep it going" },
       "message": "Your hard work, teamwork, and commitment are paying off. This is terrific progress, and we're proud to see the team moving in the right direction!"
     },
     {
