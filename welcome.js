@@ -7,6 +7,8 @@
  *
  *   welcome.json: { "on": true, "guest": "Acme Fabrication", "people": "Jane Doe & Sam Patel",
  *                   "from": "2026-10-09T09:00", "until": "2026-10-09T15:00" }
+ *   or several scheduled visits: { "on": true, "visits": [ { "guest": ..., "from": ..., "until": ... }, ... ] }
+ *   (the player picks the visit and passes its guest/people here).
  *
  * Layout, sizes and the fit rule follow docs/design/welcome/welcome.html.
  */
