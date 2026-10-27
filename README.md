@@ -532,6 +532,22 @@ It is switched by its own file, `welcome.json`, not by `slides.json`:
 | `people` | Optional line under the headline, e.g. the visitors' names. Empty or missing leaves the line out. |
 | `from`, `until` | Optional schedule, in the **TV's local time**, written `YYYY-MM-DDTHH:MM` (24-hour). Welcome mode is only on from `from` until `until`. Leave either empty (`""`) for no limit on that side. |
 
+**Several visits:** to schedule more than one visit in advance, put them in a `visits` list instead. Each entry has its own `guest`, `people`, `from` and `until` (same meanings as above); `on` stays at the top and switches them all. The TVs show whichever visit's schedule includes the current time (the first one listed, if two overlap), and the playlist in between. The player ignores the top-level `guest`/`people`/`from`/`until` when `visits` is present, but **also copy the first visit into them**. A TV still running player code from before `visits` existed (for about 10 minutes after a code deploy) reads only those fields, so this stops it showing the welcome screen at the wrong time.
+
+```json
+{
+  "on": true,
+  "guest": "Acme Fabrication",
+  "people": "",
+  "from": "2026-10-09T10:20",
+  "until": "2026-10-09T10:45",
+  "visits": [
+    { "guest": "Acme Fabrication", "people": "", "from": "2026-10-09T10:20", "until": "2026-10-09T10:45" },
+    { "guest": "Example Supply", "people": "Sam", "from": "2026-10-10T08:50", "until": "2026-10-10T09:15" }
+  ]
+}
+```
+
 Welcome mode is active when `on` is `true` **and** the time is inside the schedule (if one is given). A schedule that has already passed does nothing, so a forgotten `"on": true` from last week won't come back.
 
 **To turn it on**

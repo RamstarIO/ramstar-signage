@@ -1,7 +1,11 @@
 {
-  "on": false,
-  "guest": "Rachelle Da Dalt",
+  "on": true,
+  "guest": "Empire Communications",
   "people": "",
-  "from": "2026-10-09T08:45",
-  "until": "2026-10-09T09:15"
+  "from": "2026-10-27T10:20",
+  "until": "2026-10-27T10:45",
+  "visits": [
+    { "guest": "Empire Communications", "people": "", "from": "2026-10-27T10:20", "until": "2026-10-27T10:45" },
+    { "guest": "Casmet Supply", "people": "Adam", "from": "2026-10-28T08:50", "until": "2026-10-28T09:15" }
+  ]
 }
