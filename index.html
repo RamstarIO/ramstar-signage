@@ -446,11 +446,15 @@
   // "from" / "until" are optional: empty or missing means no limit.
   const given = (value) => value !== undefined && value !== null && value !== "";
 
-  function welcomeActive(w, now) {
-    if (!w || w.on !== true) return false;
-    if (given(w.from) && now < parseLocal(w.from)) return false;
-    if (given(w.until) && now >= parseLocal(w.until)) return false;
-    return true;
+  // The file holds one visit at the top level, or several in "visits".
+  const visitsOf = (w) => (Array.isArray(w.visits) ? w.visits : [w]);
+
+  // The first visit whose schedule includes now, or null.
+  function activeVisit(w, now) {
+    if (!w || w.on !== true) return null;
+    return visitsOf(w).find((v) =>
+      !(given(v.from) && now < parseLocal(v.from)) && !(given(v.until) && now >= parseLocal(v.until))
+    ) || null;
   }
 
   // Missing file, bad JSON or a network error keeps the current state, so a
@@ -461,8 +465,12 @@
       if (!response.ok) throw new Error(`welcome.json returned HTTP ${response.status}`);
       const data = await response.json();
       if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("welcome.json is not an object");
-      ["from", "until"].forEach((key) => {
-        if (given(data[key]) && !parseLocal(data[key])) throw new Error(`welcome.json "${key}" should look like 2026-10-09T09:00`);
+      if (given(data.visits) && !Array.isArray(data.visits)) throw new Error('welcome.json "visits" should be a list');
+      visitsOf(data).forEach((v) => {
+        if (!v || typeof v !== "object" || Array.isArray(v)) throw new Error("welcome.json visit is not an object");
+        ["from", "until"].forEach((key) => {
+          if (given(v[key]) && !parseLocal(v[key])) throw new Error(`welcome.json "${key}" should look like 2026-10-09T09:00`);
+        });
       });
       welcome = data;
     } catch (err) {
@@ -474,9 +482,9 @@
   }
 
   function applyWelcome() {
-    const active = welcomeActive(welcome, new Date());
-    if (active) {
-      const slide = { type: "welcome", guest: welcome.guest, people: welcome.people, progress: false };
+    const visit = activeVisit(welcome, new Date());
+    if (visit) {
+      const slide = { type: "welcome", guest: visit.guest, people: visit.people, progress: false };
       const key = JSON.stringify([slide.guest, slide.people]);
       if (welcomeOn && key === welcomeShown) return;
       welcomeOn = true;
