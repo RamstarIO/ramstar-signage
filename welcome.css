@@ -47,10 +47,10 @@
 .t-slide--welcome .t-star svg { position: absolute; inset: 0; }
 .t-slide--welcome .t-star-glow { opacity: 0; }
 .stage.amb-star .layer.is-visible .t-slide--welcome .t-star svg {
-  animation: amb-drift-loop 40s linear infinite;
+  animation: amb-drift-loop 60s linear infinite;
 }
 .stage.amb-star .layer.is-visible .t-slide--welcome .t-star .t-star-glow {
-  animation: amb-drift-loop 40s linear infinite,
+  animation: amb-drift-loop 60s linear infinite,
              welcome-pulse 5s ease-in-out calc(var(--star-at, 2000ms) + 1400ms) infinite;
 }
 .stage.amb-star .layer.is-visible .t-slide--welcome .t-star--welcome-b.t-star .t-star-glow {
