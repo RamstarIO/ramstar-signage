@@ -1,10 +1,10 @@
 {
   "on": true,
-  "guest": "Bear's Performance Inc.",
-  "people": "Keith Grondin",
-  "from": "2026-10-29T08:30",
-  "until": "2026-10-29T09:15",
+  "guest": "Plasel",
+  "people": "Tom Watson",
+  "from": "2026-11-06T10:15",
+  "until": "2026-11-06T11:00",
   "visits": [
-    { "guest": "Bear's Performance Inc.", "people": "Keith Grondin", "from": "2026-10-29T08:30", "until": "2026-10-29T09:15" }
+    { "guest": "Plasel", "people": "Tom Watson", "from": "2026-11-06T10:15", "until": "2026-11-06T11:00" }
   ]
 }
