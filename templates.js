@@ -26,7 +26,7 @@
  *     "streak": { "done": 2, "unit": "Week", "next": "keep it going" },
  *     "message": "Your hard work is paying off.", "until": "2026-10-30" }
  *   (shoutout: "theme" is "orange" (default) or "navy"; "tag" and "cheer" are optional;
- *    "streak.done" 1-4 shows a chip per period, 5+ one "N Weeks in a row" chip.)
+ *    "streak.done" 1-5 shows a chip per period, 6+ one "N Weeks in a row" chip.)
  *   { "type": "photo-feature", "photo": "slides/c4c/2026-pumpkins.jpg", "photoPosition": "30% 50%",
  *     "label": "Our Carve 4 Cancer entry", "logo": "slides/c4c/carve4cancer-logo.png",
  *     "headline": "Thank you,\n*Vanessa!*", "body": "Vanessa painted our witch...",
@@ -1057,10 +1057,12 @@
   const SO_HEAD_AREA = 1680;
   const SO_ACH_SIZES = [54, 50, 46]; // at most 2 lines
   const SO_MSG_SIZES = [40, 36, 34]; // at most 3 lines
+  const SO_CHIP_SIZES = [50, 46, 42, 38, 34]; // done chips, until the row fits SO_HEAD_AREA
+  const SO_MAX_CHIPS = 5;
   const SO_PAD_BOTTOM = 84;
   const SO_TICK = '<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4,12.5 9.5,18 20,6.5"/></svg>';
 
-  // Up to 4 completed periods get a chip each ("Week 1".."Week 4"); from 5 on
+  // Up to 5 completed periods get a chip each ("Week 1".."Week 5"); from 6 on
   // they collapse into one ("6 Weeks in a row"). The dashed "next" chip
   // ("Week 3 · keep it going") follows when streak.next is set. --i orders the beat.
   function streakChips(streak) {
@@ -1072,7 +1074,7 @@
     const unit = String(streak.unit || "Week").trim();
     const next = String(streak.next || "").trim();
     const chips = [];
-    if (done >= 5) chips.push(["done", `${done} ${unit}s in a row`]);
+    if (done > SO_MAX_CHIPS) chips.push(["done", `${done} ${unit}s in a row`]);
     else for (let i = 1; i <= done; i += 1) chips.push(["done", `${unit} ${i}`]);
     if (next) chips.push(["next", `${unit} ${done + 1} · ${next}`]);
     const row = h("div", "t-so-streak");
@@ -1094,10 +1096,11 @@
   // Fit rules, measured once in the hidden 1920x1080 box like the value slide:
   // 1. both headline lines shrink together 150 -> 110 px (4 px steps) until
   //    neither is wider than 1680 px; 2. the achievement steps 54 -> 50 -> 46 px
-  //    until it is at most 2 lines; 3. the message steps 40 -> 36 -> 34 px until
-  //    it is at most 3 lines; 4. if the foot still reaches into the bottom
-  //    padding, the message is dropped rather than overlap.
-  function fitShoutout(root, { frame, team, cheer, ach, msg, foot }) {
+  //    until it is at most 2 lines; 3. the done streak chips step 50 -> 34 px
+  //    (4 px steps) until the row is no wider than 1680 px; 4. the message
+  //    steps 40 -> 36 -> 34 px until it is at most 3 lines; 5. if the foot still
+  //    reaches into the bottom padding, the message is dropped rather than overlap.
+  function fitShoutout(root, { frame, team, cheer, ach, streak, msg, foot }) {
     const probe = h("div", "t-measure");
     probe.appendChild(root);
     document.body.appendChild(probe);
@@ -1108,6 +1111,16 @@
     for (const size of SO_ACH_SIZES) {
       root.style.setProperty("--so-a", `${size}px`);
       if (lineCount(ach) <= 2) break;
+    }
+    if (streak) {
+      const first = streak.firstElementChild;
+      const last = streak.lastElementChild;
+      const fits = () => last.offsetLeft + last.offsetWidth - first.offsetLeft <= SO_HEAD_AREA;
+      for (const size of SO_CHIP_SIZES) {
+        root.style.setProperty("--so-c", `${size}px`);
+        if (fits()) break;
+      }
+      if (!fits()) console.warn("shoutout: the streak chips are wider than the slide even at their smallest");
     }
     if (msg) {
       for (const size of SO_MSG_SIZES) {
@@ -1134,6 +1147,7 @@
       if (!document.fonts || !document.fonts.load) return null;
       return Promise.all([
         document.fonts.load(`800 ${SO_HEAD_MAX}px "Barlow Condensed"`),
+        document.fonts.load(`700 ${SO_CHIP_SIZES[0]}px "Barlow Condensed"`), // the navy "next" chip
         document.fonts.load(`600 ${SO_ACH_SIZES[0]}px "Barlow"`),
         document.fonts.load(`800 ${SO_ACH_SIZES[0]}px "Barlow"`),
         document.fonts.load(`500 ${SO_MSG_SIZES[0]}px "Barlow"`)
@@ -1171,7 +1185,7 @@
         h("div", "t-so-spacer"),
         add(foot, anim(msg), anim(logo)));
       add(root, star("t-star--shoutout", orange ? "#FFAE4A" : "#194B98"), frame);
-      fitShoutout(root, { frame, team, cheer, ach, msg, foot });
+      fitShoutout(root, { frame, team, cheer, ach, streak, msg, foot });
       return starLast(root, anim);
     }
   };

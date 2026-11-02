@@ -768,7 +768,7 @@
   text-decoration-skip-ink: none;
 }
 
-.t-so-streak { display: flex; gap: 24px; margin-top: 6px; }
+.t-so-streak { display: flex; align-items: center; gap: 24px; margin-top: 6px; }
 .t-so-chip {
   display: flex;
   align-items: center;
@@ -778,11 +778,11 @@
   text-transform: uppercase;
   white-space: nowrap;
 }
-.t-so-chip--done { padding: 16px 30px 16px 22px; background: #0E2A56; color: #FFFFFF; --tick: #F7941D; }
+.t-so-chip--done { font-size: var(--so-c, 50px); gap: 0.32em; padding: 0.32em 0.6em 0.32em 0.44em; background: #0E2A56; color: #FFFFFF; --tick: #F7941D; }
 .t-slide--navy .t-so-chip--done { background: #F7941D; color: #0E2A56; --tick: #0E2A56; }
 .t-so-chip svg {
-  width: 44px;
-  height: 44px;
+  width: 0.88em;
+  height: 0.88em;
   display: block;
   fill: none;
   stroke: var(--tick);
