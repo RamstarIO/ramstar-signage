@@ -55,27 +55,15 @@
     {
       "title": "Birthdays",
       "type": "birthdays",
-      "month": "OCTOBER",
+      "month": "NOVEMBER",
       "people": [
         {
-          "day": "Thu 01",
-          "name": "John Winkfield Sr."
+          "day": "Wed 11",
+          "name": "Adam Duguay"
         },
         {
-          "day": "Tue 06",
-          "name": "Derek Bavetta"
-        },
-        {
-          "day": "Mon 12",
-          "name": "Timothy Le Faive"
-        },
-        {
-          "day": "Fri 16",
-          "name": "John Winkfield Jr."
-        },
-        {
-          "day": "Sun 18",
-          "name": "Emily Kimball"
+          "day": "Wed 18",
+          "name": "Rachelle Da Dalt"
         }
       ],
       "duration": 10
@@ -106,12 +94,11 @@
     {
       "title": "Work anniversaries",
       "type": "anniversaries",
-      "month": "OCTOBER",
+      "month": "NOVEMBER",
       "people": [
-        { "day": "Thu 15", "name": "Rhonda Middleton", "years": 4 },
-        { "day": "Sat 24", "name": "Maral Hosseini", "years": 4 }
-      ],
-      "duration": 10
+        { "day": "Fri 20", "name": "Michael Dojcinovski", "years": 3 },
+        { "day": "Sun 22", "name": "John Winkfield Jr.", "years": 15 }
+      ]
     },
     {
       "title": "Event countdown",
