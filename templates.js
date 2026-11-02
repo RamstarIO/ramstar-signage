@@ -36,6 +36,13 @@
  *    *accent* is navy on an orange block; "partners" is 0-2 logos in a top row beside "logo";
  *    "qr" is an optional code (with its own quiet zone) bottom left; a failed photo skips the
  *    slide, a failed logo or QR is just left out.)
+ *   { "type": "results", "tag": "Carve 4 Cancer results", "photo": "slides/c4c/2026-pumpkins.jpg",
+ *     "photoCaption": "Our entry", "number": "$15,072", "caption": "raised for ...", "note": "Thank you!",
+ *     "categories": [{ "name": "Best Pumpkin", "winner": "Team A", "winnerNote": "...", "runnerUp": "Team B" }],
+ *     "partners": ["slides/c4c/wccf-logo.png"], "until": "2026-11-13" }
+ *   (results: "number" and 1-4 "categories" (each with "name" and "winner") are required;
+ *    "number" counts up keeping any "$", "%" or "+"; "partners" is 0-2 logos bottom left;
+ *    a failed photo or logo is just left out.)
  *
  * Each type is { render(slide, data), load?(slide), isActive?(slide) } and is
  * registered on window.RamstarTypes, which the player (index.html) looks up.
@@ -193,15 +200,17 @@
   // Changing text forces the browser to lay out and repaint it, so the count
   // ticks about 12 times a second (like a mechanical counter) rather than on
   // every frame. That's ~6x less work on a Fire Stick, and it still reads as
-  // a smooth count.
+  // a smooth count. A non-digit prefix or suffix ("$15,072", "98%", "1,200+")
+  // stays fixed while the digits count; anything else (e.g. "12.5") is left as is.
   const COUNT_TICK_MS = 80;
   function countUp(heroSpan, finalText, delayMs) {
-    const digits = String(finalText).replace(/,/g, "");
-    if (!/^\d+$/.test(digits)) return;
+    const m = /^(\D*?)(\d[\d,]*)(\D*)$/.exec(String(finalText));
+    if (!m) return;
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const target = Number(digits);
-    const withCommas = String(finalText).includes(",");
-    const format = (n) => (withCommas ? n.toLocaleString("en-US") : String(n));
+    const [, prefix, digits, suffix] = m;
+    const target = Number(digits.replace(/,/g, ""));
+    const withCommas = digits.includes(",");
+    const format = (n) => prefix + (withCommas ? n.toLocaleString("en-US") : String(n)) + suffix;
     setHeroText(heroSpan, format(0));
     setTimeout(() => {
       const start = performance.now();
@@ -1223,9 +1232,10 @@
   }
 
   // Logos and the QR code are optional: one that fails to load is left out, not fatal.
-  function optionalImage(src, what) {
+  // `type` names the slide type in the warning.
+  function optionalImage(src, what, type = "photo-feature") {
     return imageSize(src).catch(() => {
-      console.warn(`photo-feature: could not load ${what} ${src}; it is left out`);
+      console.warn(`${type}: could not load ${what} ${src}; it is left out`);
       return null;
     });
   }
@@ -1350,6 +1360,154 @@
       add(root, photo, panel);
       fitPhotoFeature(root, { panel, head, body, foot, top });
       return root;
+    }
+  };
+
+  // ---------- Results ----------
+  // The outcome of a fundraiser or contest on navy: a tilted photo, one big
+  // number, and 1-4 category cards with a winner and a runner-up.
+  // Layout, fit rules and motion follow docs/design/results/README.md.
+
+  const RS_NUM_MAX = 210;
+  const RS_NUM_MIN = 140;
+  const RS_NUM_STEP = 10;
+  const RS_CARD_SIZES = [[38, 28], [34, 26], [30, 24]]; // winner / runner-up px, stepped together
+  const RS_CATS_MAX = 4;
+  const RS_PARTNERS_MAX = 2;
+  const RS_FOOT_GAP = 24; // the card row ends at least this far above the footer
+  const RS_WIN_STAR = `<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="${STAR_POINTS}" fill="#F7941D"/></svg>`;
+
+  // Categories need a name and a winner; the rest are dropped, extras past 4 ignored.
+  function resultCategories(slide) {
+    const all = Array.isArray(slide.categories) ? slide.categories : [];
+    const valid = all.filter((c) => {
+      const ok = c && String(c.name || "").trim() && String(c.winner || "").trim();
+      if (!ok) console.warn("results: a category without a name or winner is left out", c);
+      return ok;
+    });
+    if (valid.length > RS_CATS_MAX) console.warn(`results: ${valid.length} categories given, showing the first ${RS_CATS_MAX}`);
+    return valid.slice(0, RS_CATS_MAX);
+  }
+
+  function resultCard(c, i) {
+    const cell = h("div", "t-res-cell"); // carries the entrance
+    const card = h("div", "t-res-card"); // carries the beat, so the whole card bumps
+    card.style.setProperty("--i", i);
+    const win = h("div", "t-res-win");
+    win.innerHTML = RS_WIN_STAR;
+    win.appendChild(h("div", "t-res-win-name", c.winner));
+    const winWrap = add(h("div"), win, c.winnerNote ? h("div", "t-res-win-note", c.winnerNote) : null);
+    let run = null;
+    if (String(c.runnerUp || "").trim()) {
+      run = h("div", "t-res-run");
+      add(run, h("b", null, "Runner-up "), document.createTextNode(c.runnerUp));
+    }
+    add(card, h("div", "t-res-cat", c.name), winWrap, run);
+    return add(cell, card);
+  }
+
+  // Fit rules, measured once in the hidden 1920x1080 box like the shoutout:
+  // 1. the number shrinks 210 -> 140 px (10 px steps) until it fits the
+  //    headline column on one line; 2. winner/runner-up sizes step together
+  //    38/28 -> 34/26 -> 30/24 px until the card row ends 24 px above the
+  //    footer; 3. if it still doesn't, every runner-up is clamped to 2 lines.
+  function fitResults(root, { head, number, cards, foot }) {
+    const probe = h("div", "t-measure");
+    probe.appendChild(root);
+    document.body.appendChild(probe);
+    for (let size = RS_NUM_MAX; size >= RS_NUM_MIN; size -= RS_NUM_STEP) {
+      root.style.setProperty("--rs-n", `${size}px`);
+      if (number.scrollWidth <= head.clientWidth) break;
+    }
+    const over = () => cards.offsetTop + cards.offsetHeight > foot.offsetTop - RS_FOOT_GAP;
+    for (const [w, r] of RS_CARD_SIZES) {
+      root.style.setProperty("--rs-w", `${w}px`);
+      root.style.setProperty("--rs-r", `${r}px`);
+      if (!over()) break;
+    }
+    if (over()) {
+      cards.classList.add("t-res-cards--clamp");
+      console.warn("results: category text too long; runner-ups clamped to 2 lines");
+    }
+    probe.remove();
+    root.remove();
+  }
+
+  types.results = {
+    // Results go stale: hide the slide after "until" (if set).
+    isActive(slide) {
+      const until = parseDay(slide.until);
+      return !until || today() <= until;
+    },
+    // The number and at least one category are required (or the slide is
+    // skipped); the photo and logos are optional and just left out if they
+    // fail. Fonts are waited for so the fit rules measure real text.
+    load(slide) {
+      if (!String(slide.number || "").trim()) return Promise.reject(new Error("results slide has no number"));
+      const categories = resultCategories(slide);
+      if (!categories.length) return Promise.reject(new Error("results slide has no categories with a name and winner"));
+      let partners = (Array.isArray(slide.partners) ? slide.partners : []).filter(Boolean);
+      if (partners.length > RS_PARTNERS_MAX) {
+        console.warn(`results: ${partners.length} partner logos given, showing the first ${RS_PARTNERS_MAX}`);
+        partners = partners.slice(0, RS_PARTNERS_MAX);
+      }
+      const fonts = document.fonts && document.fonts.load
+        ? Promise.all([
+          document.fonts.load(`800 ${RS_NUM_MAX}px "Barlow Condensed"`),
+          document.fonts.load(`700 30px "Barlow Condensed"`),
+          document.fonts.load(`700 ${RS_CARD_SIZES[0][0]}px "Barlow"`),
+          document.fonts.load(`600 44px "Barlow"`),
+          document.fonts.load(`500 ${RS_CARD_SIZES[0][1]}px "Barlow"`)
+        ]).catch(() => null)
+        : null;
+      return Promise.all([
+        slide.photo ? optionalImage(slide.photo, "photo", "results") : null,
+        Promise.all(partners.map((src) => optionalImage(src, "partner logo", "results"))),
+        optionalImage(LOGO_REVERSE, "logo", "results"),
+        fonts
+      ]).then(([photo, partnerInfo, ramstar]) => ({ photo, partners: partnerInfo.filter(Boolean), ramstar, categories }));
+    },
+
+    render(slide, data) {
+      const info = data || {};
+      const categories = info.categories || resultCategories(slide);
+      const anim = sequencer();
+      const root = slideRoot("navy t-slide--results", slide, "beat");
+      add(root, star("t-star--results", "#194B98"));
+
+      // The wrapper rises in; the frame inside keeps its tilt.
+      if (info.photo) {
+        const frame = h("div", "t-res-frame");
+        add(frame, sizedImg("t-res-photo", info.photo), slide.photoCaption ? h("div", "t-res-cap", slide.photoCaption) : null);
+        add(root, add(anim(h("div", "t-res-frame-wrap")), frame));
+      } else {
+        root.classList.add("t-res--nophoto");
+      }
+
+      const head = h("div", "t-res-head");
+      const numberText = String(slide.number).trim();
+      const number = hero("div", "t-res-number", numberText);
+      add(head,
+        anim(tag(slide.tag || "Results")),
+        anim(number),
+        slide.caption ? anim(h("div", "t-res-caption", slide.caption)) : null,
+        slide.note ? anim(h("div", "t-res-note", slide.note)) : null);
+
+      const cards = h("div", "t-res-cards");
+      cards.style.setProperty("--cols", categories.length);
+      categories.forEach((c, i) => cards.appendChild(anim(resultCard(c, i))));
+
+      // Footer: partner logos on white cards (left), reverse Ramstar logo (right).
+      const partners = (info.partners || []).length
+        ? add(h("div", "t-res-partners"), ...info.partners.map((p) => add(h("div", "t-res-partner"), sizedImg(null, p))))
+        : h("div");
+      const ramstar = sizedImg("t-res-ramstar", info.ramstar || { src: LOGO_REVERSE }, "Ramstar");
+      const foot = anim(add(h("div", "t-res-foot"), partners, ramstar));
+
+      add(root, head, cards, foot);
+      fitResults(root, { head, number, cards, foot });
+      countUp(number.heroSpan, numberText, parseInt(number.style.getPropertyValue("--d"), 10));
+      return starLast(root, anim);
     }
   };
 
