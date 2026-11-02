@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Results (design reference)</title>
+<!-- Design reference only, not part of the player. Canvas 1920x1080.
+     Query options: ?long=1 (fit rules)  ?three=1 (3 categories)  ?nophoto=1 (no photo)
+     Image paths assume this file sits at docs/design/results/ in the repo. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600;700&display=swap">
+<style>
+  body { margin: 0; font-family: 'Barlow', sans-serif; }
+  .slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; background: #0E2A56; color: #FFFFFF; }
+  .star { position: absolute; right: -200px; top: -220px; width: 860px; height: 860px; fill: none; stroke: #194B98; stroke-width: 1.4; stroke-linejoin: round; }
+
+  /* Top band: photo frame (left) + headline block (right). Without a photo the headline block starts at the left margin. */
+  .frame { position: absolute; left: 100px; top: 70px; background: #FFFFFF; padding: 16px 16px 58px; border-radius: 6px;
+           transform: rotate(-3deg); box-shadow: 0 20px 44px rgba(0,0,0,0.35); }
+  .frame img { width: 520px; height: 390px; object-fit: cover; display: block; }
+  .frame .cap { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; font-family: 'Barlow Condensed', sans-serif;
+                font-weight: 800; font-size: 32px; color: #0E2A56; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 16px; }
+  .head { position: absolute; left: 740px; right: 110px; top: 84px; display: flex; flex-direction: column; gap: 18px; }
+  .slide.nophoto .head { left: 100px; }
+  .tag { align-self: flex-start; background: #F7941D; color: #0E2A56; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 36px;
+         letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 26px; border-radius: 6px; }
+  .number { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: var(--n, 210px); line-height: 0.85; color: #F7941D; white-space: nowrap; }
+  .caption { font-size: 44px; font-weight: 600; line-height: 1.2; }
+  .note { font-size: 32px; font-weight: 500; color: #D6DDEA; }
+
+  /* Category cards: one row, 1-4 equal columns, top 590 */
+  .cards { position: absolute; left: 100px; right: 100px; top: 590px; display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: 22px; }
+  .card { background: #163A72; border-radius: 14px; padding: 22px 28px 24px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .cat { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 30px; letter-spacing: 0.06em; text-transform: uppercase; color: #F7941D; line-height: 1.1; }
+  .win { display: flex; gap: 12px; align-items: flex-start; }
+  .win svg { width: 34px; height: 34px; flex: none; margin-top: 4px; }
+  .win-name { font-size: var(--w, 38px); font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+  .win-note { font-size: 26px; font-weight: 600; color: #F7941D; margin: 2px 0 0 46px; }
+  .run { font-size: var(--r, 28px); font-weight: 500; line-height: 1.25; color: #AFC0DA; }
+  .run b { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 24px; }
+
+  /* Footer: partner logos on white cards (left), reverse Ramstar logo (right) */
+  .foot { position: absolute; left: 100px; right: 100px; bottom: 50px; display: flex; align-items: center; justify-content: space-between; }
+  .partners { display: flex; gap: 20px; }
+  .partners div { background: #FFFFFF; border-radius: 10px; padding: 8px 14px; }
+  .partners img { max-width: 190px; max-height: 84px; display: block; }
+  .ramstar { width: 220px; display: block; }
+</style>
+</head>
+<body>
+<div class="slide" id="slide"></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const R = "../../../";
+  const data = {
+    type: "results",
+    tag: "Carve 4 Cancer results",
+    photo: q.has("nophoto") ? "" : R + "slides/c4c/2026-pumpkins.jpg",
+    photoCaption: "Our entry · by Vanessa",
+    number: q.has("long") ? "$1,215,072" : "$15,072",
+    caption: "raised for the Windsor Cancer Centre Foundation",
+    note: "Thank you to everyone who voted and donated!",
+    categories: [
+      { name: "Best Pumpkin · Online vote", winner: "KPMG", runnerUp: "Vollmer Group" },
+      { name: "Best Pumpkin · In-person vote", winner: q.has("long") ? "Sunsetters Tanning and Wellness Centre Leamington" : "Sunsetters Tanning Leamington", runnerUp: "Vollmer Group" },
+      { name: "Highest Fundraiser", winner: "CenterLine", winnerNote: "Over $1,000 in extra donations!", runnerUp: "Cavalier Tool" },
+      { name: "Judges' Award", winner: "MTE Controls Corp.", runnerUp: q.has("long") ? "“Bank Robber” pumpkin carved by the Bareich family and friends on behalf of all other donors who were unable to carve" : "“Bank Robber” pumpkin by the Bareich family & friends" }
+    ].slice(0, q.has("three") ? 3 : 4),
+    partners: [R + "slides/c4c/wccf-logo.png"]
+  };
+  const STAR = "50,2 61.76,33.82 95.65,35.17 69.02,56.18 78.21,88.83 50,70 21.79,88.83 30.98,56.18 4.35,35.17 38.24,33.82";
+  const h = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x) n.textContent = x; return n; };
+  const img = (src, c) => { const i = h("img", c); i.src = src; i.alt = ""; return i; };
+  const svgStar = (cls, fill) => { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 100 100"); if (cls) s.setAttribute("class", cls);
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "polygon"); p.setAttribute("points", STAR); if (fill) p.setAttribute("fill", fill); s.appendChild(p); return s; };
+
+  const slide = document.getElementById("slide");
+  if (!data.photo) slide.classList.add("nophoto");
+  slide.appendChild(svgStar("star"));
+  if (data.photo) { const f = h("div", "frame"); f.append(img(data.photo), data.photoCaption ? h("div", "cap", data.photoCaption) : ""); slide.appendChild(f); }
+  const head = h("div", "head");
+  head.append(h("div", "tag", data.tag || "Results"), h("div", "number", data.number));
+  if (data.caption) head.append(h("div", "caption", data.caption));
+  if (data.note) head.append(h("div", "note", data.note));
+  slide.appendChild(head);
+
+  const cards = h("div", "cards"); cards.style.setProperty("--cols", data.categories.length);
+  data.categories.forEach((c, i) => {
+    const card = h("div", "card"); card.style.setProperty("--i", i);
+    const win = h("div", "win"); win.append(svgStar(null, "#F7941D"), h("div", "win-name", c.winner));
+    const wrap = h("div"); wrap.append(win); if (c.winnerNote) wrap.append(h("div", "win-note", c.winnerNote));
+    card.append(h("div", "cat", c.name), wrap);
+    if (c.runnerUp) { const r = h("div", "run"); const b = h("b", null, "Runner-up "); r.append(b, document.createTextNode(c.runnerUp)); card.append(r); }
+    cards.append(card);
+  });
+  slide.appendChild(cards);
+
+  const foot = h("div", "foot"), partners = h("div", "partners");
+  (data.partners || []).slice(0, 2).forEach(src => { const d = h("div"); d.append(img(src)); partners.append(d); });
+  foot.append(partners, img(R + "assets/ramstar-logo-reverse.png", "ramstar"));
+  slide.appendChild(foot);
+
+  // Fit rules (measure once after fonts and images load; design px):
+  //  1. Number: one line. Shrink from 210 px in 10 px steps to 140 px until it
+  //     fits the headline column (with no photo the column is wider).
+  //  2. Cards: the row must end at least 24 px above the footer's top.
+  //     Step winner/runner-up sizes together: 38/28 -> 34/26 -> 30/24 px.
+  //     If it still doesn't fit, clamp each runner-up to 2 lines with an
+  //     ellipsis and console.warn (text too long for a TV card).
+  Promise.all([document.fonts.ready, ...[...document.images].map(i => i.complete ? 0 : new Promise(r => i.onload = i.onerror = r))]).then(() => {
+    const num = head.querySelector(".number");
+    for (let s = 210; s >= 140; s -= 10) { head.style.setProperty("--n", s + "px"); if (num.scrollWidth <= head.clientWidth) break; }
+    const over = () => cards.getBoundingClientRect().bottom > foot.getBoundingClientRect().top - 24;
+    for (const [w, r] of [[38, 28], [34, 26], [30, 24]]) { cards.style.setProperty("--w", w + "px"); cards.style.setProperty("--r", r + "px"); if (!over()) break; }
+    if (over()) {
+      cards.querySelectorAll(".run").forEach(r => Object.assign(r.style, { display: "-webkit-box", webkitBoxOrient: "vertical", webkitLineClamp: "2", overflow: "hidden" }));
+      console.warn("results: category text too long; runner-ups clamped to 2 lines");
+    }
+  });
+</script>
+</body>
+</html>

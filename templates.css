@@ -932,3 +932,111 @@
   .layer.is-visible .t-pf-photo,
   .layer.is-visible .t-pf-img { animation: none; opacity: 1; }
 }
+
+/* ---------- Results (spec: docs/design/results/README.md) ----------
+   Navy: a tilted photo top left, the headline block (tag, number, caption,
+   note), one row of 1-4 category cards, partner logos bottom left and the
+   reverse logo bottom right. Sizes marked var(--rs-*) are set by the fit
+   rules in templates.js. */
+.t-star--results { right: -200px; top: -220px; width: 860px; height: 860px; }
+.t-slide--results .t-star svg { stroke-width: 1.4; }
+
+/* Photo frame: the wrapper rises in (t-in); the frame inside keeps its tilt. */
+.t-res-frame-wrap { position: absolute; left: 100px; top: 70px; }
+.t-res-frame {
+  position: relative;
+  background: #FFFFFF;
+  padding: 16px 16px 58px;
+  border-radius: 6px;
+  transform: rotate(-3deg);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.35);
+}
+.t-res-photo { display: block; width: 520px; height: 390px; object-fit: cover; }
+.t-res-cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12px;
+  padding: 0 16px;
+  text-align: center;
+  font: 800 32px/1.2 "Barlow Condensed", system-ui, sans-serif;
+  color: #0E2A56;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.t-res-head { position: absolute; left: 740px; right: 110px; top: 84px; display: flex; flex-direction: column; gap: 18px; }
+.t-res--nophoto .t-res-head { left: 100px; }
+.t-slide--results .t-tag { font-size: 36px; padding: 8px 26px; }
+.t-res-number {
+  font-family: "Barlow Condensed", system-ui, sans-serif;
+  font-weight: 800;
+  font-size: var(--rs-n, 210px);
+  line-height: 0.85;
+  color: #F7941D;
+  white-space: nowrap;
+}
+.t-res-caption { font-size: 44px; font-weight: 600; line-height: 1.2; }
+.t-res-note { font-size: 32px; font-weight: 500; color: #D6DDEA; }
+
+/* Category cards: one row of equal columns. The cell carries the entrance
+   and the card inside it the beat, so every card is the same height. */
+.t-res-cards {
+  position: absolute;
+  left: 100px;
+  right: 100px;
+  top: 590px;
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
+  gap: 22px;
+}
+.t-res-cell { display: flex; flex-direction: column; min-width: 0; }
+.t-res-card {
+  flex: 1;
+  background: #163A72;
+  border-radius: 14px;
+  padding: 22px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.t-res-cat {
+  font: 700 30px/1.1 "Barlow Condensed", system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #F7941D;
+}
+.t-res-win { display: flex; gap: 12px; align-items: flex-start; }
+.t-res-win svg { width: 34px; height: 34px; flex: none; margin-top: 4px; display: block; }
+.t-res-win-name { font-size: var(--rs-w, 38px); font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; min-width: 0; }
+.t-res-win-note { font-size: 26px; font-weight: 600; line-height: 1.2; color: #F7941D; margin: 2px 0 0 46px; }
+.t-res-run { font-size: var(--rs-r, 28px); font-weight: 500; line-height: 1.25; color: #AFC0DA; }
+.t-res-run b {
+  font: 700 24px "Barlow Condensed", system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-right: 8px;
+}
+.t-res-cards--clamp .t-res-run {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.t-res-foot {
+  position: absolute;
+  left: 100px;
+  right: 100px;
+  bottom: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.t-res-partners { display: flex; gap: 20px; }
+.t-res-partner { background: #FFFFFF; border-radius: 10px; padding: 8px 14px; }
+.t-res-partner img { display: block; width: auto; height: auto; max-width: 190px; max-height: 84px; }
+.t-res-ramstar { display: block; width: 220px; height: auto; }
