@@ -47,9 +47,9 @@
         "Family members are prohibited from winning"
       ],
       "closes": "Guesses close Fri, Nov 6 · 12:00 PM",
-      "reveal": false,
-      "answer": "",
-      "winner": "",
+      "reveal": true,
+      "answer": "Jamie Robinet",
+      "winner": "Derek Bavetta",
       "duration": 10
     },
     {
