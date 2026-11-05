@@ -14,7 +14,9 @@
  *   { "type": "milestone", "number": "100,000", "label": "Cuts completed", "note": "This year. Thank you, team." }
  *   { "type": "value", "index": "1 of 5", "name": "We Partner", "examples": ["...", "..."] }
  *   { "type": "event", "name": "Fall BBQ", "date": "2026-10-17", "time": "12:00 PM",
- *     "location": "Shop floor", "note": "Burgers on us." }
+ *     "location": "Shop floor", "note": "Burgers on us.", "decor": ["snow", "ornaments"] }
+ *   (event: "decor" is optional, one name or a list of "snow", "lights", "ornaments" or "none";
+ *    unknown names are ignored with a console warning, and no decor leaves the slide unchanged.)
  *   { "type": "safety", "since": "2026-01-12", "tip": "Gloves on for every cut." }
  *   { "type": "holidays", "holidays": [{ "date": "2026-12-26", "name": "Boxing Day", "observed": "2026-12-28" }],
  *     "shutdowns": [{ "name": "Winter shutdown", "from": "2026-12-24", "to": "2027-01-01", "note": "Office and manufacturing" }] }
@@ -361,6 +363,124 @@
     return wrap;
   }
 
+  // ---------- Holiday decor for the event slide (docs/design/holiday-decor) ----------
+  // "snow" (falling flakes behind the words), "lights" (a twinkling light
+  // string across the top), "ornaments" (baubles hanging in the orange panel,
+  // clear of the countdown). Placement is seeded, so every TV shows the same
+  // picture; moving pieces only translate, rotate or fade (the Fire Stick rule).
+
+  const HD_KINDS = ["snow", "lights", "ornaments"];
+  const HD_SPLIT_X = 1280;   // where the navy panel ends and the orange one (640 px) starts
+  const HD_FLAKES = 46;
+  const HD_SWAG_SAG = 70;
+  const HD_BULBS_PER_SWAG = 8;
+  const HD_BULB_COLORS = ["#F7941D", "#FFFFFF", "#6C9BE0", "#FFD27A"];
+  // left (px), string length, size, colour, swing delay (s)
+  const HD_ORNAMENTS = [
+    [1318, 150, 116, "#0E2A56", 0],
+    [1462, 50, 88, "#FFFFFF", 0.8],
+    [1606, 100, 104, "#0E2A56", 1.6],
+    [1748, 30, 84, "#FFFFFF", 0.4]
+  ];
+
+  // "decor" is one name or a list; "none" and blanks are dropped, unknown names warned about.
+  function holidayDecorKinds(decor) {
+    const kinds = [];
+    (Array.isArray(decor) ? decor : [decor]).forEach((d) => {
+      const kind = String(d == null ? "" : d).trim().toLowerCase();
+      if (!kind || kind === "none" || kinds.includes(kind)) return;
+      if (HD_KINDS.includes(kind)) kinds.push(kind);
+      else console.warn(`event: unknown decor "${d}" ignored`);
+    });
+    return kinds;
+  }
+
+  function flakeSvg() {
+    return `<svg viewBox="-10 -10 20 20" aria-hidden="true"><g stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round">` +
+      `<path d="M0-9V9M-7.8-4.5 7.8 4.5M-7.8 4.5 7.8-4.5M-2.5-7.5 0-5 2.5-7.5M-2.5 7.5 0 5 2.5 7.5"/></g></svg>`;
+  }
+
+  function holidayDecor(kind) {
+    const wrap = h("div", `hd-decor hd-decor--${kind}`);
+    const rnd = seeded(1225);
+    if (kind === "snow") {
+      // About a third are line snowflakes (34-50 px), the rest soft dots (12-22 px).
+      // Negative delays: it's already snowing when the slide appears.
+      for (let i = 0; i < HD_FLAKES; i++) {
+        const fall = h("div", `hd-flake-fall hd-flake-fall--${i % 2 ? "r" : "l"}`);
+        const secs = 14 + rnd() * 10;
+        const left = Math.round(20 + (i / HD_FLAKES) * 1880 + rnd() * 40);
+        const delay = -rnd() * secs;
+        // --hd-x/--hd-y: where the flake is at that delay, the still picture for reduced motion
+        const at = -delay / secs;
+        fall.style.cssText = `left:${left}px;animation-duration:${secs.toFixed(2)}s;animation-delay:${delay.toFixed(2)}s;` +
+          `--hd-x:${Math.round((i % 2 ? 70 : -70) * at)}px;--hd-y:${Math.round(1200 * at)}px`;
+        const flake = h("div", "hd-flake");
+        const size = rnd() < 0.35 ? 34 + Math.round(rnd() * 16) : 12 + Math.round(rnd() * 10);
+        const dot = size < 24;
+        flake.style.cssText = `width:${size}px;height:${size}px;opacity:${(dot ? 0.35 + rnd() * 0.35 : 0.45 + rnd() * 0.3).toFixed(2)};` +
+          `animation-duration:${(6 + rnd() * 6).toFixed(2)}s`;
+        if (dot) flake.classList.add("hd-flake--dot"); else flake.innerHTML = flakeSvg();
+        wrap.appendChild(add(fall, flake));
+      }
+    } else if (kind === "lights") {
+      // Three swags across the top; the bulbs sit on each curve.
+      let path = "";
+      const bulbs = [];
+      [[0, 640], [640, 1280], [1280, 1920]].forEach(([x0, x1]) => {
+        const xm = (x0 + x1) / 2, ym = 6 + HD_SWAG_SAG * 2;
+        path += `M${x0},6 Q${xm},${ym} ${x1},6 `;
+        for (let k = 1; k <= HD_BULBS_PER_SWAG; k++) {
+          const t = k / (HD_BULBS_PER_SWAG + 1);
+          const x = (1 - t) * (1 - t) * x0 + 2 * (1 - t) * t * xm + t * t * x1;
+          const y = (1 - t) * (1 - t) * 6 + 2 * (1 - t) * t * ym + t * t * 6;
+          bulbs.push([x, y]);
+        }
+      });
+      const wire = h("div", "hd-wire");
+      wire.innerHTML = `<svg viewBox="0 0 1920 160" width="1920" height="160" aria-hidden="true"><path d="${path}" fill="none" stroke="#06152E" stroke-width="4"/></svg>`;
+      wrap.appendChild(wire);
+      bulbs.forEach(([x, y], i) => {
+        const c = HD_BULB_COLORS[i % HD_BULB_COLORS.length];
+        const b = h("div", "hd-bulb");
+        b.style.cssText = `left:${Math.round(x - 11)}px;top:${Math.round(y)}px;--c:${c};animation-delay:${((i * 0.37) % 2.4).toFixed(2)}s`;
+        b.innerHTML = `<i class="hd-glow-dot"></i><svg viewBox="0 0 22 34" aria-hidden="true"><rect x="7" y="0" width="8" height="7" rx="1.5" fill="#06152E"/><path d="M11 6c6 0 10 8 10 15a10 10 0 0 1-20 0C1 14 5 6 11 6z" fill="${c}"/></svg>`;
+        wrap.appendChild(b);
+      });
+    } else if (kind === "ornaments") {
+      // Navy and white baubles; the highlight band is white on navy, orange on white.
+      HD_ORNAMENTS.forEach(([x, len, size, color, delay]) => {
+        const white = color === "#FFFFFF";
+        const o = h("div", "hd-orn");
+        o.style.cssText = `left:${x}px;animation-delay:${delay}s`;
+        o.innerHTML = `<svg viewBox="0 0 100 ${len + 120}" width="${size}" height="${(len + 120) * size / 100}" aria-hidden="true">` +
+          `<line x1="50" y1="0" x2="50" y2="${len}" stroke="#0E2A56" stroke-opacity="0.55" stroke-width="2.5"/>` +
+          `<rect x="40" y="${len}" width="20" height="12" rx="2" fill="#0E2A56"/>` +
+          `<circle cx="50" cy="${len + 58}" r="46" fill="${color}"/>` +
+          `<path d="M14 ${len + 50}q36 -16 72 0" fill="none" stroke="${white ? "#F7941D" : "#FFFFFF"}" stroke-width="5" stroke-opacity="0.85"/>` +
+          `<circle cx="34" cy="${len + 40}" r="9" fill="#FFFFFF" fill-opacity="${white ? 0 : 0.35}"/></svg>`;
+        wrap.appendChild(o);
+      });
+    }
+    return wrap;
+  }
+
+  // Snow sits behind the words: the flakes are split by x between the two
+  // panels and each half goes in as the panel's first child (ambient.css
+  // stacks it under the panel's text).
+  function splitSnow(snow, main, side) {
+    const right = snow.cloneNode(false);
+    [...snow.children].forEach((flake) => {
+      const left = parseInt(flake.style.left, 10);
+      if (left >= HD_SPLIT_X) {
+        flake.style.left = `${left - HD_SPLIT_X}px`;
+        right.appendChild(flake);
+      }
+    });
+    main.insertBefore(snow, main.firstChild);
+    side.insertBefore(right, side.firstChild);
+  }
+
   // ---------- People of the month (birthdays, anniversaries) ----------
   // One layout for both: tag, "Happy ... *Month*", then up to 8 people in two
   // columns (tighter rows above 4), a party decoration behind and the beat
@@ -637,6 +757,14 @@
         add(side, anim(h("div", "t-event-unit", "Save the date")));
       }
       add(root, main, side, logoBadge("right"));
+      holidayDecorKinds(slide.decor).forEach((kind) => {
+        if (kind === "snow") {
+          root.classList.add("t-event--snow");
+          splitSnow(holidayDecor(kind), main, side);
+        } else {
+          add(root, holidayDecor(kind));
+        }
+      });
       starLast(root, anim);
       return root;
     }

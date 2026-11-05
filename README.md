@@ -73,7 +73,7 @@ ramstar-signage/
 ├── nfl.css             # NFL slide layouts (1920×1080)
 ├── welcome.js          # Welcome screen for visitors (welcome mode)
 ├── welcome.css         # Its layout (1920×1080)
-├── ambient.css         # Ambient motion: star, progress bar, sheen, beats, party decorations, weather icons
+├── ambient.css         # Ambient motion: star, progress bar, sheen, beats, party and holiday decorations, weather icons
 ├── slides.json         # The playlist. Changes whenever content changes.
 ├── welcome.json        # Welcome mode switch: on/off, guest, schedule
 ├── data/
@@ -317,7 +317,7 @@ Each template from the design canvas is a slide type. The player builds it in HT
 | `spotlight` | `name` ✅, `kind`, `since`, `blurb`, `logo` | `kind` is `"Customer"` (default) or `"Supplier"`. `logo` is an image path; without one, the company name fills the white box. |
 | `milestone` | `number` ✅, `label` ✅, `note` | A number like `"100,000"` counts up (a `$`, `%` or `+` before or after it stays in place); anything else shows as typed. |
 | `value` | `name` ✅, `examples`, `index` | Split panel: the value on navy at the left, its examples listed under "What it looks like here" on the right. The name sizes itself so its longest word fits the panel (up to 180 px, down to 96 px; words never break mid-word), so "We Are Always Improving" comes out at about 150 px. `examples` is a list of 4–5 short strings (up to 5 are shown); each may run to two lines, and if the list would come within 40 px of the logo the text steps down (50 → 44 → 40 px) to fit. Both are measured once as the slide is built (see `docs/design/value/README.md`). With no `examples` the right side stays empty; note the key is `examples`, plural. `index` is the small "1 of 5" label. The old `meaning` and `example` fields are no longer shown. |
-| `event` | `name` ✅, `date`, `time`, `location`, `note` | `date` is `YYYY-MM-DD`. The countdown calculates itself, shows **Today** on the day, and the slide **hides itself the day after**. With no date it shows "Save the date". |
+| `event` | `name` ✅, `date`, `time`, `location`, `note`, `decor` | `date` is `YYYY-MM-DD`. The countdown calculates itself, shows **Today** on the day, and the slide **hides itself the day after**. With no date it shows "Save the date". `decor` adds holiday decorations ([below](#event-decorations)). |
 | `safety` | `since` or `days`, `tip`, `label` | Set `since` to the date of the last lost-time incident and the count keeps itself up to date. `days` is a fixed number instead. |
 | `holidays` | `holidays` ✅ (list of `date` ✅ + `name` ✅, optional `observed`, `note`), `shutdowns` (list of `name`, `from` ✅, `to` ✅, `note`) | Upcoming Holidays: a countdown to the next holiday, the next shutdown, and cards for the two holidays after it. Type the dates in once a year from HR's schedule (they aren't calculated, because Ramstar's list differs from Ontario's); all dates are `YYYY-MM-DD`. A weekend holiday goes on its real `date` with the day off as `observed`: the countdown counts to the real date, the card reads "Sat · observed Mon Dec 28", and the holiday stays up until the observed day has passed. On the day the countdown reads **Today**; the next day it moves on to the next holiday. The badge says "Paid holiday" unless the holiday has its own `note` (e.g. `"Vacation day"` for Family Day). A shutdown shows once it starts within 120 days, reads "Until Fri, Jan 1" while it's on, and disappears after `to`. When the list runs out, the slide **hides itself**, so add next year's dates before the last holiday passes. Fit: the hero name shrinks to fit its column (150 px down to 96 px; words never break mid-word) and card names never wrap (40 → 34 → 30 px, then cut short with "…"). See `docs/design/holidays/README.md`. |
 | `logo` | `intro`, `lead`, `accent` | A brand break: "It's a great day at…" arrives one word at a time and the logo completes the sentence. `lead` is the sentence (default `"It's a great day at"`) and `accent` the word in it that's highlighted (default `"great"`; matched ignoring case and punctuation, `""` for none). The timings are designed for five words; a longer or shorter lead moves the logo later or earlier by whole word steps. `intro` is one of `answer`, `sweep`, `drumroll`, `curtain` (below), **or a list of them**, in which case the slide uses the next intro each time it comes round. Give it `"duration": 10`. The progress bar is hidden, and the slide leaves with a plain fade. See `docs/design/logo-great-day/README.md`. The old `slogan` and `logo` fields are no longer used. |
@@ -341,6 +341,21 @@ All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and 
 ```json
 { "type": "birthdays", "month": "October", "decor": "cake", "people": [ ... ] }
 ```
+
+<a id="event-decorations"></a>**Event decorations** (`"decor"` on an `event` slide, optional; one name or a list, e.g. `["snow", "ornaments"]`):
+
+| `decor` | What it looks like |
+|---|---|
+| `snow` | About 46 flakes (line snowflakes and soft dots) drift down across the whole slide, behind the words in both panels. |
+| `ornaments` | Four navy and white baubles hang from the top of the orange panel and swing gently, clear of the countdown. |
+| `lights` | A string of orange, white, blue and yellow bulbs in three swags across the top, twinkling. |
+| `none` | No decoration (the same as leaving `decor` out). |
+
+```json
+{ "type": "event", "name": "Christmas Party", "date": "2026-12-11", "decor": ["snow", "ornaments"] }
+```
+
+An unknown name is ignored (with a console warning); the rest still show. Nothing else about the event slide changes. With reduced motion, the decorations are a still picture.
 
 **Making the monthly people entries.** `scripts/people_month.py` reads HR's Active Employees spreadsheet and prints that month's `birthdays` and `anniversaries` entries to paste over last month's (it needs `python3 -m pip install openpyxl`):
 

@@ -460,6 +460,61 @@
   45%      { opacity: 0; transform: scale(0.6) rotate(40deg); }
 }
 
+/* ---------- 5b. Holiday decorations (templates.js: holidayDecor) ----------
+   The event slide's optional "decor": snow, lights, ornaments. Like the
+   party decorations, the whole decoration fades in just after the slide
+   arrives and out with it, and every piece only moves, turns or fades
+   (.is-visible only). Snow is two nested layers (the outer falls, the inner
+   spins) and sits behind the words: templates.js splits the flakes between
+   the two panels, each panel becomes its own stacking context, and the
+   flakes go under its text. Lights and ornaments sit above both panels;
+   the ornaments stay in the top ~300 px, clear of the countdown. */
+.hd-decor { position: absolute; inset: 0; opacity: 0; pointer-events: none; will-change: opacity; z-index: 3; }
+.layer.is-visible .hd-decor { animation: star-in 1600ms ease-out 300ms both; }
+.layer.is-leaving .hd-decor { animation: star-out 380ms ease-in both; }
+.t-event--snow .t-event-main { position: relative; overflow: hidden; }
+.t-event--snow .t-event-main,
+.t-event--snow .t-event-side { isolation: isolate; }
+.t-event-main > .hd-decor--snow,
+.t-event-side > .hd-decor--snow { z-index: -1; }
+
+.hd-flake-fall { position: absolute; top: -60px; will-change: transform; }
+.hd-flake { will-change: transform; }
+.hd-flake svg { width: 100%; height: 100%; display: block; }
+.hd-flake--dot { border-radius: 50%; background: #FFFFFF; }
+.layer.is-visible .hd-flake-fall { animation-name: hd-fall-l; animation-timing-function: linear; animation-iteration-count: infinite; }
+.layer.is-visible .hd-flake-fall--r { animation-name: hd-fall-r; }
+.layer.is-visible .hd-flake { animation-name: hd-spin; animation-timing-function: linear; animation-iteration-count: infinite; }
+@keyframes hd-fall-l { from { transform: translate(0, 0); } to { transform: translate(-70px, 1200px); } }
+@keyframes hd-fall-r { from { transform: translate(0, 0); } to { transform: translate(70px, 1200px); } }
+@keyframes hd-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Lights: each bulb and its soft glow fade in and out (opacity only); --c is the bulb colour */
+.hd-wire { position: absolute; left: 0; top: 0; }
+.hd-bulb { position: absolute; width: 22px; height: 34px; }
+.hd-bulb svg { position: absolute; inset: 0; width: 22px; height: 34px; will-change: opacity; }
+.hd-glow-dot {
+  position: absolute;
+  left: -19px;
+  top: -6px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--c) 0%, transparent 65%);
+  opacity: 0.55;
+  will-change: opacity;
+}
+.layer.is-visible .hd-glow-dot { animation: hd-twinkle 2.4s ease-in-out infinite alternate; animation-delay: inherit; }
+.layer.is-visible .hd-bulb svg { animation: hd-bulb 2.4s ease-in-out infinite alternate; animation-delay: inherit; }
+@keyframes hd-twinkle { from { opacity: 0.15; } to { opacity: 0.75; } }
+@keyframes hd-bulb { from { opacity: 0.55; } to { opacity: 1; } }
+
+/* Ornaments swing ±4° from their hanging point */
+.hd-orn { position: absolute; top: 0; transform-origin: 50% 0; will-change: transform; }
+.hd-orn svg { display: block; }
+.layer.is-visible .hd-orn { animation: hd-swing 4.2s ease-in-out infinite alternate; }
+@keyframes hd-swing { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+
 /* ---------- Respect "reduce motion" ---------- */
 @media (prefers-reduced-motion: reduce) {
   .stage .layer .t-star svg,
@@ -499,4 +554,9 @@
   .stage .layer .bd-decor--balloons,
   .stage .layer .bd-decor--confetti,
   .stage .layer .bd-sparkle { display: none; }
+  /* Holiday decorations: a still picture (flakes and ornaments where they are) */
+  .stage .layer .hd-decor,
+  .stage .layer .hd-decor * { animation: none !important; }
+  .stage .layer.is-visible .hd-decor { opacity: 1; }
+  .stage .layer .hd-flake-fall { transform: translate(var(--hd-x, 0), var(--hd-y, 0)); }
 }
