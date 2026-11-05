@@ -24,6 +24,62 @@
       "duration": 12
     },
     {
+      "type": "photo-game",
+      "title": "Guess the Baby",
+      "photo": "slides/baby/2026-11-02.jpg",
+      "rules": [
+        "Guesses submitted on WhatsApp",
+        "One baby per week",
+        "Family members are prohibited from winning"
+      ],
+      "closes": "Guesses close Fri, Nov 6 · 12:00 PM",
+      "reveal": true,
+      "answer": "Jamie Robinet",
+      "winner": "Derek Bavetta",
+      "duration": 10
+    },
+    {
+      "title": "Accountability chart - overview",
+      "type": "accountability",
+      "view": "overview",
+      "duration": 15
+    },
+    {
+      "title": "Accountability chart - Leadership",
+      "type": "accountability",
+      "view": "department",
+      "department": "Leadership",
+      "duration": 12
+    },
+    {
+      "title": "Accountability chart - Sales & Marketing",
+      "type": "accountability",
+      "view": "department",
+      "department": "Sales & Marketing",
+      "duration": 12
+    },
+    {
+      "title": "Accountability chart - Distribution",
+      "type": "accountability",
+      "view": "department",
+      "department": "Distribution",
+      "duration": 15
+    },
+    {
+      "title": "Accountability chart - Manufacturing",
+      "type": "accountability",
+      "view": "department",
+      "department": "Manufacturing",
+      "duration": 18
+    },
+    {
+      "title": "Accountability chart - Finance",
+      "type": "accountability",
+      "view": "department",
+      "department": "Finance",
+      "duration": 15
+    },
+    {
       "title": "Carve 4 Cancer results",
       "type": "results",
       "tag": "Carve 4 Cancer results",
@@ -41,21 +97,6 @@
       "partners": ["slides/c4c/wccf-logo.png"],
       "until": "2026-11-13",
       "duration": 15
-    },
-    {
-      "type": "photo-game",
-      "title": "Guess the Baby",
-      "photo": "slides/baby/2026-11-02.jpg",
-      "rules": [
-        "Guesses submitted on WhatsApp",
-        "One baby per week",
-        "Family members are prohibited from winning"
-      ],
-      "closes": "Guesses close Fri, Nov 6 · 12:00 PM",
-      "reveal": true,
-      "answer": "Jamie Robinet",
-      "winner": "Derek Bavetta",
-      "duration": 10
     },
     {
       "title": "Birthdays",
@@ -190,47 +231,6 @@
         "We have a relaxed and positive environment"
       ],
       "duration": 10
-    },
-    {
-      "title": "Accountability chart - overview",
-      "type": "accountability",
-      "view": "overview",
-      "duration": 15
-    },
-    {
-      "title": "Accountability chart - Leadership",
-      "type": "accountability",
-      "view": "department",
-      "department": "Leadership",
-      "duration": 12
-    },
-    {
-      "title": "Accountability chart - Sales & Marketing",
-      "type": "accountability",
-      "view": "department",
-      "department": "Sales & Marketing",
-      "duration": 12
-    },
-    {
-      "title": "Accountability chart - Distribution",
-      "type": "accountability",
-      "view": "department",
-      "department": "Distribution",
-      "duration": 15
-    },
-    {
-      "title": "Accountability chart - Manufacturing",
-      "type": "accountability",
-      "view": "department",
-      "department": "Manufacturing",
-      "duration": 18
-    },
-    {
-      "title": "Accountability chart - Finance",
-      "type": "accountability",
-      "view": "department",
-      "department": "Finance",
-      "duration": 15
     }
   ]
 }
