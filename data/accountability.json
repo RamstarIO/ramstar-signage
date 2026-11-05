@@ -1,0 +1,77 @@
+{
+  "asOf": "2026-09-30",
+  "leadership": [
+    { "seat": "Visionary", "people": ["Dino Bavetta"],
+      "duties": ["Big ideas", "Big relationships", "Company culture"] },
+    { "seat": "Integrator", "people": ["Kristen Picard"],
+      "duties": ["P&L / business plan", "Remove obstacles / barriers", "Operating system"] }
+  ],
+  "departments": [
+    {
+      "name": "Sales & Marketing", "people": ["Mike Dojcinovski"],
+      "duties": ["Sales process", "Marketing process", "Customer engagement", "Vendor engagement", "Sales target strategies", "Develop new business"],
+      "seats": [
+        { "seat": "Sales", "people": ["Dino Bavetta (MFG)", "Derek Bavetta", "Howard Starz", "Dean McBrayne"],
+          "duties": ["CRM", "New prospects", "Sales growth", "Customer accounts", "Positive company representative"] },
+        { "seat": "Account Management", "people": ["Mike Krakana"],
+          "duties": ["CRM", "Increasing vertical sales", "Customer accounts", "Positive company representative", "Frequent interaction with existing accounts"] },
+        { "seat": "Marketing", "people": ["Mike Dojcinovski"],
+          "duties": ["Go-to-market strategy", "Content marketing", "Marketing reporting", "Brand strategy"] }
+      ]
+    },
+    {
+      "name": "Distribution", "people": ["Kristen Picard"],
+      "duties": ["Strategize process", "Customer satisfaction", "Improve performance", "Training & development"],
+      "seats": [
+        { "seat": "Results Team Lead", "people": ["Kristen Picard"],
+          "duties": ["Order efficiency", "Customer inquiry / resolution", "Reporting"] },
+        { "seat": "Results Team", "under": "Results Team Lead", "people": ["Rachelle Da Dalt", "Bob Mackay"],
+          "duties": ["Quotes", "Order entry", "Customer inquiry / resolution", "Reporting"] },
+        { "seat": "Vendor Managed Inventory (VMI)", "people": ["Jamie Robinet"],
+          "duties": ["VMI program management", "Training", "Sales support", "IT support", "Machine maintenance"] },
+        { "seat": "Shipping / Receiving", "people": ["Vanessa Briggs"],
+          "duties": ["Inventory accuracy", "Pick and pack", "Cycle counts", "Customs"] },
+        { "seat": "Delivery", "people": ["Tim Le Faive"],
+          "duties": ["Efficient routes", "Accurate deliveries", "Positive company representative", "Company vehicle maintenance"] }
+      ]
+    },
+    {
+      "name": "Manufacturing", "people": ["Mike Dojcinovski"],
+      "duties": ["Profitability & throughput", "On-time delivery", "Customer relationships", "Process improvement", "SRED & equipment"],
+      "seats": [
+        { "seat": "Program Mgmt", "people": ["Adam Duguay"],
+          "duties": ["Estimating / cycle time", "Design & BOMs", "Programming (CNC / robot)", "External quality / ISO", "Tooling audits", "Inspection reports", "Kick-offs"] },
+        { "seat": "Manufacturing Manager", "people": ["Evan Da Dalt"],
+          "duties": ["Scheduling", "Productivity / utilization", "Resource allocation", "Internal quality", "Material handling", "Job closings", "Training", "Plant safety & maint"] },
+        { "seat": "Design", "under": "Program Mgmt", "people": ["John Winkfield Jr."],
+          "duties": ["Cust & mfg drawings", "Inspection criteria", "ISO docs FBA", "SRED documentation"] },
+        { "seat": "Inspection Lead", "under": "Program Mgmt", "people": ["Maral Hosseini"],
+          "duties": ["Programming insp equip", "Quality control", "Reporting", "Non-conformities", "C of C", "Training"] },
+        { "seat": "Inspector", "under": "Inspection Lead", "people": ["Maral Hosseini", "Tibor Ostrogonac", "John Winkfield Jr."],
+          "duties": ["Inspect parts / CSM", "Washing", "Packing", "Etching", "Packaging inventory"] },
+        { "seat": "Operators", "under": "Manufacturing Manager", "people": ["John Winkfield Sr.", "Souvanarath Chanthaboon", "John Winkfield Jr.", "Evan Da Dalt", "Bruce Jackson", "Hitanshu Bhavsar", "Belawu Mohammed", "Eric Kearsey"],
+          "duties": ["Setup / tear down", "Work orders on time", "Quality 1-10-10", "Assist with programming", "Tooling", "Fixture maint"] },
+        { "seat": "Maintenance", "under": "Manufacturing Manager", "people": [],
+          "duties": ["Internal / external maint", "Equipment"] },
+        { "seat": "MFG Results", "people": [],
+          "duties": ["Quotes / POs", "Cust comm", "Stage job mat'ls", "Purchasing", "Inventory"] }
+      ]
+    },
+    {
+      "name": "Finance", "people": ["Kristen Picard"],
+      "duties": ["Accounting / banking", "Payroll", "Reporting & budgets", "Government funding"],
+      "seats": [
+        { "seat": "IT", "people": ["Kristen Picard"],
+          "duties": ["Network", "ERP", "Netmon / P21 / Genius", "EC Solutions"] },
+        { "seat": "Purchasing / Inventory", "people": ["Emily Kimball"],
+          "duties": ["Purchase order mgmt", "Supplier evaluation", "Cost savings", "Inventory mgmt", "Reporting"] },
+        { "seat": "Accounting Clerk", "people": ["Rhonda Middleton"],
+          "duties": ["Accounts payable", "Accounts receivable"] },
+        { "seat": "Human Resources", "people": ["Kristen Picard"],
+          "duties": ["Employee benefits", "Employee recruitment", "Onboarding / termination", "ESA policies / legal"] },
+        { "seat": "Data", "people": ["Quentin Lambkin"],
+          "duties": ["Data management", "Reporting"] }
+      ]
+    }
+  ]
+}

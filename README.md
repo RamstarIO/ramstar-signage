@@ -65,7 +65,7 @@ All paths are relative, so the same files work on GitHub Pages, Cloudflare Pages
 ```
 ramstar-signage/
 ├── index.html          # The player. Rarely changes.
-├── templates.js        # Template slide types: birthdays, anniversaries, spotlight, milestone, value, event, safety, holidays
+├── templates.js        # Template slide types: birthdays, anniversaries, spotlight, milestone, value, event, safety, holidays, accountability, …
 ├── templates.css       # Their layouts (match the design canvas, 1920×1080)
 ├── weather.js          # Live weather slide: fetches ECCC data, builds the slide
 ├── weather.css         # Live weather slide layout (Design A, 1920×1080)
@@ -76,6 +76,8 @@ ramstar-signage/
 ├── ambient.css         # Ambient motion: star, progress bar, sheen, beats, party decorations, weather icons
 ├── slides.json         # The playlist. Changes whenever content changes.
 ├── welcome.json        # Welcome mode switch: on/off, guest, schedule
+├── data/
+│   └── accountability.json  # The accountability chart (feeds the six accountability slides)
 ├── slides/             # Slide images, 1920×1080 PNG
 │   ├── baby/           # Photo-game photos, named by date (2026-10.jpg), never by person
 │   ├── 00-test.png     # "Signage is working" test slide
@@ -323,6 +325,7 @@ Each template from the design canvas is a slide type. The player builds it in HT
 | `shoutout` | `team` ✅, `achievement` ✅, `theme`, `tag`, `cheer`, `streak` (`done`, `unit`, `next`), `message`, `until` | Team shout-out: a "Team shout-out" tag, the headline "`team` —" / "WAY TO GO!" (`cheer`), the `achievement`, an optional streak row, the `message` and the logo. `theme` is `"orange"` (default) or `"navy"`. On orange nothing is orange and no white text sits on orange: the cheer is white on a navy block, the `*accent*` phrase in the achievement is bold and underlined, and the logo sits on a navy plate. On navy, the cheer and accent are orange. Wrap one phrase of `achievement` in `*asterisks*` for the accent; it never wraps. **Streak:** `done` (a whole number, 1 or more) 1–5 shows a ✓ chip per period ("Week 1", "Week 2", …); from 6 it becomes one "6 Weeks in a row" chip. `unit` defaults to `"Week"`. If `next` is set, a dashed "Week 3 · keep it going" chip follows. Each week, just set `done` to the new number. Without `streak` there is no chip row. `until` (`YYYY-MM-DD`) hides the slide after that day; set it, because shout-outs go stale. Fit: the two headline lines shrink together (150 px down to 110 px) to stay on one line each; the achievement steps 54 → 50 → 46 px to stay within 2 lines; the ✓ chips (not the dashed one) step 50 → 34 px (4 px steps) until the streak row fits 1680 px; the message steps 40 → 36 → 34 px to stay within 3 lines and is left out (with a console warning) if it still doesn't fit. The beat bumps each chip in turn, the dashed one last. See `docs/design/shoutout/README.md`. |
 | `photo-feature` | `photo` ✅, `headline` ✅, `photoPosition`, `label`, `logo`, `body`, `partners`, `qr` (`src` ✅, `caption`), `until` | A big photo with a thank-you or story: the photo fills the left 1180×1080 (cropped with `object-fit: cover`; `photoPosition` is a CSS `object-position` such as `"30% 50%"` that picks the focus point, default `"50% 50%"`), and a white panel on the right holds a top row of logos (the optional event `logo`, at most 215×165, with up to 2 `partners` logos beside it, each at most 250×110), the `headline`, the `body`, and at the bottom the optional `qr` code on the left and the Ramstar logo on the right. `qr` is `{ "src": ..., "caption": ... }`: `src` is an SVG or PNG QR code that already includes its white quiet zone, shown at 290×290 (don't make it smaller, phones need to read it from a metre or two away); `caption` is an optional one-line label under it, e.g. `"Scan to vote"`. The code rises in with the footer and then stays completely still, so phones can focus on it. `label` is a navy tag on the photo, bottom left, one line, ending in "…" if it's too long. In `headline`, `\n` starts a new line and the `*accent*` is navy text on an orange block. If the photo fails to load, the slide is skipped; a logo or QR code that fails is just left out (with a console warning). `until` (`YYYY-MM-DD`) hides the slide after that day. Fit: the headline shrinks from 104 px down to 60 px (4 px steps) until every line fits, then the accent may wrap; the body steps 36 → 32 → 30 px until the footer fits; if it still doesn't, the whole top row of logos is left out (with a console warning). The photo fades in first and then pushes in slowly (5%) for the whole slide; there's no star. **Privacy:** check that the people named or shown are OK with it, and look over every photo for paperwork, screens or whiteboards before committing (blur them out). See `docs/design/photo-feature/README.md` and `QR.md` there. |
 | `results` | `number` ✅, `categories` ✅ (1–4, each `name` ✅ + `winner` ✅, optional `winnerNote`, `runnerUp`), `tag`, `photo`, `photoCaption`, `caption`, `note`, `partners`, `until` | The outcome of a fundraiser or contest, on navy: the `photo` in a tilted white frame top left with `photoCaption` (one line, ending in "…" if too long) in its bottom strip; beside it the tag (default `"Results"`), the big orange `number` (e.g. `"$15,072"`, `"98%"`, `"1,200+"`), the `caption` and the `note`; below, one row of equal category cards, each with the category `name`, a ★ and the `winner`, the optional orange `winnerNote` and the optional `runnerUp`; partner logos (0–2) on white cards bottom left and the Ramstar logo bottom right. With no photo, the headline block starts at the left margin. A photo or logo that fails to load is left out (with a console warning); the slide is only skipped if `number` or every category is missing. More than 4 categories or 2 partners: the extras are ignored, with a warning. The number counts up, keeping any `$`, `%` or `+` in place. `until` (`YYYY-MM-DD`) hides the slide after that day. 15 s `duration` is suggested: there's a lot to read. Fit: the number shrinks from 210 px down to 140 px (10 px steps) to stay on one line; winner/runner-up text steps 38/28 → 34/26 → 30/24 px until the cards end above the footer; if they still don't, every runner-up is cut to 2 lines (with a console warning). The beat bumps each card in turn. See `docs/design/results/README.md`. |
+| `accountability` | `view` (`"overview"`, the default, or `"department"`), `department` (✅ for the department view), `url` | The accountability chart on navy, read from [`data/accountability.json`](#accountability-chart-dataaccountabilityjson) (not from `slides.json`). **Overview**: the tag and "As of …" top left, the Visionary and Integrator as orange cards top centre, then one column per department (header card with the leader, then every seat in reporting order; seats with `under` are indented with a rule). Groups of more than 2 people show as a count ("8 people"). **Department**: the tag "Accountability Chart · n of 5" (Leadership is 1, then the departments in file order), the department name, "Led by …" and an "Accountable for" line with the leader's duties (none on Leadership), then a card per seat: seat name, "Reports to …" when it has `under`, the people, and the duties as bullets. 3 columns for up to 6 seats, 4 for 7 or more; Leadership is 2 big cards. An empty `people` list shows **Open seat** in orange. `department` is a `departments[].name` or `"Leadership"`; a missing data file or unknown department skips the slide (with a console warning). Fit: overview seat/people text steps 27/23 → 25/21 → 23/20 px until every column ends above y 1040 and clear of the logo; department card text steps 32/24/22 → 30/22/20 → 28/21/19 px, then the duties run inline ("a · b · c") at 30/22/21 and 28/21/19 px; if it still doesn't fit, a console warning. The beat bumps each card (or overview column) in turn. See `docs/design/accountability/README.md`. |
 
 All types also accept `tag` (the orange label, e.g. `"Supplier Spotlight"`) and the usual `duration`, `start`, `end`, `enabled`. Birthdays and anniversaries also accept `headline`; wrap a word in `*asterisks*` to colour it. Note that `title` is only your own label for the entry and is never shown on screen, **except on `photo-game`**, where it is the headline.
 
@@ -416,6 +419,7 @@ A slide that sits perfectly still for 10 seconds looks frozen. The player adds s
 | Shout-out | beat | Each streak chip bumps up in turn, the dashed "next" chip last |
 | Photo feature | sheen | A glint of light sweeps across the accent on the orange block |
 | Results | beat | Each category card bumps up in turn |
+| Accountability chart | beat | Each seat card (department view) or department column (overview) bumps up in turn |
 | Logo | none | The intro itself is the moment |
 
 Override it for one slide with `"moment"`:
@@ -424,7 +428,7 @@ Override it for one slide with `"moment"`:
 { "type": "milestone", "number": "250,000", "label": "Cuts completed", "moment": "sheen" }
 ```
 
-`"sheen"` works on every type; `"beat"` only does something on birthdays, anniversaries, value, milestone, event, safety, weather, holidays, shoutout and results; `"none"` turns the moment off for that slide.
+`"sheen"` works on every type; `"beat"` only does something on birthdays, anniversaries, value, milestone, event, safety, weather, holidays, shoutout, results and accountability; `"none"` turns the moment off for that slide.
 
 **Turning effects off everywhere** (at the top of `slides.json`; leave out any you want to keep on):
 
@@ -505,6 +509,52 @@ Three slide types, built live from `nfl.json`. No images and nothing to update b
 - ESPN's endpoints are free but **unofficial and undocumented**: they can change without notice. The script checks the shape of what it gets (e.g. that every team has a playoff seed) and, if anything looks wrong, the last good `nfl.json` stays published.
 - GitHub runs scheduled jobs on a best-effort basis, often 5–30 minutes late, so live scores can trail the real game by roughly 15–45 minutes. Finals appear within the hour.
 - To test locally, add `"url": "tests/fixture-nfl.json"` to the slides (a saved Week 4 file; its Monday night game was edited to look live). To build real data on your Mac: `node scripts/build-nfl.mjs nfl.json` (Node 20+); add `--now=2026-10-08T12:00:00Z` to see what a given moment would show.
+
+### Accountability chart: `data/accountability.json`
+
+The six `accountability` slides (an overview and one per department) all read one file, `data/accountability.json`, transcribed from the Visio accountability chart. It isn't part of `slides.json`, so the playlist only says which view to show:
+
+```json
+{ "title": "Accountability chart - overview", "type": "accountability", "view": "overview", "duration": 15 },
+{ "title": "Accountability chart - Leadership", "type": "accountability", "view": "department", "department": "Leadership", "duration": 12 },
+{ "title": "Accountability chart - Manufacturing", "type": "accountability", "view": "department", "department": "Manufacturing", "duration": 18 }
+```
+
+```json
+{
+  "asOf": "2026-09-30",
+  "leadership": [ { "seat": "Visionary", "people": ["…"], "duties": ["Big ideas", "…"] } ],
+  "departments": [
+    { "name": "Manufacturing", "people": ["…"], "duties": ["Profitability & throughput", "…"],
+      "seats": [
+        { "seat": "Program Mgmt", "people": ["…"], "duties": ["…"] },
+        { "seat": "Design", "under": "Program Mgmt", "people": ["…"], "duties": ["…"] },
+        { "seat": "Maintenance", "under": "Manufacturing Manager", "people": [], "duties": ["…"] }
+      ] }
+  ]
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `asOf` | `YYYY-MM-DD`, shown on the overview as "As of September 30, 2026". |
+| `leadership` | The leadership seats (Visionary, Integrator), shown as the orange cards on the overview and as the "Leadership" department slide. |
+| `departments` | One entry per department, in the order they appear (overview columns left to right, and "n of 5" on the department slides). `name` is what a slide's `department` matches; `people` is the department leader; `duties` is the "Accountable for" line. |
+| `seat` | The seat's name. |
+| `people` | List of names. **An empty list (`[]`) shows "Open seat".** |
+| `duties` | The seat's responsibilities, one short phrase each. |
+| `under` | Optional: the `seat` this seat reports to, **in the same department**. It indents the seat on the overview and adds "Reports to …" on its card. |
+
+**How to update the chart** (someone changes role, a seat opens or is filled):
+
+1. Edit `data/accountability.json`: change `people`, `duties`, `under` or add/remove seats. Renaming a department? Update the `department` of its slide in `slides.json` too.
+2. **Update `asOf`** to the date of the chart you copied from.
+3. Check it: `python3 -m json.tool data/accountability.json` (invalid JSON skips all six slides).
+4. Test locally (optional), then push. The TVs pick it up on their next playlist refresh (within 5 minutes).
+
+If a department gets too full for one screen, the text shrinks and then the duties run inline; if even that doesn't fit, the browser console shows "accountability: department too full for one screen". Shorten some duties.
+
+> **Names on a public site.** This file publishes who holds which role. Leadership approved publishing it in Phase 1, as an exception to the [content rules](#content-rules-read-before-committing). Don't add anything beyond names, seats and duties.
 
 ### JSON gotchas
 

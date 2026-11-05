@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Accountability chart (design reference)</title>
+<!-- Design reference only, not part of the player. Canvas 1920x1080.
+     Reads ../../../data/accountability.json, so serve the repo root over HTTP
+     (e.g. python3 -m http.server) and open
+       /docs/design/accountability/accountability.html?view=overview
+       /docs/design/accountability/accountability.html?view=department&department=Leadership
+       /docs/design/accountability/accountability.html?view=department&department=Manufacturing -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@500;600;700&display=swap">
+<style>
+  body { margin: 0; font-family: 'Barlow', sans-serif; }
+  .slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; background: #0E2A56; color: #FFFFFF; }
+  .star { position: absolute; fill: none; stroke: #194B98; stroke-width: 1.4; stroke-linejoin: round; }
+  .tag { align-self: flex-start; background: #F7941D; color: #0E2A56; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 34px;
+         letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 22px; border-radius: 6px; }
+  .asof { font-size: 24px; color: #AFC0DA; }
+  .logo { position: absolute; right: 80px; bottom: 50px; width: 220px; display: block; }   /* Ramstar logo: always bottom right */
+  .open { color: #F7941D; font-style: italic; }
+
+  /* ---------- overview ---------- */
+  .ov-top { position: absolute; left: 80px; top: 52px; display: flex; flex-direction: column; gap: 6px; }
+  .ov-lead { position: absolute; left: 0; right: 0; top: 52px; display: flex; justify-content: center; align-items: center; }
+  .lead-card { background: #F7941D; color: #0E2A56; border-radius: 12px; padding: 12px 30px; text-align: center; min-width: 300px; }
+  .lead-card .s { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1; }
+  .lead-card .n { font-size: 36px; font-weight: 700; line-height: 1.15; }
+  .ov-link { width: 46px; height: 4px; background: #F7941D; }
+  .ov-stem { position: absolute; left: 50%; top: 158px; width: 4px; height: 44px; margin-left: -2px; background: #3B5C93; }
+  .ov-bar { position: absolute; left: 290px; right: 290px; top: 200px; height: 4px; background: #3B5C93; }
+  .ov-cols { position: absolute; left: 80px; right: 80px; top: 230px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; }
+  .ov-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .ov-head { background: #163A72; border-top: 6px solid #F7941D; border-radius: 10px; padding: 12px 20px 14px; }
+  .ov-head .d { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 38px; text-transform: uppercase; line-height: 1; }
+  .ov-head .p { font-size: 26px; font-weight: 600; color: #D6DDEA; }
+  .ov-seats { display: flex; flex-direction: column; gap: 12px; padding: 0 8px; }
+  .ov-seat .s { font-size: var(--ovs, 27px); font-weight: 700; line-height: 1.15; }
+  .ov-seat .p { font-size: var(--ovp, 23px); font-weight: 500; line-height: 1.25; color: #AFC0DA; }
+  .ov-seat.l1 { margin-left: 0;  border-left: 3px solid #3B5C93; padding-left: 14px; }
+  .ov-seat.l2 { margin-left: 18px; border-left: 3px solid #3B5C93; padding-left: 14px; }
+
+  /* ---------- department ---------- */
+  .dp-head { position: absolute; left: 80px; right: 80px; top: 52px; display: flex; flex-direction: column; gap: 10px; }
+  .dp-title { display: flex; align-items: baseline; gap: 26px; }
+  .dp-title .d { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 110px; line-height: 0.85; text-transform: uppercase; white-space: nowrap; }
+  .dp-title .p { font-size: 34px; font-weight: 600; color: #D6DDEA; }
+  .dp-duties { font-size: 26px; color: #D6DDEA; line-height: 1.3; max-width: 1760px; }
+  .dp-duties b { color: #F7941D; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 24px; margin-right: 8px; }
+  .dp-grid { position: absolute; left: 80px; right: 80px; top: var(--gt, 290px); bottom: 150px; display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
+             grid-auto-rows: min-content; gap: 20px; align-content: start; }
+  .card { background: #163A72; border-radius: 12px; padding: 16px 22px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .card .s { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: var(--cs, 32px); text-transform: uppercase; line-height: 1; color: #F7941D; }
+  .card .u { font-size: 20px; color: #8EA3C6; margin-top: -2px; }
+  .card .p { font-size: var(--cp, 24px); font-weight: 700; line-height: 1.2; }
+  .card ul { margin: 2px 0 0; padding-left: 22px; font-size: var(--cd, 22px); line-height: 1.3; color: #D6DDEA; }
+  /* compact mode (fit step 4): duties as one inline run, "a · b · c" */
+  .dp-grid.compact .card ul { list-style: none; padding-left: 0; }
+  .dp-grid.compact .card li { display: inline; }
+  .dp-grid.compact .card li + li::before { content: " · "; color: #8EA3C6; }
+  .dp-grid.lead { align-content: center; }   /* Leadership: two big cards, centred in the space */
+  .card.big { padding: 30px 36px; gap: 12px; }
+  .card.big .s { font-size: 64px; }
+  .card.big .p { font-size: 46px; }
+  .card.big ul { font-size: 36px; }
+</style>
+</head>
+<body>
+<div class="slide" id="slide"></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const view = q.get("view") || "overview";
+  const deptName = q.get("department") || "Manufacturing";
+  const STAR = "50,2 61.76,33.82 95.65,35.17 69.02,56.18 78.21,88.83 50,70 21.79,88.83 30.98,56.18 4.35,35.17 38.24,33.82";
+  const LOGO = "../../../assets/ramstar-logo-reverse.png";
+  const h = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x !== undefined && x !== null && x !== "") n.textContent = x; return n; };
+  const star = (style) => { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("viewBox", "0 0 100 100"); s.setAttribute("class", "star");
+    s.setAttribute("style", style); const p = document.createElementNS("http://www.w3.org/2000/svg", "polygon"); p.setAttribute("points", STAR); s.appendChild(p); return s; };
+  const people = (list) => list && list.length ? list.join(" · ") : null;   // empty list = open seat
+  const peopleEl = (cls, list) => { const t = people(list); return t ? h("div", cls, t) : h("div", cls + " open", "Open seat"); };
+  const asOfText = (iso) => new Date(iso + "T12:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  // Overview: big groups shrink to a count ("8 people") so a column never overflows.
+  const shortPeople = (list) => !list || !list.length ? null : list.length > 2 ? `${list.length} people` : list.join(" · ");
+  // Depth of a seat inside its department, from the "under" chain.
+  const depth = (seat, seats) => { let d = 0, s = seat; while (s && s.under && d < 3) { d += 1; s = seats.find(x => x.seat === s.under); } return d; };
+  // Overview order: each seat followed by the seats under it.
+  function ordered(seats) {
+    const out = [], add = (s) => { out.push(s); seats.filter(x => x.under === s.seat).forEach(add); };
+    seats.filter(s => !s.under || !seats.some(x => x.seat === s.under)).forEach(add);
+    return out;
+  }
+
+  function overview(data, slide) {
+    slide.appendChild(star("right: -240px; bottom: -300px; width: 820px; height: 820px; stroke: #163A72;"));
+    const top = h("div", "ov-top"); top.append(h("div", "tag", "Accountability Chart"), h("div", "asof", `As of ${asOfText(data.asOf)}`)); slide.appendChild(top);
+    const lead = h("div", "ov-lead");
+    data.leadership.forEach((s, i) => {
+      if (i) lead.appendChild(h("div", "ov-link"));
+      const c = h("div", "lead-card"); c.append(h("div", "s", s.seat), h("div", "n", people(s.people) || "Open seat")); lead.appendChild(c);
+    });
+    slide.append(lead, h("div", "ov-stem"), h("div", "ov-bar"));
+    const cols = h("div", "ov-cols");
+    data.departments.forEach(d => {
+      const col = h("div", "ov-col"), head = h("div", "ov-head");
+      head.append(h("div", "d", d.name), h("div", "p", people(d.people) || "Open seat"));
+      const list = h("div", "ov-seats");
+      ordered(d.seats).forEach(s => {
+        const row = h("div", "ov-seat l" + depth(s, d.seats));
+        const sp = shortPeople(s.people);
+        row.append(h("div", "s", s.seat), sp ? h("div", "p", sp) : h("div", "p open", "Open seat"));
+        list.appendChild(row);
+      });
+      col.append(head, list); cols.appendChild(col);
+    });
+    slide.appendChild(cols);
+    return { fit: () => {
+      // Fit rule: the tallest column must end 30 px above the logo. Step 27/23 -> 25/21 -> 23/20.
+      const logoTop = slide.querySelector(".logo").getBoundingClientRect().top;
+      const over = () => [...cols.children].some(c => c.getBoundingClientRect().bottom > 1080 - 40) ||
+                         cols.lastElementChild.getBoundingClientRect().bottom > logoTop - 30;
+      for (const [s, p] of [[27, 23], [25, 21], [23, 20]]) { cols.style.setProperty("--ovs", s + "px"); cols.style.setProperty("--ovp", p + "px"); if (!over()) break; }
+    } };
+  }
+
+  function department(data, slide) {
+    slide.appendChild(star("right: -220px; top: -240px; width: 820px; height: 820px;"));
+    const list = [{ name: "Leadership", leadership: true }, ...data.departments];
+    const idx = list.findIndex(d => d.name === deptName), d = list[idx];
+    const head = h("div", "dp-head");
+    head.appendChild(h("div", "tag", `Accountability Chart · ${idx + 1} of ${list.length}`));
+    const title = h("div", "dp-title"); title.appendChild(h("div", "d", d.name));
+    if (!d.leadership) title.appendChild(h("div", "p", `Led by ${people(d.people) || "an open seat"}`));
+    head.appendChild(title);
+    if (!d.leadership && d.duties && d.duties.length) {
+      const du = h("div", "dp-duties"); du.append(h("b", null, "Accountable for"), document.createTextNode(d.duties.join(" · "))); head.appendChild(du);
+    }
+    slide.appendChild(head);
+    const seats = d.leadership ? data.leadership : d.seats;
+    const grid = h("div", "dp-grid" + (d.leadership ? " lead" : ""));
+    grid.style.setProperty("--cols", d.leadership ? 2 : seats.length <= 3 ? 3 : seats.length <= 6 ? 3 : 4);
+    seats.forEach(s => {
+      const c = h("div", "card" + (d.leadership ? " big" : ""));
+      c.appendChild(h("div", "s", s.seat));
+      if (s.under) c.appendChild(h("div", "u", `Reports to ${s.under}`));
+      c.appendChild(peopleEl("p", s.people));
+      const ul = h("ul"); (s.duties || []).forEach(x => ul.appendChild(h("li", null, x))); c.appendChild(ul);
+      grid.appendChild(c);
+    });
+    slide.appendChild(grid);
+    return { fit: () => {
+      // The grid starts 30 px under the header block (which varies with the duties line).
+      grid.style.setProperty("--gt", Math.round(head.getBoundingClientRect().bottom + 30) + "px");
+      // Fit rule: the cards must end inside the grid area (its bottom stays clear of the logo).
+      // Step card text 32/24/22 -> 30/22/20 -> 28/21/19; then (step 4) back to
+      // 30/22/20 with the duties run inline ("a · b · c") instead of bullets.
+      const over = () => grid.scrollHeight > grid.clientHeight + 1;
+      const size = ([cs, cp, cd]) => { grid.style.setProperty("--cs", cs + "px"); grid.style.setProperty("--cp", cp + "px"); grid.style.setProperty("--cd", cd + "px"); };
+      let fits = false;
+      for (const step of [[32, 24, 22], [30, 22, 20], [28, 21, 19]]) { size(step); if ((fits = !over())) break; }
+      if (!fits) { grid.classList.add("compact"); for (const step of [[30, 22, 21], [28, 21, 19]]) { size(step); if ((fits = !over())) break; } }
+      if (!fits) console.warn("accountability: department too full for one screen");
+    } };
+  }
+
+  fetch("../../../data/accountability.json").then(r => r.json()).then(data => {
+    const slide = document.getElementById("slide");
+    const v = view === "department" ? department(data, slide) : overview(data, slide);
+    const logo = h("img", "logo"); logo.src = LOGO; logo.alt = "Ramstar"; slide.appendChild(logo);
+    document.fonts.ready.then(() => { v.fit(); document.body.dataset.ready = "1"; });
+  });
+</script>
+</body>
+</html>
