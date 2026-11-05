@@ -157,6 +157,18 @@
       "duration": 10
     },
     {
+      "title": "Christmas party",
+      "type": "event",
+      "tag": "Save the date",
+      "name": "Christmas Party",
+      "date": "2026-12-11",
+      "time": "6:00 PM",
+      "location": "Revs Rose Bowl",
+      "note": "Dinner and bowling. Join us to celebrate the season together!",
+      "decor": ["snow", "ornaments"],
+      "duration": 12
+    },
+    {
       "title": "Upcoming holidays",
       "type": "holidays",
       "holidays": [
