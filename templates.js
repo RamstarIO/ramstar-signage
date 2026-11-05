@@ -43,6 +43,13 @@
  *   (results: "number" and 1-4 "categories" (each with "name" and "winner") are required;
  *    "number" counts up keeping any "$", "%" or "+"; "partners" is 0-2 logos bottom left;
  *    a failed photo or logo is just left out.)
+ *   { "type": "accountability", "view": "overview" }
+ *   { "type": "accountability", "view": "department", "department": "Manufacturing" }
+ *   (accountability: both views read data/accountability.json: "asOf", "leadership" seats and
+ *    "departments" (name, people, duties, seats). A seat is { "seat", "people", "duties", "under"? };
+ *    an empty "people" list shows "Open seat", "under" names the seat it reports to in the same
+ *    department. "department" is a departments[].name or "Leadership"; "url" overrides the data
+ *    path for tests. A failed fetch or an unknown department skips the slide.)
  *
  * Each type is { render(slide, data), load?(slide), isActive?(slide) } and is
  * registered on window.RamstarTypes, which the player (index.html) looks up.
@@ -1507,6 +1514,228 @@
       add(root, head, cards, foot);
       fitResults(root, { head, number, cards, foot });
       countUp(number.heroSpan, numberText, parseInt(number.style.getPropertyValue("--d"), 10));
+      return starLast(root, anim);
+    }
+  };
+
+  // ---------- Accountability chart (docs/design/accountability) ----------
+  // Two views of one data file, data/accountability.json: "overview" (every
+  // seat on one screen) and "department" (one department, or "Leadership",
+  // per slide). Six slides share one fetch per refresh, like nfl.json.
+
+  const AC_URL = "data/accountability.json";
+  const AC_CACHE_MINUTES = 5; // the playlist's refreshMinutes
+  const AC_LOGO_GAP = 30;     // nothing comes closer than this to the corner logo
+  const AC_OV_BOTTOM = 1040;  // overview columns end above this
+  const AC_OV_SIZES = [[27, 23], [25, 21], [23, 20]];                  // seat / people
+  const AC_DP_SIZES = [[32, 24, 22], [30, 22, 20], [28, 21, 19]];     // seat / people / duties
+  const AC_DP_COMPACT = [[30, 22, 21], [28, 21, 19]];                 // step 4: duties inline
+  const acCache = new Map(); // url -> { json, fetchedAt }
+
+  async function acFetch(url) {
+    const now = Date.now();
+    const hit = acCache.get(url);
+    if (hit && now - hit.fetchedAt < AC_CACHE_MINUTES * 60 * 1000) return hit.json;
+    try {
+      const response = await fetch(`${url}${url.includes("?") ? "&" : "?"}t=${now}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`accountability: ${url} returned HTTP ${response.status}`);
+      const json = await response.json();
+      if (!json || !Array.isArray(json.leadership) || !Array.isArray(json.departments)) {
+        throw new Error(`accountability: ${url} has no leadership or departments list`);
+      }
+      acCache.set(url, { json, fetchedAt: now });
+      return json;
+    } catch (err) {
+      if (hit) { // network blip: the last good chart is still right
+        console.warn("accountability: refresh failed, using cached data:", err);
+        return hit.json;
+      }
+      throw err;
+    }
+  }
+
+  const acPeople = (list) => (Array.isArray(list) && list.length ? list.join(" · ") : null);
+  // Overview: groups over two shrink to a count ("8 people") so a column never overflows.
+  const acShortPeople = (list) => (Array.isArray(list) && list.length > 2 ? `${list.length} people` : acPeople(list));
+  // An empty people list is an open seat.
+  const acPeopleEl = (className, list) => {
+    const text = acPeople(list);
+    return text ? h("div", className, text) : h("div", `${className} t-ac-open`, "Open seat");
+  };
+  // Depth of a seat inside its department, from the "under" chain (indent stops at 2).
+  function acDepth(seat, seats) {
+    let d = 0;
+    for (let s = seat; s && s.under && d < 2; s = seats.find((x) => x.seat === s.under)) d += 1;
+    return d;
+  }
+  // Overview order: each seat followed by the seats under it.
+  function acOrdered(seats) {
+    const out = [];
+    const addSeat = (s) => { out.push(s); seats.filter((x) => x.under === s.seat && !out.includes(x)).forEach(addSeat); };
+    seats.filter((s) => !s.under || !seats.some((x) => x.seat === s.under)).forEach(addSeat);
+    return out;
+  }
+  function acAsOf(iso) {
+    const day = parseDay(iso);
+    return day ? `As of ${day.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}` : null;
+  }
+
+  // Box of a node in design pixels relative to the slide (offsets ignore the --k scale).
+  function acBox(node, root) {
+    let left = 0, top = 0;
+    for (let n = node; n && n !== root; n = n.offsetParent) { left += n.offsetLeft; top += n.offsetTop; }
+    return { left, top, right: left + node.offsetWidth, bottom: top + node.offsetHeight };
+  }
+  // True when a node comes within AC_LOGO_GAP of the corner logo.
+  function acHitsLogo(node, logo, root) {
+    const a = acBox(node, root), b = acBox(logo, root);
+    return a.right > b.left - AC_LOGO_GAP && a.bottom > b.top - AC_LOGO_GAP;
+  }
+
+  function acOverview(root, data, anim) {
+    add(root, star("t-star--acct-ov", "#163A72"));
+    add(root, anim(add(h("div", "t-ac-ov-top"), tag("Accountability Chart"), h("div", "t-ac-asof", acAsOf(data.asOf)))));
+
+    const lead = h("div", "t-ac-ov-lead");
+    data.leadership.forEach((s, i) => {
+      if (i) lead.appendChild(h("div", "t-ac-ov-link"));
+      add(lead, add(h("div", "t-ac-lead-card"), h("div", "t-ac-lead-seat", s.seat), acPeopleEl("t-ac-lead-name", s.people)));
+    });
+    // The stem and bar rise in with the leadership cards.
+    add(root, anim(add(h("div", "t-ac-ov-leadwrap"), lead, h("div", "t-ac-ov-stem"), h("div", "t-ac-ov-bar"))));
+
+    const cols = h("div", "t-ac-ov-cols");
+    data.departments.forEach((d, i) => {
+      const inner = h("div", "t-ac-col"); // carries the beat; the wrapper carries the entrance
+      inner.style.setProperty("--i", i);
+      const head = add(h("div", "t-ac-ov-head"), h("div", "t-ac-ov-dept", d.name), acPeopleEl("t-ac-ov-leader", d.people));
+      const list = h("div", "t-ac-ov-seats");
+      const seats = Array.isArray(d.seats) ? d.seats : [];
+      acOrdered(seats).forEach((s) => {
+        const people = acShortPeople(s.people);
+        add(list, add(h("div", `t-ac-ov-seat t-ac-l${acDepth(s, seats)}`),
+          h("div", "t-ac-ov-name", s.seat),
+          people ? h("div", "t-ac-ov-people", people) : h("div", "t-ac-ov-people t-ac-open", "Open seat")));
+      });
+      cols.appendChild(anim(add(h("div", "t-ac-ov-col"), add(inner, head, list))));
+    });
+    add(root, cols);
+    return cols;
+  }
+
+  // Fit (overview): seat/people sizes step 27/23 -> 25/21 -> 23/20 px until no
+  // column runs past y 1040 or into the logo.
+  function acFitOverview(root, cols, logo) {
+    const over = () => [...cols.children].some((c) => acBox(c, root).bottom > AC_OV_BOTTOM || acHitsLogo(c, logo, root));
+    let fits = false;
+    for (const [s, p] of AC_OV_SIZES) {
+      cols.style.setProperty("--ac-os", `${s}px`);
+      cols.style.setProperty("--ac-op", `${p}px`);
+      if ((fits = !over())) break;
+    }
+    if (!fits) console.warn("accountability: overview too full for one screen");
+  }
+
+  function acDepartment(root, data, model, anim) {
+    add(root, star("t-star--acct-dp", "#194B98"));
+    const d = model.dept;
+    const head = h("div", "t-ac-dp-head");
+    add(head, tag(`Accountability Chart · ${model.index + 1} of ${model.count}`));
+    const title = add(h("div", "t-ac-dp-title"), h("div", "t-ac-dp-name", d.name));
+    if (!model.leadership) title.appendChild(h("div", "t-ac-dp-led", `Led by ${acPeople(d.people) || "an open seat"}`));
+    add(head, title);
+    if (!model.leadership && Array.isArray(d.duties) && d.duties.length) {
+      add(head, add(h("div", "t-ac-dp-duties"), h("b", null, "Accountable for"), document.createTextNode(d.duties.join(" · "))));
+    }
+    add(root, anim(head));
+
+    const seats = model.leadership ? data.leadership : (Array.isArray(d.seats) ? d.seats : []);
+    const grid = h("div", `t-ac-grid${model.leadership ? " t-ac-grid--lead" : ""}`);
+    grid.style.setProperty("--cols", model.leadership ? 2 : seats.length <= 6 ? 3 : 4);
+    seats.forEach((s, i) => {
+      const card = h("div", `t-ac-card${model.leadership ? " t-ac-card--big" : ""}`); // carries the beat
+      card.style.setProperty("--i", i);
+      add(card, h("div", "t-ac-seat", s.seat), s.under ? h("div", "t-ac-under", `Reports to ${s.under}`) : null, acPeopleEl("t-ac-people", s.people));
+      const ul = h("ul", "t-ac-duties");
+      (Array.isArray(s.duties) ? s.duties : []).forEach((x) => ul.appendChild(h("li", null, x)));
+      if (ul.children.length) card.appendChild(ul);
+      grid.appendChild(anim(add(h("div", "t-ac-cell"), card))); // the cell carries the entrance
+    });
+    add(root, grid);
+    return { head, grid };
+  }
+
+  // Fit (department): the grid starts 30 px below the header. Card text steps
+  // 32/24/22 -> 30/22/20 -> 28/21/19 px until the cards fit the grid and clear
+  // the logo; then (step 4) the duties run inline ("a · b · c") at 30/22/21,
+  // then 28/21/19. Still too full: a console warning.
+  function acFitDepartment(root, { head, grid }, logo) {
+    grid.style.setProperty("--ac-gt", `${head.offsetTop + head.offsetHeight + 30}px`);
+    const over = () => grid.scrollHeight > grid.clientHeight + 1 ||
+      [...grid.children].some((c) => acHitsLogo(c, logo, root));
+    const size = ([s, p, du]) => {
+      grid.style.setProperty("--ac-cs", `${s}px`);
+      grid.style.setProperty("--ac-cp", `${p}px`);
+      grid.style.setProperty("--ac-cd", `${du}px`);
+    };
+    let fits = false;
+    for (const step of AC_DP_SIZES) { size(step); if ((fits = !over())) break; }
+    if (!fits) {
+      grid.classList.add("t-ac-grid--compact");
+      for (const step of AC_DP_COMPACT) { size(step); if ((fits = !over())) break; }
+    }
+    if (!fits) console.warn("accountability: department too full for one screen");
+  }
+
+  types.accountability = {
+    // Fetches the chart and waits for the fonts so the fit rules measure real
+    // text. A failed fetch or an unknown department rejects, and the player
+    // skips the slide with a console warning.
+    async load(slide) {
+      const data = await acFetch(slide.url || AC_URL);
+      const view = slide.view || "overview";
+      let model;
+      if (view === "overview") {
+        model = { view };
+      } else if (view === "department") {
+        const list = [{ name: "Leadership", leadership: true }, ...data.departments];
+        const index = list.findIndex((d) => d && d.name === slide.department);
+        if (index < 0) throw new Error(`accountability: department "${slide.department}" not found`);
+        model = { view, index, count: list.length, dept: list[index], leadership: index === 0 };
+      } else {
+        throw new Error(`accountability: unknown view "${view}"`);
+      }
+      if (document.fonts && document.fonts.load) {
+        await Promise.all([
+          document.fonts.load(`800 110px "Barlow Condensed"`),
+          document.fonts.load(`700 28px "Barlow Condensed"`),
+          document.fonts.load(`700 27px "Barlow"`),
+          document.fonts.load(`600 26px "Barlow"`),
+          document.fonts.load(`500 23px "Barlow"`)
+        ]).catch(() => null); // no fonts (offline): show the slide anyway
+      }
+      return Object.assign(model, { data });
+    },
+
+    render(slide, model) {
+      const anim = sequencer();
+      const root = slideRoot("navy t-slide--acct", slide, "beat");
+      const badge = logoBadge("right", "navy");
+      const logo = badge.querySelector("img");
+      logo.width = 1600; // the logo's real size, so it has its width before it loads
+      logo.height = 635;
+      const overview = model.view === "overview";
+      const parts = overview ? acOverview(root, model.data, anim) : acDepartment(root, model.data, model, anim);
+      add(root, badge);
+
+      // Measured once in the hidden 1920x1080 box, like the value slide.
+      const probe = h("div", "t-measure");
+      probe.appendChild(root);
+      document.body.appendChild(probe);
+      if (overview) acFitOverview(root, parts, logo);
+      else acFitDepartment(root, parts, logo);
+      probe.remove();
+      root.remove();
       return starLast(root, anim);
     }
   };

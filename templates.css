@@ -1040,3 +1040,101 @@
 .t-res-partner { background: #FFFFFF; border-radius: 10px; padding: 8px 14px; }
 .t-res-partner img { display: block; width: auto; height: auto; max-width: 190px; max-height: 84px; }
 .t-res-ramstar { display: block; width: 220px; height: auto; }
+
+/* ---------- Accountability chart (docs/design/accountability) ----------
+   Navy. "overview" (.t-ac-ov-*) puts every seat on one screen; "department"
+   (.t-ac-dp-*, .t-ac-grid) one department per slide. The fit rules in
+   templates.js set the --ac-* sizes. Overview columns and department cells
+   carry the entrance; .t-ac-col and .t-ac-card inside them carry the beat. */
+.t-slide--acct .t-tag { font-size: 34px; padding: 6px 22px; }
+.t-ac-open { color: #F7941D; font-style: italic; }
+.t-star--acct-ov { right: -240px; bottom: -300px; width: 820px; height: 820px; }
+.t-star--acct-dp { right: -220px; top: -240px; width: 820px; height: 820px; }
+
+/* Overview */
+.t-ac-ov-top { position: absolute; left: 80px; top: 52px; display: flex; flex-direction: column; gap: 6px; }
+.t-ac-asof { font-size: 24px; color: #AFC0DA; }
+.t-ac-ov-leadwrap { position: absolute; left: 0; right: 0; top: 0; height: 210px; }
+.t-ac-ov-lead { position: absolute; left: 0; right: 0; top: 52px; display: flex; justify-content: center; align-items: center; }
+.t-ac-lead-card { background: #F7941D; color: #0E2A56; border-radius: 12px; padding: 12px 30px; text-align: center; min-width: 300px; }
+.t-ac-lead-seat {
+  font: 700 28px/1 "Barlow Condensed", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.t-ac-lead-name { font-size: 36px; font-weight: 700; line-height: 1.15; }
+.t-ac-lead-name.t-ac-open { color: #0E2A56; } /* never orange on orange */
+.t-ac-ov-link { width: 46px; height: 4px; background: #F7941D; }
+.t-ac-ov-stem { position: absolute; left: 50%; top: 158px; width: 4px; height: 44px; margin-left: -2px; background: #3B5C93; }
+.t-ac-ov-bar { position: absolute; left: 290px; right: 290px; top: 200px; height: 4px; background: #3B5C93; }
+.t-ac-ov-cols {
+  position: absolute;
+  left: 80px;
+  right: 80px;
+  top: 230px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px;
+  align-items: start;
+}
+.t-ac-ov-col { min-width: 0; }
+.t-ac-col { display: flex; flex-direction: column; gap: 14px; }
+.t-ac-ov-head { background: #163A72; border-top: 6px solid #F7941D; border-radius: 10px; padding: 12px 20px 14px; }
+.t-ac-ov-dept { font: 800 38px/1 "Barlow Condensed", sans-serif; text-transform: uppercase; }
+.t-ac-ov-leader { font-size: 26px; font-weight: 600; color: #D6DDEA; }
+.t-ac-ov-seats { display: flex; flex-direction: column; gap: 12px; padding: 0 8px; }
+.t-ac-ov-name { font-size: var(--ac-os, 27px); font-weight: 700; line-height: 1.15; }
+.t-ac-ov-people { font-size: var(--ac-op, 23px); font-weight: 500; line-height: 1.25; color: #AFC0DA; }
+.t-ac-ov-people.t-ac-open { color: #F7941D; }
+.t-ac-l1 { border-left: 3px solid #3B5C93; padding-left: 14px; }
+.t-ac-l2 { margin-left: 18px; border-left: 3px solid #3B5C93; padding-left: 14px; }
+
+/* Department */
+.t-ac-dp-head { position: absolute; left: 80px; right: 80px; top: 52px; display: flex; flex-direction: column; gap: 10px; }
+.t-ac-dp-title { display: flex; align-items: baseline; gap: 26px; }
+.t-ac-dp-name { font: 800 110px/0.85 "Barlow Condensed", sans-serif; text-transform: uppercase; white-space: nowrap; }
+.t-ac-dp-led { font-size: 34px; font-weight: 600; color: #D6DDEA; }
+.t-ac-dp-duties { font-size: 26px; color: #D6DDEA; line-height: 1.3; max-width: 1760px; }
+.t-ac-dp-duties b {
+  font: 700 24px "Barlow Condensed", sans-serif;
+  color: #F7941D;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-right: 8px;
+}
+.t-ac-grid {
+  position: absolute;
+  left: 80px;
+  right: 80px;
+  top: var(--ac-gt, 290px);
+  bottom: 150px;
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
+  grid-auto-rows: min-content;
+  gap: 20px;
+  align-content: start;
+}
+.t-ac-grid--lead { align-content: center; } /* Leadership: two big cards, centred in the space */
+.t-ac-cell { display: flex; flex-direction: column; min-width: 0; }
+.t-ac-card {
+  flex: 1;
+  background: #163A72;
+  border-radius: 12px;
+  padding: 16px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.t-ac-seat { font: 800 var(--ac-cs, 32px)/1 "Barlow Condensed", sans-serif; text-transform: uppercase; color: #F7941D; }
+.t-ac-under { font-size: 20px; color: #8EA3C6; margin-top: -2px; }
+.t-ac-people { font-size: var(--ac-cp, 24px); font-weight: 700; line-height: 1.2; }
+.t-ac-duties { margin: 2px 0 0; padding-left: 22px; font-size: var(--ac-cd, 22px); line-height: 1.3; color: #D6DDEA; }
+/* Fit step 4: duties as one inline run, "a · b · c" */
+.t-ac-grid--compact .t-ac-duties { list-style: none; padding-left: 0; }
+.t-ac-grid--compact .t-ac-duties li { display: inline; }
+.t-ac-grid--compact .t-ac-duties li + li::before { content: " · "; color: #8EA3C6; }
+.t-ac-card--big { padding: 30px 36px; gap: 12px; }
+.t-ac-card--big .t-ac-seat { font-size: 64px; }
+.t-ac-card--big .t-ac-people { font-size: 46px; }
+.t-ac-card--big .t-ac-duties { font-size: 36px; }
