@@ -201,7 +201,7 @@
       "type": "safety",
       "label": "Days since a key card went swimming",
       "since": "2026-11-04",
-      "tip": "Key cards open doors, not pipes.",
+      "tip": "Reminder: key cards open doors, NOT PIPES.",
       "duration": 10
     },
     {
