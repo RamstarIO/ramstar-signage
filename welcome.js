@@ -77,7 +77,7 @@
         anim(name),
         anim(h("div", "t-welcome-rule")),
         people ? anim(h("p", "t-welcome-people", people)) : null,
-        anim(h("p", "t-welcome-glad", "We're glad you're here.")));
+        anim(h("p", "t-welcome-glad", "Come Have A Great Day!")));
 
       const logo = h("img", "t-welcome-logo");
       logo.src = LOGO_REVERSE;
