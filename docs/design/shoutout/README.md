@@ -36,7 +36,7 @@ Approved: canvas option "B on orange". This is a reusable slide type for any tea
 | `message` | Optional. The supporting paragraph at the bottom left. |
 | `until` | Optional `YYYY-MM-DD`. Use `isActive()` so the slide stops showing after this date. Shout-outs go stale. |
 
-**Streak chips:** for `done` 1–5, one ✓ chip per period ("Week 1" … "Week 5"). From 6 on, the completed periods collapse into a single chip, "✓ 6 Weeks in a row". If `next` is set, a dashed chip "Week {done+1} · {next}" follows. **Updating the streak is a one-number change:** set `done` to 3 next week.
+**Streak chips:** for `done` 1–5, one ✓ chip per period ("Week 1" … "Week 5") in one row. For 6–10, one chip per period in two rows (3 + 3 for 6; the top row takes the extra one when odd), with the dashed chip beside them, centred. From 11 on, the completed periods collapse into a single chip, "✓ 11 Weeks in a row". If `next` is set, a dashed chip "Week {done+1} · {next}" follows. **Updating the streak is a one-number change:** set `done` to 3 next week.
 
 ## Layout (1920×1080)
 - Frame: padding 84 / 120, column, gap 28. Star outline top-right (900 px, right −220 / top −200): `#FFAE4A` on orange, `#194B98` on navy.
@@ -54,7 +54,8 @@ Approved: canvas option "B on orange". This is a reusable slide type for any tea
 2. Achievement: at most 2 lines, stepping 54 → 50 → 46 px.
 3. Streak: if the chip row is wider than 1680 px, the ✓ chips (not the dashed one) step 50 → 34 px in 4 px steps until it fits; log a `console.warn` if it still doesn't.
 4. Message: at most 3 lines, stepping 40 → 36 → 34 px.
-5. If content still reaches into the bottom padding, drop the message rather than overlap, and log a `console.warn`.
+5. Two rows of chips tighten the column gap 28 → 20 px. If content still reaches into the bottom padding, the ✓ chips keep stepping down (to 34 px), then the message (to 34 px), until it fits.
+6. If it still does, drop the message rather than overlap, and log a `console.warn`.
 
 ## Motion
 - Standard `t-in` entrances in order: tag, headline, achievement, streak row, message, logo; star last.
