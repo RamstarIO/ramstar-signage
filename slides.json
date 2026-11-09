@@ -80,25 +80,6 @@
       "duration": 12
     },
     {
-      "title": "Carve 4 Cancer results",
-      "type": "results",
-      "tag": "Carve 4 Cancer results",
-      "photo": "slides/c4c/2026-pumpkins.jpg",
-      "photoCaption": "Our entry · by Vanessa",
-      "number": "$15,072",
-      "caption": "raised for the Windsor Cancer Centre Foundation",
-      "note": "Thank you to everyone who voted and donated!",
-      "categories": [
-        { "name": "Best Pumpkin · Online vote", "winner": "KPMG", "runnerUp": "Vollmer Group" },
-        { "name": "Best Pumpkin · In-person vote", "winner": "Sunsetters Tanning Leamington", "runnerUp": "Vollmer Group" },
-        { "name": "Highest Fundraiser", "winner": "CenterLine", "winnerNote": "Over $1,000 in extra donations!", "runnerUp": "Cavalier Tool" },
-        { "name": "Judges' Award", "winner": "MTE Controls Corp.", "runnerUp": "“Bank Robber” pumpkin by the Bareich family & friends" }
-      ],
-      "partners": ["slides/c4c/wccf-logo.png"],
-      "until": "2026-11-13",
-      "duration": 15
-    },
-    {
       "title": "Birthdays",
       "type": "birthdays",
       "month": "NOVEMBER",
