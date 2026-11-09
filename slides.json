@@ -33,9 +33,9 @@
         "Family members are prohibited from winning"
       ],
       "closes": "Guesses close Fri, Nov 13 · 12:00 PM",
-      "reveal": false,
-      "answer": "",
-      "winner": "",
+      "reveal": true,
+      "answer": "Ben Stamatovski",
+      "winner": "Derek Bavetta",
       "duration": 10
     },
     {
