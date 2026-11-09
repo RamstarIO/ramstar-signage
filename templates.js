@@ -28,7 +28,7 @@
  *     "streak": { "done": 2, "unit": "Week", "next": "keep it going" },
  *     "message": "Your hard work is paying off.", "until": "2026-10-30" }
  *   (shoutout: "theme" is "orange" (default) or "navy"; "tag" and "cheer" are optional;
- *    "streak.done" 1-5 shows a chip per period, 6+ one "N Weeks in a row" chip.)
+ *    "streak.done" 1-5 shows a chip per period in one row, 6-10 in two rows, 11+ one "N Weeks in a row" chip.)
  *   { "type": "photo-feature", "photo": "slides/c4c/2026-pumpkins.jpg", "photoPosition": "30% 50%",
  *     "label": "Our Carve 4 Cancer entry", "logo": "slides/c4c/carve4cancer-logo.png",
  *     "headline": "Thank you,\n*Vanessa!*", "body": "Vanessa painted our witch...",
@@ -1202,13 +1202,16 @@
   const SO_ACH_SIZES = [54, 50, 46]; // at most 2 lines
   const SO_MSG_SIZES = [40, 36, 34]; // at most 3 lines
   const SO_CHIP_SIZES = [50, 46, 42, 38, 34]; // done chips, until the row fits SO_HEAD_AREA
-  const SO_MAX_CHIPS = 5;
+  const SO_MAX_CHIPS = 5; // one row
+  const SO_MAX_GRID = 10; // two rows
   const SO_PAD_BOTTOM = 84;
   const SO_TICK = '<svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4,12.5 9.5,18 20,6.5"/></svg>';
 
-  // Up to 5 completed periods get a chip each ("Week 1".."Week 5"); from 6 on
-  // they collapse into one ("6 Weeks in a row"). The dashed "next" chip
-  // ("Week 3 · keep it going") follows when streak.next is set. --i orders the beat.
+  // Up to 5 completed periods get a chip each in one row ("Week 1".."Week 5");
+  // 6-10 get a chip each in two rows (the top row takes the extra one when odd);
+  // from 11 on they collapse into one ("11 Weeks in a row"). The dashed "next"
+  // chip ("Week 3 · keep it going") follows when streak.next is set, beside the
+  // two rows when there are two. --i orders the beat (row by row, next chip last).
   function streakChips(streak) {
     const done = Number(streak.done);
     if (!Number.isInteger(done) || done < 1) {
@@ -1218,16 +1221,22 @@
     const unit = String(streak.unit || "Week").trim();
     const next = String(streak.next || "").trim();
     const chips = [];
-    if (done > SO_MAX_CHIPS) chips.push(["done", `${done} ${unit}s in a row`]);
+    if (done > SO_MAX_GRID) chips.push(["done", `${done} ${unit}s in a row`]);
     else for (let i = 1; i <= done; i += 1) chips.push(["done", `${unit} ${i}`]);
     if (next) chips.push(["next", `${unit} ${done + 1} · ${next}`]);
-    const row = h("div", "t-so-streak");
+    const grid = done > SO_MAX_CHIPS && done <= SO_MAX_GRID;
+    const row = h("div", grid ? "t-so-streak t-so-streak--grid" : "t-so-streak");
+    const weeks = grid ? h("div", "t-so-weeks") : null;
+    if (weeks) {
+      weeks.style.setProperty("--cols", Math.ceil(done / 2));
+      row.appendChild(weeks);
+    }
     chips.forEach(([kind, label], i) => {
       const chip = h("div", `t-so-chip t-so-chip--${kind}`);
       chip.style.setProperty("--i", i); // the beat bumps each chip in turn
       if (kind === "done") chip.innerHTML = SO_TICK;
       chip.appendChild(h("span", null, label));
-      row.appendChild(chip);
+      (weeks && kind === "done" ? weeks : row).appendChild(chip);
     });
     return row;
   }
@@ -1242,8 +1251,10 @@
   //    neither is wider than 1680 px; 2. the achievement steps 54 -> 50 -> 46 px
   //    until it is at most 2 lines; 3. the done streak chips step 50 -> 34 px
   //    (4 px steps) until the row is no wider than 1680 px; 4. the message
-  //    steps 40 -> 36 -> 34 px until it is at most 3 lines; 5. if the foot still
-  //    reaches into the bottom padding, the message is dropped rather than overlap.
+  //    steps 40 -> 36 -> 34 px until it is at most 3 lines; 5. if the foot
+  //    reaches into the bottom padding and the chips are in two rows, they keep
+  //    stepping down (to 34 px), then the message steps down (to 34 px), until
+  //    it fits; 6. if it still does, the message is dropped rather than overlap.
   function fitShoutout(root, { frame, team, cheer, ach, streak, msg, foot }) {
     const probe = h("div", "t-measure");
     probe.appendChild(root);
@@ -1271,7 +1282,20 @@
         root.style.setProperty("--so-m", `${size}px`);
         if (lineCount(msg) <= 3) break;
       }
-      if (foot.offsetTop + foot.offsetHeight > frame.clientHeight - SO_PAD_BOTTOM) {
+      const overflows = () => foot.offsetTop + foot.offsetHeight > frame.clientHeight - SO_PAD_BOTTOM;
+      if (streak && streak.classList.contains("t-so-streak--grid") && overflows()) {
+        const current = parseFloat(root.style.getPropertyValue("--so-c")) || SO_CHIP_SIZES[0];
+        for (const size of SO_CHIP_SIZES.filter((s) => s < current)) {
+          root.style.setProperty("--so-c", `${size}px`);
+          if (!overflows()) break;
+        }
+        const msgNow = parseFloat(root.style.getPropertyValue("--so-m")) || SO_MSG_SIZES[0];
+        for (const size of SO_MSG_SIZES.filter((s) => s < msgNow)) {
+          if (!overflows()) break;
+          root.style.setProperty("--so-m", `${size}px`);
+        }
+      }
+      if (overflows()) {
         console.warn("shoutout: not enough room for the message; it is left out");
         msg.remove();
       }
@@ -1312,6 +1336,7 @@
       const achText = String(slide.achievement || "").replace(/\*[^*]+\*/g, (m) => m.replace(/-/g, "‑"));
       const ach = withAccent("t-so-ach", achText, "p");
       const streak = slide.streak && typeof slide.streak === "object" ? streakChips(slide.streak) : null;
+      if (streak && streak.classList.contains("t-so-streak--grid")) frame.classList.add("t-so-frame--grid"); // tighter gaps for the second row
 
       const foot = h("div", "t-so-foot");
       const msg = slide.message ? h("p", "t-so-msg", slide.message) : null;
