@@ -116,7 +116,7 @@
       "team": "MFG Team",
       "achievement": "Our Manufacturing Team hit its *on-time delivery targets* SIX weeks in a row!",
       "streak": { "done": 6, "unit": "Week", "next": "keep it going" },
-      "message": "Your hard work, teamwork, and commitment are paying off"
+      "message": "Your hard work, teamwork, and commitment are paying off!"
     },
     {
       "title": "Work anniversaries",
