@@ -26,16 +26,16 @@
     {
       "type": "photo-game",
       "title": "Guess the Baby",
-      "photo": "slides/baby/2026-11-02.jpg",
+      "photo": "slides/baby/2026-11-09.jpg",
       "rules": [
         "Guesses submitted on WhatsApp",
         "One baby per week",
         "Family members are prohibited from winning"
       ],
-      "closes": "Guesses close Fri, Nov 6 · 12:00 PM",
-      "reveal": true,
-      "answer": "Jamie Robinet",
-      "winner": "Derek Bavetta",
+      "closes": "Guesses close Fri, Nov 13 · 12:00 PM",
+      "reveal": false,
+      "answer": "",
+      "winner": "",
       "duration": 10
     },
     {
