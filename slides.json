@@ -31,23 +31,9 @@
       "overlay": {
         "tag": "Remembrance Day",
         "title": "Lest we forget",
-        "body": "Moment of silence at 11:00 AM"
+        "body": ""
       },
       "duration": 12
-    },
-    {
-      "title": "Remembrance Day - silence",
-      "src": "slides/remembrance/remembrance-bg.png",
-      "takeover": {
-        "from": "2026-11-11T10:59",
-        "until": "2026-11-11T11:03"
-      },
-      "progress": false,
-      "overlay": {
-        "tag": "Remembrance Day",
-        "title": "Lest we forget",
-        "body": "Please observe 2 minutes of silence with us."
-      }
     },
     {
       "type": "photo-game",
