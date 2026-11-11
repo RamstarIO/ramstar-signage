@@ -1,10 +1,10 @@
 {
   "on": true,
-  "guest": "Plasel",
-  "people": "Tom Watson",
-  "from": "2026-11-06T10:15",
-  "until": "2026-11-06T11:00",
+  "guest": "CFIB",
+  "people": "",
+  "from": "2026-11-17T10:15",
+  "until": "2026-11-17T11:00",
   "visits": [
-    { "guest": "Plasel", "people": "Tom Watson", "from": "2026-11-06T10:15", "until": "2026-11-06T11:00" }
+    { "guest": "CFIB", "people": "", "from": "2026-11-17T10:15", "until": "2026-11-17T11:00" }
   ]
 }
