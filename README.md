@@ -201,6 +201,7 @@ If something sensitive is committed by mistake, deleting it is **not** enough. T
 | `progress` | | `false` hides the progress bar while this slide is on screen (logo slides do this automatically). |
 | `effect` | | `"zoom"` (slow push-in) or `"none"`. Overrides `defaultEffect`. |
 | `overlay` | | Animated text on top of the image. See [Animation](#animation). |
+| `takeover` | | `{ "from": "2026-11-11T10:59", "until": "2026-11-11T11:03" }` (local TV time, both required, `until` after `from`). The slide never plays in the rotation (so it needs no `start`/`end`); inside the window it interrupts every TV and is held, with no progress bar and `effect` defaulting to `"none"`, then the playlist resumes from the first slide. Beats welcome mode. Checked against the TV clock every 5 s. A bad window is ignored with a console warning. See `docs/design/takeover/README.md`. |
 
 Date windows use each TV's local date, so an event slide can be scheduled weeks ahead and it removes itself after the event.
 

@@ -1,0 +1,186 @@
+--- a/index.html
++++ b/index.html
+@@ -256,6 +256,8 @@
+   let welcome = null;     // last good welcome.json
+   let welcomeOn = false;  // the welcome screen is showing instead of the playlist
+   let welcomeShown = "";  // guest/people currently on screen, to spot edits
++  let takeoverOn = false; // a "takeover" slide is holding every screen (beats welcome)
++  let takeoverShown = ""; // the takeover slide on screen, to spot edits
+   let codeVersion = null; // fingerprint of the code this page was loaded with
+   let reloadPending = false;
+ 
+@@ -314,6 +316,7 @@
+ 
+   function isActive(slide) {
+     if (slide.enabled === false) return false;
++    if (slide.takeover) return false; // takeover slides only ever show in their window
+     const today = todayIso();
+     if (slide.start && today < slide.start) return false;
+     if (slide.end && today > slide.end) return false;
+@@ -409,7 +412,7 @@
+       } else if (code !== codeVersion) {
+         reloadPending = true;
+         console.info(`New code deployed (${codeVersion} -> ${code}); reloading in ${config.codeReloadMinutes} min`);
+-        setTimeout(() => window.location.reload(), config.codeReloadMinutes * 60 * 1000);
++        setTimeout(reloadWhenFree, config.codeReloadMinutes * 60 * 1000);
+       }
+     } catch (err) {
+       // offline or invalid: try again on the next refresh
+@@ -422,7 +425,8 @@
+       const keepGoing = await loadConfig();
+       if (!keepGoing) return;
+       if (position >= playlist.length) position = -1;
+-      if (welcomeOn) return; // the playlist resumes when welcome mode ends
++      applyTakeover(); // picks up a takeover that was added or edited
++      if (welcomeOn || takeoverOn) return; // the playlist resumes when they end
+       if (playlist.length === 0) {
+         showStatus("No slides are scheduled right now.");
+       } else if (timer === null) {
+@@ -431,7 +435,7 @@
+       }
+     } catch (err) {
+       console.warn("Config refresh failed:", err);
+-      if (playlist.length === 0 && !welcomeOn) showStatus("Waiting for network…");
++      if (playlist.length === 0 && !welcomeOn && !takeoverOn) showStatus("Waiting for network…");
+     }
+   }
+ 
+@@ -482,6 +486,7 @@
+   }
+ 
+   function applyWelcome() {
++    if (takeoverOn) return; // re-checked when the takeover ends
+     const visit = activeVisit(welcome, new Date());
+     if (visit) {
+       const slide = { type: "welcome", guest: visit.guest, people: visit.people, progress: false };
+@@ -504,16 +509,100 @@
+   async function showWelcome(slide, key) {
+     const type = typeOf(slide);
+     const data = type.load ? await type.load(slide) : null;
+-    if (!welcomeOn || welcomeShown !== key) return; // changed while loading
++    if (takeoverOn || !welcomeOn || welcomeShown !== key) return; // changed while loading
+     show(slide, 0, data);
+   }
+ 
++  // ---------- takeover ----------
++  // A slide with "takeover": {"from": "2026-11-11T10:59", "until": "2026-11-11T11:03"}
++  // (local time, like welcome.json) never plays in the rotation. Inside its
++  // window it interrupts whatever is on screen, on every TV, and holds there:
++  // no advancing, no progress bar. When the window ends the playlist resumes
++  // (or welcome mode, if a visit is still on). Checked against the TV's clock
++  // every few seconds, so no fetch is needed at the moment itself.
++
++  const TAKEOVER_CHECK_MS = 5 * 1000;
++
++  function takeoverWindow(slide) {
++    const t = slide && slide.takeover;
++    if (!t || typeof t !== "object") return null;
++    const from = parseLocal(t.from);
++    const until = parseLocal(t.until);
++    if (!from || !until || until <= from) {
++      console.warn(`Takeover "${slide.title || ""}" needs "from" and "until" like 2026-11-11T10:59 - ignored`);
++      return null;
++    }
++    return { from, until };
++  }
++
++  // The first enabled takeover slide whose window includes now, or null.
++  function activeTakeover(now) {
++    const slides = Array.isArray(config.slides) ? config.slides : [];
++    return slides.find((slide) => {
++      if (!slide || slide.enabled === false) return false;
++      const w = takeoverWindow(slide);
++      return w !== null && now >= w.from && now < w.until;
++    }) || null;
++  }
++
++  function applyTakeover() {
++    const now = new Date();
++    const slide = activeTakeover(now);
++    if (slide) {
++      const key = JSON.stringify(slide);
++      if (takeoverOn && key === takeoverShown) return;
++      takeoverOn = true;
++      takeoverShown = key;
++      clearTimeout(timer);
++      timer = null;
++      showTakeover(slide, key, (takeoverWindow(slide).until - now) / 1000);
++    } else if (takeoverOn) {
++      takeoverOn = false;
++      takeoverShown = "";
++      welcomeOn = false;   // let welcome mode re-check itself from scratch
++      welcomeShown = "";
++      applyWelcome();
++      if (welcomeOn) return;
++      position = -1; // back to the first playlist slide
++      if (playlist.length === 0) showStatus("No slides are scheduled right now.");
++      else advance();
++    }
++  }
++
++  async function showTakeover(slide, key, seconds) {
++    let data = null;
++    try {
++      const type = typeOf(slide);
++      if (type === undefined) throw new Error(`Unknown slide type "${slide.type}"`);
++      if (type) data = type.load ? await type.load(slide) : null;
++      else await preload(slide.src);
++    } catch (err) {
++      // Couldn't load it: carry on with the playlist and try again on the next check.
++      console.warn("Takeover slide failed to load:", err.message);
++      if (takeoverShown !== key) return;
++      takeoverOn = false;
++      takeoverShown = "";
++      if (!welcomeOn && timer === null) advance();
++      return;
++    }
++    if (!takeoverOn || takeoverShown !== key) return; // changed while loading
++    // Held, still and without a bar, for the rest of the window.
++    show({ ...slide, progress: false, effect: slide.effect || "none" }, Math.max(1, seconds), data);
++  }
++
++  // Reloads wait until a takeover has finished, so a code update or the
++  // 6-hour reload never blanks the screen in the middle of one.
++  function reloadWhenFree() {
++    if (takeoverOn) setTimeout(reloadWhenFree, 30 * 1000);
++    else window.location.reload();
++  }
++
+   // ---------- playback ----------
+ 
+   async function advance() {
+     clearTimeout(timer);
+     timer = null;
+-    if (welcomeOn || playlist.length === 0) return;
++    if (welcomeOn || takeoverOn || playlist.length === 0) return;
+ 
+     for (let attempt = 0; attempt < playlist.length; attempt++) {
+       position = (position + 1) % playlist.length;
+@@ -529,7 +618,7 @@
+         } else {
+           await preload(slide.src);
+         }
+-        if (welcomeOn) return; // welcome mode started while this slide was loading
++        if (welcomeOn || takeoverOn) return; // welcome/takeover started while this slide was loading
+         const seconds = Number(slide.duration) || config.defaultDuration;
+         show(slide, seconds, data);
+         timer = setTimeout(advance, seconds * 1000);
+@@ -539,7 +628,7 @@
+       }
+     }
+ 
+-    if (welcomeOn) return;
++    if (welcomeOn || takeoverOn) return;
+     showStatus("None of the scheduled slides could be loaded.");
+     timer = setTimeout(advance, 30 * 1000);
+   }
+@@ -638,7 +727,8 @@
+     await refreshConfig();
+     setInterval(pollWelcome, WELCOME_POLL_MS);
+     setInterval(refreshConfig, config.refreshMinutes * 60 * 1000);
+-    setTimeout(() => window.location.reload(), config.hardReloadHours * 60 * 60 * 1000);
++    setInterval(applyTakeover, TAKEOVER_CHECK_MS);
++    setTimeout(reloadWhenFree, config.hardReloadHours * 60 * 60 * 1000);
+   }
+ 
+   start();
