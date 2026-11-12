@@ -24,18 +24,6 @@
       "duration": 12
     },
     {
-      "title": "Remembrance Day",
-      "src": "slides/remembrance/remembrance-bg.png",
-      "start": "2026-11-11",
-      "end": "2026-11-11",
-      "overlay": {
-        "tag": "Remembrance Day",
-        "title": "Lest we forget",
-        "body": ""
-      },
-      "duration": 12
-    },
-    {
       "type": "photo-game",
       "title": "Guess the Baby",
       "photo": "slides/baby/2026-11-09.jpg",
