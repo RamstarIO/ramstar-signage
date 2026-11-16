@@ -34,8 +34,8 @@
  *     "headline": "Thank you,\n*Vanessa!*", "body": "Vanessa painted our witch...",
  *     "partners": ["slides/c4c/wccf-logo.png"], "qr": { "src": "slides/c4c/vote-qr.svg", "caption": "Scan to vote" },
  *     "until": "2026-10-31" }
- *   (photo-feature: "photo" and "headline" are required; "\n" breaks the headline and its
- *    *accent* is navy on an orange block; "partners" is 0-2 logos in a top row beside "logo";
+ *   (photo-feature: "photo" and "headline" are required; "\n" breaks the headline and the body;
+ *    the headline's *accent* is navy on an orange block; "partners" is 0-2 logos in a top row beside "logo";
  *    "qr" is an optional code (with its own quiet zone) bottom left; a failed photo skips the
  *    slide, a failed logo or QR is just left out.)
  *   { "type": "results", "tag": "Carve 4 Cancer results", "photo": "slides/c4c/2026-pumpkins.jpg",

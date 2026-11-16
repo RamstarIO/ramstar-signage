@@ -1,0 +1,10 @@
+--- a/templates.css
++++ b/templates.css
+@@ -900,6 +900,7 @@
+ }
+ .t-slide--pf .t-pf-head--wrap .t-accent { white-space: normal; }
+ .t-pf-body {
++  white-space: pre-line; /* "\n" in "body" starts a new line */
+   margin: 0;
+   font-size: var(--pf-b, 36px);
+   font-weight: 500;
