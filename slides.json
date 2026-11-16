@@ -150,6 +150,15 @@
       "duration": 10
     },
     {
+      "title": "Toy & Can Drive",
+      "type": "photo-feature",
+      "photo": "slides/toydrive/toy-can-drive-2026.jpg",
+      "headline": "Toy & Can\n*Drive*",
+      "body": "Donations accepted through Friday, November 20. Toys must be new and unused. Canned and non-perishable food goes to Project HOPE Windsor Essex.\n\nInterested? See Kristen.",
+      "until": "2026-11-20",
+      "duration": 12
+    },
+    {
       "title": "Upcoming holidays",
       "type": "holidays",
       "holidays": [
