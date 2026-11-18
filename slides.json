@@ -33,9 +33,9 @@
         "Family members are prohibited from winning"
       ],
       "closes": "Guesses close Fri, Nov 20 · 12:00 PM",
-      "reveal": false,
-      "answer": "",
-      "winner": "",
+      "reveal": true,
+      "answer": "Emily Kimball",
+      "winner": "John Winkfield Sr.",
       "duration": 10
     },
     {
