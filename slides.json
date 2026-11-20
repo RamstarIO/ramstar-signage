@@ -24,6 +24,21 @@
       "duration": 12
     },
     {
+      "title": "Welcome back Rachelle",
+      "src": "slides/bg-navy.png",
+      "start": "2026-11-23",
+      "end": "2026-11-27",
+      "overlay": { "tag": "Back on the team", "title": "Welcome back, *Rachelle!*", "body": "Great to have you back with us." },
+      "duration": 10
+    },
+    {
+      "title": "Welcome back Rachelle - morning takeover",
+      "src": "slides/bg-navy.png",
+      "takeover": { "from": "2026-11-23T07:15", "until": "2026-11-23T08:00" },
+      "progress": false,
+      "overlay": { "tag": "Good morning, Ramstar", "title": "Welcome back, *Rachelle!*", "body": "So glad to have you back. Have a great first day!" }
+    },
+    {
       "type": "photo-game",
       "title": "Guess the Baby",
       "photo": "slides/baby/2026-11-16.jpg",
