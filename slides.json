@@ -32,13 +32,6 @@
       "duration": 10
     },
     {
-      "title": "Welcome back Rachelle - morning takeover",
-      "src": "slides/bg-navy.png",
-      "takeover": { "from": "2026-11-23T08:30", "until": "2026-11-23T09:10" },
-      "progress": false,
-      "overlay": { "tag": "Good morning, Ramstar", "title": "Welcome back, *Rachelle!*", "body": "So glad to have you back. Have a great first day!" }
-    },
-    {
       "type": "photo-game",
       "title": "Guess the Baby",
       "photo": "slides/baby/2026-11-23.jpg",
@@ -48,9 +41,9 @@
         "Family members are prohibited from winning"
       ],
       "closes": "Guesses close Fri, Nov 27 · 12:00 PM",
-      "reveal": false,
-      "answer": "",
-      "winner": "",
+      "reveal": true,
+      "answer": "Rachelle Da Dalt",
+      "winner": "Mike Krakana",
       "duration": 10
     },
     {
