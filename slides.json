@@ -34,7 +34,7 @@
     {
       "title": "Welcome back Rachelle - morning takeover",
       "src": "slides/bg-navy.png",
-      "takeover": { "from": "2026-11-23T07:15", "until": "2026-11-23T08:00" },
+      "takeover": { "from": "2026-11-23T08:30", "until": "2026-11-23T09:10" },
       "progress": false,
       "overlay": { "tag": "Good morning, Ramstar", "title": "Welcome back, *Rachelle!*", "body": "So glad to have you back. Have a great first day!" }
     },
