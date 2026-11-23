@@ -143,6 +143,20 @@
       ]
     },
     {
+      "title": "Company value",
+      "type": "value",
+      "index": "2 of 4",
+      "name": "WE HELP",
+      "examples": [
+        "We offer advice and resources for improvement",
+        "We go above and beyond for customers and colleagues",
+        "We create opportunities for training and career growth",
+        "We provide value-added products and services for customers",
+        "We are accommodating for work and personal life"
+      ],
+      "duration": 10
+    },
+    {
       "title": "Event countdown",
       "type": "event",
       "name": "Ramstar Olympics",
@@ -165,15 +179,6 @@
       "duration": 10
     },
     {
-      "title": "Toy & Can Drive",
-      "type": "photo-feature",
-      "photo": "slides/toydrive/toy-can-drive-2026.jpg",
-      "headline": "Toy & Can\n*Drive*",
-      "body": "Donations accepted through Friday, November 20. Toys must be new and unused. Canned and non-perishable food goes to Project HOPE Windsor Essex.\n\nInterested? See Kristen.",
-      "until": "2026-11-20",
-      "duration": 12
-    },
-    {
       "title": "Upcoming holidays",
       "type": "holidays",
       "holidays": [
@@ -186,20 +191,6 @@
         { "name": "Winter shutdown", "from": "2026-12-24", "to": "2027-01-01", "note": "Office and manufacturing" }
       ],
       "duration": 12
-    },
-    {
-      "title": "Company value",
-      "type": "value",
-      "index": "2 of 4",
-      "name": "WE HELP",
-      "examples": [
-        "We offer advice and resources for improvement",
-        "We go above and beyond for customers and colleagues",
-        "We create opportunities for training and career growth",
-        "We provide value-added products and services for customers",
-        "We are accommodating for work and personal life"
-      ],
-      "duration": 10
     },
     {
       "title": "Safety",
